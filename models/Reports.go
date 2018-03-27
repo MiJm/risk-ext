@@ -32,6 +32,7 @@ func (this *Reports) RemoveShare(shareId string) {
 	if this.ReportShares != nil {
 		delete(this.ReportShares, shareId)
 	}
+	this.Update()
 }
 
 func (this *Reports) Insert() {
