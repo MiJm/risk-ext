@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -33,6 +34,13 @@ func (this *Reports) RemoveShare(shareId string) {
 		delete(this.ReportShares, shareId)
 	}
 	this.Update()
+}
+
+func (this *Reports) Delete() error {
+	if this.ReportId == EmptyId {
+		return errors.New("id be empty")
+	}
+	return this.Collection(this).RemoveId(this.ReportId)
 }
 
 func (this *Reports) Insert() {
