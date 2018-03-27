@@ -33,7 +33,6 @@ func (this *Reports) RemoveShare(shareId string) {
 		delete(this.ReportShares, shareId)
 	}
 	this.Update()
-
 }
 
 func (this *Reports) Insert() {
