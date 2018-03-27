@@ -56,3 +56,10 @@ func (this *Reports) Update() {
 		this.Collection(this).UpdateId(this.ReportId, update)
 	}
 }
+
+func (this *Reports) List(query interface{}) (rs []*Reports) {
+	if this.ReportId == EmptyId {
+		this.Collection(this).Find(query).All(&rs)
+	}
+	return
+}
