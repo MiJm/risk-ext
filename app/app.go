@@ -1,9 +1,14 @@
 package app
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"reflect"
 	"risk-ext/config"
+	"strings"
 
+	_ "github.com/franela/goreq"
 	"github.com/kataras/iris/context"
 
 	"github.com/kataras/iris"
@@ -44,9 +49,7 @@ func AddPath(path string, obj interface{}) {
 	paths[path] = obj
 }
 
-func Run() {
-	host := config.GetString("host")
-	port := config.GetString("port")
+func App() *iris.Application {
 
 	for k, m := range paths {
 		v := reflect.ValueOf(m)
@@ -54,6 +57,19 @@ func Run() {
 			fn := v.MethodByName(md)
 			if fn.IsValid() {
 				args_ := []reflect.Value{reflect.ValueOf(k), reflect.ValueOf(func(ctx iris.Context) {
+					authFunc := v.MethodByName("Auth")
+					authResult = true
+					if authFunc.IsValid() {
+						result := authFunc.Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(md)})
+						authResult = result[0].Bool()
+					}
+
+					if !authResult {
+						ctx.StatusCode(403)
+						ctx.JSON("没有权限")
+						return
+					}
+
 					args := []reflect.Value{reflect.ValueOf(ctx)}
 					rs := fn.Call(args)
 					ctx.StatusCode(int(rs[0].Int()))
@@ -66,10 +82,38 @@ func Run() {
 				}
 			}
 		}
-
 	}
+	return app
+}
+
+//认证
+func auth(ctx iris.Context) error {
+
+}
+
+func Run() {
+	app := App()
+	host := config.GetString("host")
+	port := config.GetString("port")
 	if port == "" {
 		port = "80"
 	}
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
+}
+
+func httpPost() {
+	resp, err := http.Post("http://www.01happy.com/demo/accept.php",
+		"application/x-www-form-urlencoded",
+		strings.NewReader("name=cjb"))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		// handle error
+	}
+
+	fmt.Println(string(body))
 }

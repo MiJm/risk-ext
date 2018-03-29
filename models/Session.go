@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"gopkg.in/mgo.v2/bson"
@@ -9,7 +10,13 @@ import (
 
 var coll = "loginuser"
 
-type Users struct {
+type Session struct {
+	Type    int8     //用户类型 0=manager 1=member
+	User    users    //前端用户
+	Manager managers //管理员
+}
+
+type users struct {
 	Redis            `bson:"-" json:"-"` //model基类
 	UserId           bson.ObjectId       `json:"member_id"`            //id
 	UserFname        string              `json:"member_fname"`         //姓名
@@ -32,16 +39,30 @@ type Users struct {
 	Amount           Amounts             `json:"-"`                    //余量
 }
 
+type managers struct {
+	Manager_id     bson.ObjectId `json:"manager_id"`
+	Manager_fname  string        `json:"manager_fname"`  //姓名
+	Manager_mobile string        `json:"manager_mobile"` //手机号码
+	Manager_level  uint8         `json:"manager_level"`  //0管理员 1客服 2仓库 3销售助理
+	Manager_passwd string        `json:"manager_passwd"` //登录密码
+	Manager_token  string        `json:"manager_token"`  //登录token
+	Manager_enable uint8         `json:"manager_enable"` //0禁用 1启用
+	Manager_login  uint32        `json:"manager_login"`  //最后登录时间
+	Manager_date   uint32        `json:"manager_date"`   //注册时间
+}
+
 /**
  * 余量redis表（目前是智能追车，以后会有征信 违章等）
  */
 type Amounts struct {
-	CompanyId  string `json:"company_id"`   //id
-	QueryAiCar uint32 `json:"query_ai_car"` //只能追车查询数量
+	Redis      `bson:"-" json:"-"` //model基类
+	CompanyId  string              `json:"company_id"`   //id
+	QueryAiCar uint32              `json:"query_ai_car"` //只能追车查询数量
 }
 
 //获取当前登录用户
-func (this *Users) Data(token string) *Users {
+func (this *Session) Data(token string) *Session {
+
 	var user = struct {
 		Type int8   `json:"type"` //用户类型 0=manager 1=member
 		Data string `json:"data"` //用户内容json
@@ -59,24 +80,29 @@ func (this *Users) Data(token string) *Users {
 	if user.Type == 0 {
 		return nil
 	} else if user.Type == 1 {
-		json.Unmarshal([]byte(user.Data), this)
+		err = json.Unmarshal([]byte(user.Data), &this.User)
+		if err == nil {
+			this.Map("amounts", this.User.UserCompany_id, &this.User.Amount)
+		}
 	} else {
-		return nil
+		json.Unmarshal([]byte(user.Data), &this.Manager)
 	}
-
-	this.Map("amounts", this.UserCompany_id, &this.Amount)
-
 	return this
 }
 
-//修改只能追车数量
-func (this *Users) ChangeAmount(aiCarAmount uint32) error {
-	this.Amount.CompanyId = this.UserCompany_id
-	this.Amount.QueryAiCar = aiCarAmount
-	return this.SaveAmount()
+//修改只能追车数量 erp使用
+func (this *Session) ChangeAmount(company_id string, aiCarAmount uint32) error {
+	if this.Type == 0 {
+		var amount = new(Amounts)
+		amount.CompanyId = company_id
+		amount.QueryAiCar = aiCarAmount
+		return amount.Save()
+	} else {
+		return errors.New("没权限")
+	}
 }
 
 //保存
-func (this *Users) SaveAmount() error {
-	return this.Save("amounts", this.UserCompany_id, this.Amount)
+func (this *Amounts) Save() error {
+	return this.Redis.Save("amounts", this.CompanyId, *this)
 }
