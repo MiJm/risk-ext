@@ -4,7 +4,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type Log struct {
+type Logs struct {
 	LogId         bson.ObjectId `bson:"_id,omitempty" json:"log_id"`            //id
 	LogDate       uint32        `bson:"log_date" json:"log_date"`               //日期
 	LogItem       string        `bson:"log_item" json:"log_item"`               //查询的项目
