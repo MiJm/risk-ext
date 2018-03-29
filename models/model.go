@@ -30,6 +30,7 @@ func initColl(coll interface{}) string {
 }
 
 func (this *Redis) Map(key, field string, result interface{}) (err error) {
+
 	data, err := config.Redis.HGet(key, field).Bytes()
 	if err != nil {
 		return
