@@ -9,10 +9,10 @@ type Peccancies struct {
 	TotalFine   float32       `bson:"peccancy_total_fine" json:"peccancy_total_fine"`     //未处理违章总罚款
 	TotalPoints uint8         `bson:"peccancy_total_points" json:"peccancy_total_points"` //未处理违章总扣分
 	Untreated   uint8         `bson:"peccancy_untreated" json:"peccancy_untreated"`       //未处理违章条数
-
+1
 }
 
-type Peccancy struct {
+type Info struct {
 	PeccancyTime          uint32  `bson:"peccancy_time" json:"peccancy_time"`                     //违章时间
 	PeccancyFine          float32 `bson:"peccancy_fine" json:"peccancy_fine"`                     //违章罚款总额
 	PeccancyAddress       string  `bson:"peccancy_address" json:"peccancy_address"`               //违章地址
