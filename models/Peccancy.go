@@ -8,14 +8,10 @@ import (
 )
 
 type Peccancies struct {
-	Model          `bson:"-" json:"-"` //model基类
-	PeccancyId     bson.ObjectId       `bson:"_id,omitempty" json:"peccancy_id"`                   //id
-	TotalFine      float32             `bson:"peccancy_total_fine" json:"peccancy_total_fine"`     //未处理违章总罚款
-	TotalPoints    uint8               `bson:"peccancy_total_points" json:"peccancy_total_points"` //未处理违章总扣分
-	Untreated      uint8               `bson:"peccancy_untreated" json:"peccancy_untreated"`       //未处理违章条数
-	PeccanciesInfo []Info              `bson:"peccancy_info" json:"peccancy_info"`                 //违章时间
-	QueryDate      uint32              `bson:"query_date" json:"query_date"`                       //查询日期
-	CarPlate       string              `bson:"car_plate" json:"car_plate"`                         //车牌号
+	PeccancyId  bson.ObjectId `bson:"_id,omitempty" json:"peccancy_id"`                   //id
+	TotalFine   float32       `bson:"peccancy_total_fine" json:"peccancy_total_fine"`     //未处理违章总罚款
+	TotalPoints uint8         `bson:"peccancy_total_points" json:"peccancy_total_points"` //未处理违章总扣分
+	Untreated   uint8         `bson:"peccancy_untreated" json:"peccancy_untreated"`       //未处理违章条数
 }
 
 type Info struct {

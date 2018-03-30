@@ -11,9 +11,10 @@ import (
 var coll = "loginuser"
 
 type Session struct {
-	Type    int8     //用户类型 0=manager 1=member
-	User    users    //前端用户
-	Manager managers //管理员
+	Redis   `bson:"-" json:"-"` //model基类
+	Type    int8                //用户类型 0=manager 1=member
+	User    users               //前端用户
+	Manager managers            //管理员
 }
 
 type users struct {
@@ -40,15 +41,16 @@ type users struct {
 }
 
 type managers struct {
-	Manager_id     bson.ObjectId `json:"manager_id"`
-	Manager_fname  string        `json:"manager_fname"`  //姓名
-	Manager_mobile string        `json:"manager_mobile"` //手机号码
-	Manager_level  uint8         `json:"manager_level"`  //0管理员 1客服 2仓库 3销售助理
-	Manager_passwd string        `json:"manager_passwd"` //登录密码
-	Manager_token  string        `json:"manager_token"`  //登录token
-	Manager_enable uint8         `json:"manager_enable"` //0禁用 1启用
-	Manager_login  uint32        `json:"manager_login"`  //最后登录时间
-	Manager_date   uint32        `json:"manager_date"`   //注册时间
+	Redis          `bson:"-" json:"-"` //model基类
+	Manager_id     bson.ObjectId       `json:"manager_id"`
+	Manager_fname  string              `json:"manager_fname"`  //姓名
+	Manager_mobile string              `json:"manager_mobile"` //手机号码
+	Manager_level  uint8               `json:"manager_level"`  //0管理员 1客服 2仓库 3销售助理
+	Manager_passwd string              `json:"manager_passwd"` //登录密码
+	Manager_token  string              `json:"manager_token"`  //登录token
+	Manager_enable uint8               `json:"manager_enable"` //0禁用 1启用
+	Manager_login  uint32              `json:"manager_login"`  //最后登录时间
+	Manager_date   uint32              `json:"manager_date"`   //注册时间
 }
 
 /**
@@ -57,7 +59,7 @@ type managers struct {
 type Amounts struct {
 	Redis      `bson:"-" json:"-"` //model基类
 	CompanyId  string              `json:"company_id"`   //id
-	QueryAiCar uint32              `json:"query_ai_car"` //只能追车查询数量
+	QueryAiCar int                 `json:"query_ai_car"` //只能追车查询数量
 }
 
 //获取当前登录用户
@@ -77,25 +79,24 @@ func (this *Session) Data(token string) *Session {
 			return nil
 		}
 	}
+
 	if user.Type == 0 {
-		return nil
+		json.Unmarshal([]byte(user.Data), &this.Manager)
 	} else if user.Type == 1 {
 		err = json.Unmarshal([]byte(user.Data), &this.User)
 		if err == nil {
 			this.Map("amounts", this.User.UserCompany_id, &this.User.Amount)
 		}
-	} else {
-		json.Unmarshal([]byte(user.Data), &this.Manager)
 	}
 	return this
 }
 
 //修改只能追车数量 erp使用
-func (this *Session) ChangeAmount(company_id string, aiCarAmount uint32) error {
+func (this *Session) ChangeAmount(company_id string, aiCarAmount int) error {
 	if this.Type == 0 {
 		var amount = new(Amounts)
 		amount.CompanyId = company_id
-		amount.QueryAiCar = aiCarAmount
+		amount.QueryAiCar += aiCarAmount
 		return amount.Save()
 	} else {
 		return errors.New("没权限")

@@ -58,9 +58,9 @@ func App() *iris.Application {
 			if fn.IsValid() {
 				args_ := []reflect.Value{reflect.ValueOf(k), reflect.ValueOf(func(ctx iris.Context) {
 					authFunc := v.MethodByName("Auth")
-					authResult = true
+					authResult := true
 					if authFunc.IsValid() {
-						result := authFunc.Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(md)})
+						result := authFunc.Call([]reflect.Value{reflect.ValueOf(ctx)})
 						authResult = result[0].Bool()
 					}
 
@@ -84,11 +84,6 @@ func App() *iris.Application {
 		}
 	}
 	return app
-}
-
-//认证
-func auth(ctx iris.Context) error {
-
 }
 
 func Run() {
