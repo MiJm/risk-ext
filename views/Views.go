@@ -16,6 +16,11 @@ const (
 	MEMBER_SUPER   = 2
 	MEMBER_ADMIN   = 1
 	MEMBER_GENERAL = 0
+
+	HTTP_OK_200                  = 200
+	HTTP_100_Continue            = 100
+	HTTP_101_Switching_Protocols = 101
+	HTTP_102_Processing          = 102
 )
 
 type A []uint8
@@ -30,6 +35,9 @@ type Views struct {
 func (this *Views) Auth(ctx iris.Context) bool {
 	if Session == nil {
 		token := ctx.GetHeader("token")
+		if token == "" {
+			token = ctx.FormValue("token")
+		}
 		Session = new(models.Session).Data(token)
 	}
 	return true
