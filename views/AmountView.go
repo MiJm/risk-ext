@@ -58,7 +58,7 @@ func (this *AmountView) Put(ctx iris.Context) (statuCode int, data interface{}) 
 		logs.LogOperator = Session.Manager.Manager_fname
 		logs.LogOperatorId = Session.Manager.Manager_id.Hex()
 		logs.Insert()
-        statuCode = 400
+        statuCode = 204
 	} else {
 		data = "更改失败"
 	}
