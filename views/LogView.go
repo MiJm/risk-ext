@@ -2,6 +2,7 @@ package views
 
 import (
 	"risk-ext/models"
+	"strconv"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -21,24 +22,41 @@ func (this *LogView) Auth(ctx iris.Context) bool {
 }
 
 //日志列表
-func (this *LogView) Get(ctx iris.Context) (statuCode int, data map[string]interface{}) {
+func (this *LogView) Get(ctx iris.Context) (statuCode int, data M) {
 	statuCode = 400
-	page, err := ctx.PostValueInt("page")
+	page := ctx.FormValue("page")
+	size := ctx.FormValue("size")
+	p, err := strconv.ParseInt(page, 10, 64)
 	if err != nil {
-		page = 1
+		p = 1
 	}
-	pageSize, err := ctx.PostValueInt("size")
+	s, err := strconv.ParseInt(size, 10, 64)
 	if err != nil {
-		pageSize = 30
+		s = 30
 	}
+	companyId := ctx.FormValue("com_id")
+	if !bson.IsObjectIdHex(companyId) {
+		data["error"] = "企业ID不正确"
+		return
+	}
+
 	logs := new(models.Logs)
-	rs, num, err := logs.List(bson.M{}, page, pageSize)
+	query := bson.M{"log_company_id": companyId}
+	rs, num, err := logs.List(query, int(p), int(s))
 	if err != nil {
+		data["list"] = "无数据"
 		statuCode = 400
 		return
 	}
-	data["num"] = num
+	if len(rs) == 0 {
+		rs = []*models.Logs{}
+	}
+	amount := models.Amounts{}
+	Session.Amount(companyId, &amount)
+	data = make(M)
 	data["list"] = rs
+	data["num"] = num
+	data["ai_amount"] = amount.QueryAiCar
 	statuCode = 200
 	return
 }

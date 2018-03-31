@@ -107,3 +107,12 @@ func (this *Session) ChangeAmount(company_id string, aiCarAmount int) error {
 func (this *Amounts) Save() error {
 	return this.Redis.Save("amounts", this.CompanyId, *this)
 }
+
+//根据企业ID获取追车数量 erp使用
+func (this *Session) Amount(company_id string, amount *Amounts) error {
+	if this.Type == 0 {
+		return this.Map("amounts", company_id, amount)
+	} else {
+		return errors.New("没权限")
+	}
+}

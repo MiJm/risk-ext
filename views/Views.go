@@ -23,9 +23,12 @@ const (
 	HTTP_102_Processing          = 102
 )
 
-type A []uint8
-type MA map[string]A
-type PMS map[string]MA
+type (
+	A   []uint8
+	M   map[string]interface{}
+	MA  map[string]A
+	PMS map[string]MA
+)
 
 var Session *models.Session
 
