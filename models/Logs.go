@@ -21,3 +21,16 @@ type Logs struct {
 func (this *Logs) Insert() error {
 	return this.Collection(this).Insert(*this)
 }
+
+func (this *Logs) List(query interface{}, page, size int) (rs []*Logs, num int, err error) {
+	if this.LogId == EmptyId {
+		if page < 1 {
+			page = 1
+		}
+		offset := (page - 1) * size
+		find := this.Collection(this).Find(query)
+		num, _ = find.Count()
+		err = find.Sort("-log_date").Skip(offset).Limit(size).All(&rs)
+	}
+	return
+}

@@ -1,6 +1,7 @@
 package views
 
 import (
+	"fmt"
 	"risk-ext/models"
 	"time"
 
@@ -46,21 +47,22 @@ func (this *AmountView) Put(ctx iris.Context) (statuCode int, data interface{}) 
 		data = "企业名不正确"
 		return
 	}
-
-	if Session.ChangeAmount(companyId, changNum) == nil {
+	err = Session.ChangeAmount(companyId, changNum)
+	if err == nil {
 		logs := new(models.Logs)
 		logs.LogCompany = companyName
 		logs.LogCompanyId = companyId
 		logs.LogDate = time.Now().Unix()
-		logs.LogDetail = Session.Manager.Manager_fname + " 更改了企业：" + companyName + " 的"
-		logs.LogDetail += models.Extra[changeType] + "的查询次数。"
+		//logs.LogDetail = Session.Manager.Manager_fname + " 更改了企业：" + companyName + " 的"
+		//logs.LogDetail += models.Extra[changeType] + "的查询次数。"
+		logs.LogDetail = fmt.Sprintf("%d", changNum)
 		logs.LogItem = models.Extra[changeType]
 		logs.LogOperator = Session.Manager.Manager_fname
 		logs.LogOperatorId = Session.Manager.Manager_id.Hex()
 		logs.Insert()
-        statuCode = 204
+		statuCode = 204
 	} else {
-		data = "更改失败"
+		data = err.Error()
 	}
 	return
 }
