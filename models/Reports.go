@@ -33,11 +33,12 @@ type Shares struct {
 	ShareCreateAt int64  `bson:"share_createat" json:"share_createat"` //报表分享时间
 }
 
-func (this *Reports) RemoveShare(shareId string) {
+func (this *Reports) RemoveShare(shareId string) (err error) {
 	if this.ReportShares != nil {
 		delete(this.ReportShares, shareId)
 	}
-	this.Update()
+	err = this.Update()
+	return
 }
 
 func (this *Reports) Delete() error {
