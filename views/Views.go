@@ -1,7 +1,6 @@
 package views
 
 import (
-	"fmt"
 	"risk-ext/models"
 
 	"github.com/kataras/iris"
@@ -36,13 +35,11 @@ type Views struct {
 }
 
 func (this *Views) Auth(ctx iris.Context) bool {
-	if Session == nil {
-		token := ctx.GetHeader("token")
-		if token == "" {
-			token = ctx.FormValue("token")
-		}
-		Session = new(models.Session).Data(token)
+	token := ctx.GetHeader("token")
+	if token == "" {
+		token = ctx.FormValue("token")
 	}
+	Session = new(models.Session).Data(token)
 	return true
 }
 
@@ -54,11 +51,9 @@ func (this *Views) CheckPerms(perm MA) bool {
 	if perm["NOLOGIN"] != nil {
 		return true //无需登录
 	}
-
 	if Session == nil {
 		return false //session不存在无权限访问
 	}
-	fmt.Println(perm)
 	if Session.Type == 1 { //当前登录用户为普通用户
 		if perm["USER"] == nil {
 			return false //普通用户无权限

@@ -80,6 +80,7 @@ func (this *Session) Data(token string) *Session {
 		}
 	}
 
+	this.Type = user.Type
 	if user.Type == 0 {
 		json.Unmarshal([]byte(user.Data), &this.Manager)
 	} else if user.Type == 1 {
@@ -95,8 +96,11 @@ func (this *Session) Data(token string) *Session {
 func (this *Session) ChangeAmount(company_id string, aiCarAmount int) error {
 	if this.Type == 0 {
 		var amount = new(Amounts)
-		amount.CompanyId = company_id
+		this.Map("amounts", company_id, amount)
 		amount.QueryAiCar += aiCarAmount
+		if amount.QueryAiCar < 0 {
+			return errors.New("减扣次数不能超过当前次数")
+		}
 		return amount.Save()
 	} else {
 		return errors.New("没权限")

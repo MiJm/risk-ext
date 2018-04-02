@@ -17,7 +17,7 @@ func (this *LogView) Auth(ctx iris.Context) bool {
 	this.Views.Auth(ctx)
 	var perms = PMS{
 		"PUT": MA{"ADMIN": A{MANAGER_ADMIN, MANAGER_ASSISTANT, MANAGER_SERVICE}, "USER": A{}},
-		"GET": MA{"ADMIN": A{MANAGER_ADMIN, MANAGER_ASSISTANT, MANAGER_SERVICE}, "USER": A{MEMBER_SUPER, MEMBER_ADMIN}, "NOLOGIN": A{1}}}
+		"GET": MA{"ADMIN": A{MANAGER_ADMIN, MANAGER_ASSISTANT, MANAGER_SERVICE}, "USER": A{MEMBER_SUPER, MEMBER_ADMIN}}}
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
