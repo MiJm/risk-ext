@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/kataras/iris/context"
-	"github.com/smallnest/goreq"
 
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
@@ -96,10 +95,15 @@ func Run() {
 	}
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
 }
-func HttpClient(url string, parama string) interface{} {
+func HttpClient(url, parama, method string, token ...string) interface{} {
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", url, strings.NewReader(parama))
+	req, err := http.NewRequest(method, url, strings.NewReader(parama))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	if len(token) != 0 {
+		req.Header.Add("X-Token", token[0])
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
@@ -116,14 +120,4 @@ func HttpClient(url string, parama string) interface{} {
 		fmt.Println("json str to struct error")
 	}
 	return dat
-}
-
-func HttpPostJson(url string, rawJsonData string) string {
-	_, body, _ := goreq.New().Post(url).ContentType("json").SendRawString(rawJsonData).End()
-	return body
-}
-
-func HttpPostMap(url string, mapData string) string {
-	_, body, _ := goreq.New().Get(url).ContentType("json").SendMapString(mapData).End()
-	return body
 }

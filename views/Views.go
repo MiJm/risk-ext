@@ -1,6 +1,10 @@
 package views
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"risk-ext/app"
+	"risk-ext/config"
 	"risk-ext/models"
 
 	"github.com/kataras/iris"
@@ -80,5 +84,34 @@ func (this *Views) CheckPerms(perm MA) bool {
 
 }
 
-func (this *Views) GetMainData(params M) bool {
+func (this *Views) GetMainData(path, params string) interface{} {
+	url := config.GetString("main_url") + path
+	return app.HttpClient(url, params, "POST")
+}
+
+func (this *AmountView) GetAnalysisData(path, params string, method ...string) interface{} {
+	m5 := md5.New()
+	m5.Write([]byte(config.GetString("analysis_pwd")))
+	loginParams := "username=" + config.GetString("analysis_name") + "&password=" + hex.EncodeToString(m5.Sum(nil))
+	loginUrl := config.GetString("analysis_url") + "authorize/"
+	loginData := app.HttpClient(loginUrl, loginParams, "POST")
+	method_type := "POST"
+	if len(method) != 0 {
+		method_type = method[0]
+	}
+
+	type Login struct {
+		Code       int
+		Expires_in int
+		Msg        string
+		Token      string
+	}
+
+	loginRs := loginData.(Login)
+	if loginRs.Code != 0 {
+		return nil
+	}
+	url := config.GetString("analysis_url") + path
+	data := app.HttpClient(url, params, method_type, loginRs.Token)
+	return data
 }
