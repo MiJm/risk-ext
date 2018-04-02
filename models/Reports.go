@@ -16,6 +16,7 @@ type Reports struct {
 	ReportDataFrom uint8               `bson:"report_data_from" json:"report_data_from"` //报表源数据来源0=内部数据库 1=外部导入 @ReportType=0 仅追车有效
 	ReportStatus   uint8               `bson:"report_status" json:"report_status"`       //报表状态0=查询中 1=查询成功 2=查询失败
 	ReportOpenId   string              `bson:"report_status" json:"report_open_id"`      //报表关联第三方ID
+	ReportData     interface{}         `bson:"report_data" json:"report_data"`           //报表关联第三方结果
 	ReportShares   map[string]Shares   `bson:"report_shares" json:"report_shares"`       //报表分享列表  share_id作为键值
 	ReportCreateAt int64               `bson:"report_createat" json:"report_createat"`   //报表查询时间
 	ReportDoneAt   int64               `bson:"report_doneat" json:"report_doneat"`       //报表查询完成时间

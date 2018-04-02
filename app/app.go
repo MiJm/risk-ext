@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -8,8 +9,8 @@ import (
 	"risk-ext/config"
 	"strings"
 
-	_ "github.com/franela/goreq"
 	"github.com/kataras/iris/context"
+	"github.com/smallnest/goreq"
 
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
@@ -95,20 +96,34 @@ func Run() {
 	}
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
 }
-
-func httpPost() {
-	resp, err := http.Post("http://www.01happy.com/demo/accept.php",
-		"application/x-www-form-urlencoded",
-		strings.NewReader("name=cjb"))
+func HttpClient(url string, parama string) interface{} {
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", url, strings.NewReader(parama))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		// handle error
+		fmt.Println(err)
 	}
+	jsonStr := string(body)
 
-	fmt.Println(string(body))
+	var dat interface{}
+	if err := json.Unmarshal([]byte(jsonStr), &dat); err != nil {
+		fmt.Println("json str to struct error")
+	}
+	return dat
+}
+
+func HttpPostJson(url string, rawJsonData string) string {
+	_, body, _ := goreq.New().Post(url).ContentType("json").SendRawString(rawJsonData).End()
+	return body
+}
+
+func HttpPostMap(url string, mapData string) string {
+	_, body, _ := goreq.New().Get(url).ContentType("json").SendMapString(mapData).End()
+	return body
 }

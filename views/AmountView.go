@@ -1,6 +1,10 @@
 package views
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
+	"risk-ext/app"
 	"risk-ext/models"
 	"time"
 
@@ -21,6 +25,17 @@ func (this *AmountView) Auth(ctx iris.Context) bool {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
+func (this *AmountView) Get(ctx iris.Context) (statuCode int, data interface{}) {
+    m5 := md5.New()
+	m5.Write([]byte("123456"))
+	params := `username=jrm_user_1&password=`+hex.EncodeToString(m5.Sum(nil))
+	fmt.Println(params)
+
+	data = app.HttpClient("http://111.231.136.215/v1/api/authorize", params)
+
+	statuCode = 200
+	return
+}
 func (this *AmountView) Put(ctx iris.Context) (statuCode int, data interface{}) {
 	statuCode = 400
 	companyId := ctx.FormValue("company_id")
@@ -58,7 +73,7 @@ func (this *AmountView) Put(ctx iris.Context) (statuCode int, data interface{}) 
 		logs.LogOperator = Session.Manager.Manager_fname
 		logs.LogOperatorId = Session.Manager.Manager_id.Hex()
 		logs.Insert()
-        statuCode = 204
+		statuCode = 204
 	} else {
 		data = "更改失败"
 	}

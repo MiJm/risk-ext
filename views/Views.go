@@ -81,3 +81,6 @@ func (this *Views) CheckPerms(perm MA) bool {
 	}
 
 }
+
+func (this *Views) GetMainData(params M) bool {
+}
