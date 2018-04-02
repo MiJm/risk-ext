@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -8,7 +9,6 @@ import (
 	"risk-ext/config"
 	"strings"
 
-	_ "github.com/franela/goreq"
 	"github.com/kataras/iris/context"
 
 	"github.com/kataras/iris"
@@ -95,20 +95,29 @@ func Run() {
 	}
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
 }
+func HttpClient(url, parama, method string, token ...string) interface{} {
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, strings.NewReader(parama))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-func httpPost() {
-	resp, err := http.Post("http://www.01happy.com/demo/accept.php",
-		"application/x-www-form-urlencoded",
-		strings.NewReader("name=cjb"))
+	if len(token) != 0 {
+		req.Header.Add("X-Token", token[0])
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		// handle error
+		fmt.Println(err)
 	}
+	jsonStr := string(body)
 
-	fmt.Println(string(body))
+	var dat interface{}
+	if err := json.Unmarshal([]byte(jsonStr), &dat); err != nil {
+		fmt.Println("json str to struct error")
+	}
+	return dat
 }
