@@ -84,34 +84,41 @@ func (this *Views) CheckPerms(perm MA) bool {
 
 }
 
-func (this *Views) GetMainData(path, params string) interface{} {
+func (this *Views) GetMainData(path, params string, result interface{}) error {
 	url := config.GetString("main_url") + path
-	return app.HttpClient(url, params, "POST")
+	if Session.Type == 1 {
+		if params == "" {
+			params = "token=" + Session.User.UserToken
+		} else {
+			params += "&token=" + Session.User.UserToken
+		}
+	}
+	return app.HttpClient(url, params, "POST", result)
 }
 
-func (this *AmountView) GetAnalysisData(path, params string, method ...string) interface{} {
+func (this *Views) GetAnalysisData(path, params string, result interface{}, method ...string) error {
 	m5 := md5.New()
 	m5.Write([]byte(config.GetString("analysis_pwd")))
 	loginParams := "username=" + config.GetString("analysis_name") + "&password=" + hex.EncodeToString(m5.Sum(nil))
-	loginUrl := config.GetString("analysis_url") + "authorize/"
-	loginData := app.HttpClient(loginUrl, loginParams, "POST")
+	loginUrl := config.GetString("analysis_url") + "authorize"
+
 	method_type := "POST"
 	if len(method) != 0 {
 		method_type = method[0]
 	}
 
-	type Login struct {
+	loginData := struct {
 		Code       int
 		Expires_in int
 		Msg        string
 		Token      string
-	}
+	}{}
 
-	loginRs := loginData.(Login)
-	if loginRs.Code != 0 {
-		return nil
+	err := app.HttpClient(loginUrl, loginParams, "POST", &loginData)
+	if err != nil {
+		return err
 	}
 	url := config.GetString("analysis_url") + path
-	data := app.HttpClient(url, params, method_type, loginRs.Token)
-	return data
+	err = app.HttpClient(url, params, method_type, result, loginData.Token)
+	return err
 }

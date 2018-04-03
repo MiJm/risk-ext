@@ -24,19 +24,87 @@ func (this *ReportView) Auth(ctx iris.Context) bool {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *ReportView) Get(ctx iris.Context) (statuCode int, data M) {
+func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{}) {
 	statuCode = 400
-	data = make(M)
-	token := ctx.FormValueDefault("token", "123")
-	fmt.Println(token)
+	reportId := ctx.Params().Get("report_id")
+	if !bson.IsObjectIdHex(reportId) {
+		data = "报表ID不正确"
+		return
+	}
+	report := new(models.Reports)
+	report.ReportId = bson.ObjectIdHex(reportId)
+	report.Model.One(report)
+	if report.ReportCreateAt == 0 {
+		statuCode = 404
+		data = "报表不存在"
+		return
+	}
+
+	if report.ReportDeleteAt > 0 {
+		statuCode = 410
+		data = "报表已被删除"
+		return
+	}
+
+	if report.ReportStatus != 1 {
+		statuCode = 400
+		data = "报表当前状态不可用"
+		return
+	}
+
+	if report.ReportData != nil {
+		type item struct {
+			Start_point string
+			End_point   string
+			Start_time  string
+			End_time    string
+		}
+		analysis := struct {
+			Ok          bool
+			Code        int
+			Task_result struct {
+				Monday_road_lines    []item
+				Tuesday_road_lines   []item
+				Wednesday_road_lines []item
+				Thurday_road_lines   []item
+				Friday_road_lines    []item
+				Saturday_road_lines  []item
+				Sunday_road_lines    []item
+			}
+		}{}
+
+		err := this.GetAnalysisData("task/result", "task_id="+report.ReportOpenId, &analysis, "GET")
+		if err != nil || !analysis {
+			statuCode = 406
+			data = "报表结果获取失败"
+			return
+		}
+		report.ReportData = analysis.Task_result
+		report.Update()
+	}
+	statuCode = 200
+	data = report
+	return
+}
+
+func (this *ReportView) Get(ctx iris.Context) (statuCode int, result interface{}) {
+	statuCode = 400
+
 	page := ctx.FormValue("page")
 	size := ctx.FormValue("size")
 	reportId := ctx.Params().Get("report_id")
-	p, err := strconv.ParseInt(page, 10, 64)
+	if reportId != "" {
+		statuCode, result = this.Detail(ctx)
+		return
+	}
+
+	data := make(M)
+	result = data
+	p, err := strconv.ParseInt(page, 10, 16)
 	if err != nil {
 		p = 1
 	}
-	s, err := strconv.ParseInt(size, 10, 64)
+	s, err := strconv.ParseInt(size, 10, 16)
 	if err != nil {
 		s = 30
 	}

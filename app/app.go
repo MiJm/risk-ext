@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -95,9 +94,14 @@ func Run() {
 	}
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
 }
-func HttpClient(url, parama, method string, token ...string) interface{} {
+func HttpClient(url, parama, method string, result interface{}, token ...string) error {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, strings.NewReader(parama))
+
+	if err != nil {
+		return err
+	}
+
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	if len(token) != 0 {
@@ -106,18 +110,14 @@ func HttpClient(url, parama, method string, token ...string) interface{} {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	jsonStr := string(body)
-
-	var dat interface{}
-	if err := json.Unmarshal([]byte(jsonStr), &dat); err != nil {
-		fmt.Println("json str to struct error")
-	}
-	return dat
+	err = json.Unmarshal([]byte(jsonStr), result)
+	return err
 }
