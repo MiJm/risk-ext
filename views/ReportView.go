@@ -59,6 +59,7 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{
 			Start_time  string
 			End_time    string
 		}
+
 		analysis := struct {
 			Ok          bool
 			Code        int
@@ -74,7 +75,7 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{
 		}{}
 
 		err := this.GetAnalysisData("task/result", "task_id="+report.ReportOpenId, &analysis, "GET")
-		if err != nil || !analysis {
+		if err != nil || !analysis.Ok {
 			statuCode = 406
 			data = "报表结果获取失败"
 			return
