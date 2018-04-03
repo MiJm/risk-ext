@@ -58,7 +58,8 @@ func (this *Reports) Delete() error {
 	if this.ReportId == EmptyId {
 		return errors.New("id be empty")
 	}
-	return this.Collection(this).RemoveId(this.ReportId)
+	this.ReportDeleteAt = time.Now().Unix()
+	return this.Update()
 }
 
 func (this *Reports) Insert() (err error) {
