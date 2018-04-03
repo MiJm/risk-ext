@@ -3,7 +3,6 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/httplib"
@@ -34,6 +33,19 @@ type Shares struct {
 	ShareCreateAt int64  `bson:"share_createat" json:"share_createat"` //报表分享时间
 }
 
+type Routes struct {
+	Device_speed   uint8  `json:"device_speed"`   //速度
+	Device_latlng  Latlng `json:"device_latlng"`  //经纬度
+	Device_slatlng Latlng `json:"device_slatlng"` //原坐标
+	Device_address string `json:"device_address"` //地址
+	Device_loctype uint8  `json:"device_loctype"` //定位类型0=GPS 1=基站 2=WiFi
+	Device_loctime uint32 `json:"device_loctime"` //定位时间}
+}
+type Latlng struct {
+	Type        string    `json:"type"`        //Point
+	Coordinates []float64 `json:"coordinates"` //lng lat
+}
+
 func (this *Reports) RemoveShare(shareId string) (err error) {
 	if this.ReportShares != nil {
 		delete(this.ReportShares, shareId)
@@ -49,11 +61,11 @@ func (this *Reports) Delete() error {
 	return this.Collection(this).RemoveId(this.ReportId)
 }
 
-func (this *Reports) Insert() {
+func (this *Reports) Insert() (err error) {
 	this.ReportId = bson.NewObjectId()
 	this.ReportCreateAt = time.Now().Unix()
-	this.ReportPlate = "沪A123456"
-	fmt.Println(this.Collection(this).Insert(*this))
+	err = this.Collection(this).Insert(*this)
+	return
 }
 
 func (this *Reports) Update() (err error) {

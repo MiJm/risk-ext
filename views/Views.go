@@ -89,7 +89,7 @@ func (this *Views) GetMainData(path, params string) interface{} {
 	return app.HttpClient(url, params, "POST")
 }
 
-func (this *AmountView) GetAnalysisData(path, params string, method ...string) interface{} {
+func (this *Views) GetAnalysisData(path, params string, method ...string) interface{} {
 	m5 := md5.New()
 	m5.Write([]byte(config.GetString("analysis_pwd")))
 	loginParams := "username=" + config.GetString("analysis_name") + "&password=" + hex.EncodeToString(m5.Sum(nil))

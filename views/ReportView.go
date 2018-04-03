@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"new/system/utils"
 	"risk-ext/models"
+	"risk-ext/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -13,7 +13,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/httplib"
 	"github.com/kataras/iris"
 )
 
@@ -50,6 +49,7 @@ func (this *ReportView) Get(ctx iris.Context) (statuCode int, data M) {
 	companyId := Session.User.UserCompany_id
 	query := bson.M{}
 	query["report_company_id"] = companyId
+	query["report_deleteat"] = 0
 	data = make(M)
 	data["ai_amount"] = Session.User.Amount.QueryAiCar
 	if reportId != "" {
@@ -85,47 +85,69 @@ type Result struct {
 }
 
 //新增Report记录，发送获取Report请求
-func (this *ReportView) Post(ctx iris.Context) (statuCode int, data interface{}) {
+func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
+	data = make(M)
 	open := "http://192.168.1.118:8080/"
 	statuCode = 400
 	if Session.User.Amount.QueryAiCar <= 0 {
-		data = "查询次数不足"
+		data["error"] = "查询次数不足"
+		data["code"] = 0
 		return
 	}
 	token := ctx.PostValue("token")
 	carNum := ctx.FormValueDefault("car_num", "")
-	var rs = ""
 	var reportFrom uint8
 	if carNum == "" {
 		reportFrom = 1
-		title := []string{"device_latlng", "device_slatlng", "device_speed", "device_address", "device_loctype", "device_loctime"}
-		f, head, err := ctx.FormFile("")
+		f, head, err := ctx.FormFile("file")
 		b := make([]byte, head.Size)
 		_, err = f.Read(b)
 		if err != nil {
-			data = "读取文件失败"
+			data["code"] = 0
+			data["error"] = "读取文件失败"
 			return
 		}
+
 		da := string(b)
-		str := "["
 		result := strings.Split(da, "\n")
+		rout_arr := make([]models.Routes, 0)
 		for k, v := range result {
-			v1 := strings.Split(v, ",")
-			ma := make(map[string]string)
-			for j, k := range v1 {
-				ma[title[j]] = k
+			if k == 0 {
+				//第一行标题去掉
+				continue
 			}
-			s, err := json.Marshal(ma)
-			if err != nil {
+			v1 := strings.Split(v, ",")
+			routes := models.Routes{}
+			routes.Device_address = v1[5]
+			loctime := utils.Str2Time(v1[7])
+			routes.Device_loctime = loctime
+			typ, err := strconv.Atoi(v1[6])
+			speed, err4 := strconv.Atoi(v1[4])
+			if err != nil || err4 != nil {
+				data["code"] = 0
+				data["error"] = "文件格式有误"
 				return
 			}
-
-			if k == len(result)-1 {
-				str = fmt.Sprint("s%,s%]", str, s)
-			} else {
-				str = fmt.Sprint("s%,s%", str, s)
+			routes.Device_loctype = uint8(typ)
+			routes.Device_speed = uint8(speed)
+			var latlng = make([]float64, 0)
+			var slatlng = make([]float64, 0)
+			lat, err := strconv.ParseFloat(v1[0], 64)
+			lng, err1 := strconv.ParseFloat(v1[1], 64)
+			slat, err2 := strconv.ParseFloat(v1[2], 64)
+			slng, err3 := strconv.ParseFloat(v1[3], 64)
+			if err != nil || err1 != nil || err2 != nil || err3 != nil {
+				data["code"] = 0
+				data["error"] = "文件格式有误"
+				return
 			}
+			latlng = append(latlng, lng, lat)
+			slatlng = append(slatlng, slng, slat)
+			routes.Device_latlng.Coordinates = latlng
+			routes.Device_slatlng.Coordinates = slatlng
+			rout_arr = append(rout_arr, routes)
 		}
+		re, err := json.Marshal(rout_arr)
 		openUrl := "devices/" + time.Now().Format("200601") + "/"
 		saveUrl := beego.AppConfig.String("CarExport") + time.Now().Format("200601") + "/"
 		err = utils.IsFile(saveUrl)
@@ -134,38 +156,39 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data interface{})
 		}
 		saveUrl = fmt.Sprintf("%s%s轨迹.txt", saveUrl, carNum)
 		openUrl = fmt.Sprintf("%s%s轨迹.txt", openUrl, carNum)
-		err = ioutil.WriteFile(saveUrl, []byte(str), 0644)
+		err = ioutil.WriteFile(saveUrl, re, 0644)
 		open = open + openUrl
-		fmt.Println(open)
-
 	} else {
-		url := "http://192.168.1.118:8080/v1/routes/analyse_track"
-		req := httplib.Get(url)
-		req.Header("Content-Type", "application/json;charset=UTF-8")
-		req.Param("carNum", carNum)
-		req.Param("token", token)
-		rs1, err := req.String()
-		if err != nil {
-			data = "请求轨迹报表失败"
-			return
-		}
-		result := Result{}
-		err = json.Unmarshal([]byte(rs1), &result)
-		data := result.Data
-		open = open + data.(string)
-		fmt.Println(open)
+		//请求内部数据接口
+		parame := "carNum=" + carNum + "&" + "token=" + token
+		rs1 := new(Views).GetMainData("routes/analyse_track", parame)
+		result := rs1.(map[string]interface{})
+		data1 := result["data"]
+		open = open + data1.(string)
 	}
-
-	statuCode = 204
+	//	post_param := "file_url=" + open
+	//	post_res := new(Views).GetAnalysisData("task/file/submit", post_param)
+	//	res := post_res.(M)
+	//	if res["code"].(int) != 0 {
+	//		data["error"] = "上传数据失败"
+	//		data["code"] = 0
+	//		return
+	//	}
 	report := new(models.Reports)
 	report.ReportType = 0
 	report.ReportPlate = carNum
 	report.ReportDataFrom = reportFrom
-	report.ReportOpenId = "123456"
-	report.ReportCreateAt = time.Now().Unix()
+	//	report.ReportOpenId = res["task_id"].(string)
 	report.ReportCompanyId = Session.User.UserCompany_id
-	report.Insert()
-	data = rs
+	fmt.Println(report)
+	err := report.Insert()
+	if err != nil {
+		data["error"] = "上传数据失败"
+		data["code"] = 0
+		return
+	}
+	data["code"] = 1
+	statuCode = 200
 	return
 }
 
