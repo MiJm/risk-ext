@@ -57,7 +57,7 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{
 		return
 	}
 
-	if report.ReportData != nil {
+	if report.ReportData == nil {
 		type item struct {
 			Start_point string
 			End_point   string
@@ -79,7 +79,8 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{
 			}
 		}{}
 
-		err := this.GetAnalysisData("task/result", "task_id="+report.ReportOpenId, &analysis, "GET")
+		err := this.GetAnalysisData("task/result?task_id="+report.ReportOpenId, "", &analysis, "GET")
+		//fmt.Println(analysis)
 		if err != nil || !analysis.Ok {
 			statuCode = 406
 			data = "报表结果获取失败"

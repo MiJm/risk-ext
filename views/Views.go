@@ -3,6 +3,7 @@ package views
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"risk-ext/app"
 	"risk-ext/config"
 	"risk-ext/models"
@@ -96,10 +97,10 @@ func (this *Views) GetMainData(path, params string, result interface{}) error {
 	return app.HttpClient(url, params, "POST", result)
 }
 
-func (this *Views) GetAnalysisData(path, params string, result interface{}, method ...string) error {
+func (this *Views) GetAnalysisData(path string, params interface{}, result interface{}, method ...string) error {
 	m5 := md5.New()
 	m5.Write([]byte(config.GetString("analysis_pwd")))
-	loginParams := "username=" + config.GetString("analysis_name") + "&password=" + hex.EncodeToString(m5.Sum(nil))
+	loginParams := M{"username": config.GetString("analysis_name"), "password": hex.EncodeToString(m5.Sum(nil))}
 	loginUrl := config.GetString("analysis_url") + "authorize"
 
 	method_type := "POST"
@@ -115,8 +116,9 @@ func (this *Views) GetAnalysisData(path, params string, result interface{}, meth
 	}{}
 
 	err := app.HttpClient(loginUrl, loginParams, "POST", &loginData)
-	if err != nil {
-		return err
+
+	if err != nil || loginData.Code != 0 {
+		return errors.New("认证失败")
 	}
 	url := config.GetString("analysis_url") + path
 	err = app.HttpClient(url, params, method_type, result, loginData.Token)

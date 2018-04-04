@@ -94,20 +94,40 @@ func Run() {
 	}
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
 }
-func HttpClient(url, parama, method string, result interface{}, token ...string) error {
+func HttpClient(url string, args interface{}, method string, result interface{}, token ...string) error {
 	client := &http.Client{}
-	req, err := http.NewRequest(method, url, strings.NewReader(parama))
+	var params = ""
+	var contentType = "application/x-www-form-urlencoded"
+
+	if reflect.TypeOf(args).String() != "string" {
+		jsonData, err := json.Marshal(args)
+		if err != nil {
+			return err
+		}
+		params = string(jsonData)
+		contentType = "application/json"
+	} else {
+		params = args.(string)
+	}
+
+	var req *http.Request
+	var err error
+	if method == "GET" {
+		req, err = http.NewRequest(method, url, nil)
+	} else {
+		req, err = http.NewRequest(method, url, strings.NewReader(params))
+	}
 
 	if err != nil {
 		return err
 	}
 
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Type", contentType)
 
 	if len(token) != 0 {
 		req.Header.Add("X-Token", token[0])
 	}
-
+	//fmt.Println(contentType, url, params)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
