@@ -156,7 +156,7 @@ type Result struct {
 //新增Report记录，发送获取Report请求
 func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
-	open := "http://192.168.1.118:8080/"
+	open := "http://116.226.224.175:8081/"
 	statuCode = 400
 	if Session.User.Amount.QueryAiCar <= 0 {
 		data["error"] = "查询次数不足"
@@ -230,27 +230,46 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	} else {
 		//请求内部数据接口
 		parame := "carNum=" + carNum + "&" + "token=" + token
-		rs1 := new(Views).GetMainData("routes/analyse_track", parame)
-		result := rs1.(map[string]interface{})
-		data1 := result["data"]
-		open = open + data1.(string)
+		result := struct {
+			Status int
+			Data   string
+			Msg    string
+		}{}
+		err := new(Views).GetMainData("routes/analyse_track", parame, &result)
+		if err != nil {
+			data["code"] = 0
+			data["error"] = "查询轨迹失败"
+			return
+		}
+
+		data1 := result.Data
+		open = open + data1
 	}
-	//	post_param := "file_url=" + open
-	//	post_res := new(Views).GetAnalysisData("task/file/submit", post_param)
-	//	res := post_res.(M)
-	//	if res["code"].(int) != 0 {
-	//		data["error"] = "上传数据失败"
-	//		data["code"] = 0
-	//		return
-	//	}
+	post_param := "file_url=" + open
+	res := struct {
+		Ok     bool
+		Code   int
+		TaskId string `json:"task_id"`
+	}{}
+	err := new(Views).GetAnalysisData("task/file/submit", post_param, &res)
+	if err != nil {
+		data["code"] = 0
+		data["error"] = err.Error()
+		return
+	}
+	if !res.Ok {
+		data["error"] = "上传数据失败"
+		data["code"] = 0
+		return
+	}
 	report := new(models.Reports)
 	report.ReportType = 0
 	report.ReportPlate = carNum
 	report.ReportDataFrom = reportFrom
-	//	report.ReportOpenId = res["task_id"].(string)
+	report.ReportOpenId = res.TaskId
 	report.ReportCompanyId = Session.User.UserCompany_id
 	fmt.Println(report)
-	err := report.Insert()
+	err = report.Insert()
 	if err != nil {
 		data["error"] = "上传数据失败"
 		data["code"] = 0
