@@ -80,8 +80,8 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{
 		}{}
 
 		err := this.GetAnalysisData("task/result?task_id="+report.ReportOpenId, "", &analysis, "GET")
-		//fmt.Println(analysis)
-		if err != nil || !analysis.Ok {
+		fmt.Println(analysis)
+		if err != nil || analysis.Code != 0 {
 			statuCode = 406
 			data = "报表结果获取失败"
 			return
@@ -251,13 +251,14 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 		Code   int
 		TaskId string `json:"task_id"`
 	}{}
-	err := new(Views).GetAnalysisData("task/file/submit", M{"file_urls": open}, &res)
+	err := new(Views).GetAnalysisData("task/file/submit", M{"file_url": open}, &res)
 	if err != nil {
 		data["code"] = 0
 		data["error"] = err.Error()
 		return
 	}
-	if !res.Ok {
+    fmt.Println(res)
+	if res.Code != 0 {
 		data["error"] = "上传数据失败"
 		data["code"] = 0
 		return
