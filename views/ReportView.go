@@ -246,13 +246,12 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 		data1 := result.Data
 		open = open + data1
 	}
-	post_param := "file_url=" + open
 	res := struct {
 		Ok     bool
 		Code   int
 		TaskId string `json:"task_id"`
 	}{}
-	err := new(Views).GetAnalysisData("task/file/submit", post_param, &res)
+	err := new(Views).GetAnalysisData("task/file/submit", M{"file_urls": open}, &res)
 	if err != nil {
 		data["code"] = 0
 		data["error"] = err.Error()
