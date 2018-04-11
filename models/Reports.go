@@ -1,11 +1,9 @@
 package models
 
 import (
-	"encoding/json"
 	"errors"
 	"time"
 
-	"github.com/astaxie/beego/httplib"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -99,35 +97,6 @@ func (this *Reports) Lists(query interface{}, page, size int) (rs []*Reports, nu
 		offset := (page - 1) * size
 		num, _ = find.Count()
 		err = find.Sort("-report_createat").Skip(offset).Limit(size).All(&rs)
-		if err == nil {
-			for k, v := range rs {
-				if v.ReportStatus == 0 {
-					status := new(Reports).CheckStatus(v.ReportOpenId)
-					if status != 0 {
-						v.ReportStatus = status
-						rs[k] = v
-						v.Update()
-					}
-				}
-			}
-		}
-
-	}
-	return
-}
-
-func (this *Reports) CheckStatus(taskId string) (status int8) {
-	url := "http://ip:port/v1/api/task/status"
-	req := httplib.Get(url)
-	req.Param("task_id", taskId)
-	json_str, err := req.String()
-	if err != nil {
-		return
-	}
-	var dat map[string]interface{}
-	err = json.Unmarshal([]byte(json_str), &dat)
-	if err == nil {
-		status = dat["task_status"].(int8)
 	}
 	return
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"risk-ext/config"
 	"risk-ext/models"
 	"risk-ext/utils"
 	"strconv"
@@ -12,7 +13,6 @@ import (
 
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/astaxie/beego"
 	"github.com/kataras/iris"
 )
 
@@ -23,9 +23,10 @@ type ReportView struct {
 func (this *ReportView) Auth(ctx iris.Context) bool {
 	this.Views.Auth(ctx)
 	var perms = PMS{
-		"PUT":  MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN}},
-		"GET":  MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN, MEMBER_GENERAL}},
-		"POST": MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN, MEMBER_GENERAL}}}
+		"PUT":    MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN}},
+		"GET":    MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN, MEMBER_GENERAL}},
+		"POST":   MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN, MEMBER_GENERAL}},
+		"DELETE": MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN}}}
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
@@ -56,38 +57,11 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{
 		data = "报表当前状态不可用"
 		return
 	}
-
-	if report.ReportData == nil {
-		type item struct {
-			Start_point string
-			End_point   string
-			Start_time  string
-			End_time    string
-		}
-
-		analysis := struct {
-			Ok          bool
-			Code        int
-			Task_result struct {
-				Monday_road_lines    []item
-				Tuesday_road_lines   []item
-				Wednesday_road_lines []item
-				Thurday_road_lines   []item
-				Friday_road_lines    []item
-				Saturday_road_lines  []item
-				Sunday_road_lines    []item
-			}
-		}{}
-
-		err := this.GetAnalysisData("task/result?task_id="+report.ReportOpenId, "", &analysis, "GET")
-		fmt.Println(analysis)
-		if err != nil || analysis.Code != 0 {
-			statuCode = 406
-			data = "报表结果获取失败"
-			return
-		}
-		report.ReportData = analysis.Task_result
-		report.Update()
+	type Poi struct {
+		Device_address string  `json:"device_address"`
+		Device_lat     float64 `json:"device_lat"`
+		Device_lng     float64 `json:"device_lng"`
+		Device_loctime uint64  `json:"device_loctime"`
 	}
 	statuCode = 200
 	data = report
@@ -106,7 +80,7 @@ func (this *ReportView) Get(ctx iris.Context) (statuCode int, result interface{}
 	}
 
 	data := make(M)
-	result = data
+
 	p, err := strconv.ParseInt(page, 10, 16)
 	if err != nil {
 		p = 1
@@ -122,29 +96,17 @@ func (this *ReportView) Get(ctx iris.Context) (statuCode int, result interface{}
 	query["report_deleteat"] = 0
 	data = make(M)
 	data["ai_amount"] = Session.User.Amount.QueryAiCar
-	if reportId != "" {
-		rs, err := report.One(reportId)
-		if err != nil {
-			data["error"] = err
-			return
-		} else {
-			data["list"] = rs.ReportShares
-			data["code"] = 1
-			statuCode = 200
-		}
+	rs, num, err := report.Lists(query, int(p), int(s))
+	if err != nil {
+		data["error"] = err
+		return
 	} else {
-		rs, num, err := report.Lists(query, int(p), int(s))
-		if err != nil {
-			data["error"] = err
-			return
-		} else {
-			data["list"] = rs
-			data["num"] = num
-			data["code"] = 1
-			statuCode = 200
-		}
+		data["list"] = rs
+		data["num"] = num
+		data["code"] = 1
+		statuCode = 200
 	}
-
+	result = data
 	return
 }
 
@@ -157,7 +119,7 @@ type Result struct {
 //新增Report记录，发送获取Report请求
 func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
-	open := "http://116.226.224.175:8081/"
+	open := config.GetString("open_url")
 	statuCode = 400
 	if Session.User.Amount.QueryAiCar <= 0 {
 		data["error"] = "查询次数不足"
@@ -187,6 +149,9 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 				continue
 			}
 			v1 := strings.Split(v, ",")
+			if len(v1) < 8 {
+				continue
+			}
 			routes := models.Routes{}
 			routes.Device_address = v1[5]
 			loctime := utils.Str2Time(v1[7])
@@ -218,16 +183,16 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 			rout_arr = append(rout_arr, routes)
 		}
 		re, err := json.Marshal(rout_arr)
-		openUrl := "devices/" + time.Now().Format("200601") + "/"
-		saveUrl := beego.AppConfig.String("CarExport") + time.Now().Format("200601") + "/"
+		openUrl := config.GetString("CarExport") + time.Now().Format("200601") + "/"
+		saveUrl := config.GetString("CarExport") + time.Now().Format("200601") + "/"
 		err = utils.IsFile(saveUrl)
 		if err != nil {
 			return
 		}
-		saveUrl = fmt.Sprintf("%s%s轨迹.txt", saveUrl, carNum)
-		openUrl = fmt.Sprintf("%s%s轨迹.txt", openUrl, carNum)
+		saveUrl = fmt.Sprintf("%s%s轨迹.json", saveUrl, strconv.Itoa(int(time.Now().Unix())))
+		openUrl = fmt.Sprintf("%s%s轨迹.json", openUrl, strconv.Itoa(int(time.Now().Unix())))
 		err = ioutil.WriteFile(saveUrl, re, 0644)
-		open = open + openUrl
+		open = openUrl
 	} else {
 		//请求内部数据接口
 		parame := "carNum=" + carNum + "&" + "token=" + token
@@ -244,35 +209,32 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 		}
 
 		data1 := result.Data
-		open = open + data1
+		open = data1
 	}
-	res := struct {
-		Ok     bool
-		Code   int
-		TaskId string `json:"task_id"`
-	}{}
-	err := new(Views).GetAnalysisData("task/file/submit", M{"file_url": open}, &res)
-	if err != nil {
-		data["code"] = 0
-		data["error"] = err.Error()
-		return
-	}
-    fmt.Println(res)
-	if res.Code != 0 {
-		data["error"] = "上传数据失败"
-		data["code"] = 0
-		return
-	}
+
 	report := new(models.Reports)
 	report.ReportType = 0
 	report.ReportPlate = carNum
-	report.ReportDataFrom = reportFrom
-	report.ReportOpenId = res.TaskId
 	report.ReportCompanyId = Session.User.UserCompany_id
-	fmt.Println(report)
-	err = report.Insert()
+	report.ReportDataFrom = reportFrom
+	err := report.Insert()
 	if err != nil {
 		data["error"] = "上传数据失败"
+		data["code"] = 0
+		return
+	}
+	Task := struct {
+		ReportId string //报表ID
+		Path     string //分析数据文件路径
+	}{}
+	reportId := report.ReportId.Hex()
+	Task.Path = open
+	Task.ReportId = reportId
+	fmt.Println("Task", Task)
+
+	err = new(models.Redis).ListPush("analysis_tasks", Task)
+	if err != nil {
+		data["error"] = "建立任务失败"
 		data["code"] = 0
 		return
 	}
@@ -281,70 +243,24 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	return
 }
 
-//更新分享人信息
-func (this *ReportView) Put(ctx iris.Context) (statusCode int, data M) {
+func (this *ReportView) Delete(ctx iris.Context) (statusCode int, data M) {
 	data = make(M)
 	statusCode = 400
-	typ := ctx.FormValueDefault("type", "0")
-	reportId := ctx.FormValue("reportId")
-	if typ == "1" { //删除分享人
-		shareId := ctx.FormValue("shareId")
-		flag := bson.IsObjectIdHex(shareId)
-		if !flag {
-			data["error"] = "参数有误"
-			data["code"] = 0
-			return
-		}
-		fmt.Println(shareId)
-		rep := new(models.Reports)
-		port, _ := rep.One(reportId)
-		err := port.RemoveShare(shareId)
-		if err != nil {
-			data["error"] = "删除失败"
-			data["code"] = 0
-			return
-		}
-	} else if typ == "0" { //新增分享人
-
-		if Session.User.Amount.QueryAiCar <= 0 {
-			data["error"] = "查询次数不足"
-			data["code"] = 0
-			return
-		}
-
-		flag := bson.IsObjectIdHex(reportId)
-		if !flag {
-			data["error"] = "参数有误"
-			data["code"] = 0
-			return
-		}
-		phone := ctx.FormValue("phone")
-		fname := ctx.FormValue("fname")
-		if phone == "" || fname == "" {
-			data["error"] = "请输入完整参数"
-			data["code"] = 0
-			return
-		}
-		rs, err := new(models.Reports).One(reportId)
-		if err != nil {
-			data["error"] = "参数有误，无数据"
-			data["code"] = 0
-			return
-		}
-		shareId := bson.NewObjectId()
-		shareUser := models.Shares{}
-		shareUser.ShareId = shareId.Hex()
-		shareUser.ShareFname = fname
-		shareUser.ShareMobile = phone
-		shareUser.ShareCreateAt = time.Now().Unix()
-		rs.ReportShares[shareId.Hex()] = shareUser
-		err = rs.Update()
-		if err != nil {
-			data["error"] = "添加分享人失败"
-			data["code"] = 0
-			return
-		}
-
+	reportId := ctx.Params().Get("report_id")
+	flag := bson.IsObjectIdHex(reportId)
+	if !flag {
+		data["error"] = "参数有误"
+		data["code"] = 0
+		return
+	}
+	rep := new(models.Reports)
+	port, _ := rep.One(reportId)
+	port.ReportDeleteAt = time.Now().Unix()
+	err := port.Update()
+	if err != nil {
+		data["error"] = "删除失败"
+		data["code"] = 0
+		return
 	}
 	statusCode = 200
 	data["code"] = 1

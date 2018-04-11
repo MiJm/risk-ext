@@ -50,6 +50,16 @@ func (this *Redis) Save(key, field string, result interface{}) (err error) {
 	return
 }
 
+func (this *Redis) ListPush(key string, result interface{}) (err error) {
+	data, err := json.Marshal(result)
+	if err != nil {
+		return
+	}
+	strData := string(data)
+	err = config.Redis.LPush(key, []byte(strData)).Err()
+	return
+}
+
 func (this *Model) Collection(coll interface{}) (c *mgo.Collection) {
 	key := initColl(coll)
 	c = colls[key]

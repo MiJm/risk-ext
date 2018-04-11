@@ -7,6 +7,7 @@ import (
 	"risk-ext/app"
 	"risk-ext/config"
 	"risk-ext/models"
+	"strconv"
 
 	"github.com/kataras/iris"
 )
@@ -123,4 +124,23 @@ func (this *Views) GetAnalysisData(path string, params interface{}, result inter
 	url := config.GetString("analysis_url") + path
 	err = app.HttpClient(url, params, method_type, result, loginData.Token)
 	return err
+}
+
+//发送短信
+func (this *Views) SendMsg(phone, msg string, result interface{}, method ...string) int64 {
+	url := "http://www.jianzhou.sh.cn/JianzhouSMSWSServer/http/sendBatchMessage"
+	method_type := "POST"
+	if len(method) != 0 {
+		method_type = method[0]
+	}
+	params := M{"account": "sdk_jiujin", "destmobile": phone, "msgText": msg + " 【风控一号】", "password": "joy1101gin"}
+	err := app.HttpClient(url, params, method_type, result)
+	if err != nil {
+		return 0
+	}
+	code, err := strconv.ParseInt(result.(string), 10, 64)
+	if err != nil {
+		return 0
+	}
+	return code
 }
