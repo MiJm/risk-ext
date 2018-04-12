@@ -98,6 +98,7 @@ func (this *Session) ChangeAmount(company_id string, aiCarAmount int) error {
 		var amount = new(Amounts)
 		this.Map("amounts", company_id, amount)
 		amount.QueryAiCar += aiCarAmount
+		amount.CompanyId = company_id
 		if amount.QueryAiCar < 0 {
 			return errors.New("减扣次数不能超过当前次数")
 		}
