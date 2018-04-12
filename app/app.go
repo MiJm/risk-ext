@@ -125,7 +125,7 @@ func HttpClient(url string, args interface{}, method string, result interface{},
 	req.Header.Add("Content-Type", contentType)
 
 	if len(token) != 0 {
-		req.Header.Add("Authorization", token[0])
+		req.Header.Add("X-Token", token[0])
 	}
 	//fmt.Println(contentType, url, params)
 	resp, err := client.Do(req)
