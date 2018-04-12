@@ -119,7 +119,7 @@ type Result struct {
 //新增Report记录，发送获取Report请求
 func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
-	open := config.GetString("open_url")
+	open := ""
 	statuCode = 400
 	if Session.User.Amount.QueryAiCar <= 0 {
 		data["error"] = "查询次数不足"
@@ -201,15 +201,21 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 			Data   string
 			Msg    string
 		}{}
-		err := new(Views).GetMainData("routes/analyse_track", parame, &result)
+		err := this.GetMainData("routes/analyse_track", parame, &result)
 		if err != nil {
 			data["code"] = 0
 			data["error"] = "查询轨迹失败"
 			return
 		}
+		if result.Status == 1 {
+			data1 := result.Data
+			open = data1
+		} else {
+			data["error"] = result.Data
+			data["code"] = 0
+			return
+		}
 
-		data1 := result.Data
-		open = data1
 	}
 
 	report := new(models.Reports)

@@ -144,3 +144,32 @@ func (this *Views) SendMsg(phone, msg string, result interface{}, method ...stri
 	}
 	return code
 }
+
+//量讯平台登录
+func (this *Views) SimLogin() (token string) {
+	url := "http://120.26.213.169/api/access_token/"
+	method_type := "POST"
+	username := config.GetString("upiot_name")
+	passwd := config.GetString("upiot_pwd")
+	params := M{"username": username, "password": passwd}
+	result := struct {
+		Code  int
+		Token string
+	}{}
+	err := app.HttpClient(url, params, method_type, result)
+	if err == nil {
+		token = result.Token
+	}
+	return
+}
+
+//量讯获取卡号信息
+func (this *Views) SimInfo(simCard string, result interface{}, token ...string) {
+	url := "http://120.26.213.169/api/card/" + simCard
+	method_type := "GET"
+	params := M{}
+	err := app.HttpClient(url, params, method_type, token[0])
+	if err == nil {
+
+	}
+}
