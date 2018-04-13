@@ -143,6 +143,11 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	if from == 1 {
 		reportFrom = 1
 		f, head, err := ctx.FormFile("file")
+		if err != nil {
+			data["code"] = 0
+			data["error"] = "上传文件失败"
+			return
+		}
 		b := make([]byte, head.Size)
 		_, err = f.Read(b)
 		if err != nil {
@@ -194,15 +199,27 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 			rout_arr = append(rout_arr, routes)
 		}
 		re, err := json.Marshal(rout_arr)
+		if err != nil {
+			data["code"] = 0
+			data["error"] = "文件转换失败"
+			return
+		}
 		openUrl := config.GetString("CarExport") + time.Now().Format("200601") + "/"
 		saveUrl := config.GetString("CarExport") + time.Now().Format("200601") + "/"
 		err = utils.IsFile(saveUrl)
 		if err != nil {
+			data["code"] = 0
+			data["error"] = "保存文件失败"
 			return
 		}
 		saveUrl = fmt.Sprintf("%s%s轨迹.json", saveUrl, strconv.Itoa(int(time.Now().Unix())))
 		openUrl = fmt.Sprintf("%s%s轨迹.json", openUrl, strconv.Itoa(int(time.Now().Unix())))
 		err = ioutil.WriteFile(saveUrl, re, 0644)
+		if err != nil {
+			data["code"] = 0
+			data["error"] = "文件写入失败"
+			return
+		}
 		open = openUrl
 	} else {
 		//请求内部数据接口
