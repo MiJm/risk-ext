@@ -127,9 +127,20 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	token := ctx.PostValue("token")
+	from, err := ctx.PostValueInt("data_from") //from为0是内部 1是外部
+	if err != nil {
+		data["code"] = 0
+		data["error"] = "请选择数据来源"
+		return
+	}
 	carNum := ctx.FormValueDefault("car_num", "")
-	var reportFrom uint8
 	if carNum == "" {
+		data["code"] = 0
+		data["error"] = "请输入车牌号或者任务名称"
+		return
+	}
+	var reportFrom uint8
+	if from == 1 {
 		reportFrom = 1
 		f, head, err := ctx.FormFile("file")
 		b := make([]byte, head.Size)
@@ -223,7 +234,7 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	report.ReportPlate = carNum
 	report.ReportCompanyId = Session.User.UserCompany_id
 	report.ReportDataFrom = reportFrom
-	err := report.Insert()
+	err = report.Insert()
 	if err != nil {
 		data["error"] = "上传数据失败"
 		data["code"] = 0
