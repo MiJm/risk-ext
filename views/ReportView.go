@@ -240,7 +240,7 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 			data1 := result.Data
 			open = data1
 		} else {
-			data["error"] = result.Data
+			data["error"] = "不存在该车辆"
 			data["code"] = 0
 			return
 		}
