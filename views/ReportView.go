@@ -161,6 +161,7 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 		da := string(b)
 		result := strings.Split(da, "\n")
 		if len(result) < 10001 {
+			data["code"] = 0
 			data["error"] = "数据量不够10000条，无法分析产生报表"
 			return
 		}
@@ -176,7 +177,8 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 			}
 			routes := models.Routes{}
 			routes.Device_address = v1[5]
-			loctime := utils.Str2Time(v1[7])
+			t := strings.Replace(v1[7], "/", "-", -1)
+			loctime := utils.Str2Time(t)
 			routes.Device_loctime = loctime
 			typ, err := strconv.Atoi(v1[6])
 			speed, err4 := strconv.Atoi(v1[4])
