@@ -160,6 +160,10 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 
 		da := string(b)
 		result := strings.Split(da, "\n")
+		if len(result) < 10001 {
+			data["error"] = "数据量不够10000条，无法分析产生报表"
+			return
+		}
 		rout_arr := make([]models.Routes, 0)
 		for k, v := range result {
 			if k == 0 {
