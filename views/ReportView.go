@@ -121,7 +121,8 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	open := ""
 	statuCode = 400
-	if Session.User.Amount.QueryAiCar <= 0 {
+	amount := Session.User.Amount.QueryAiCar
+	if amount <= 0 {
 		data["error"] = "查询次数不足"
 		data["code"] = 0
 		return
@@ -264,7 +265,6 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	reportId := report.ReportId.Hex()
 	Task.Path = open
 	Task.ReportId = reportId
-	fmt.Println("Task", Task)
 
 	err = new(models.Redis).ListPush("analysis_tasks", Task)
 	if err != nil {
@@ -272,6 +272,11 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 		data["code"] = 0
 		return
 	}
+	amount--
+	am := models.Amounts{}
+	am.CompanyId = Session.User.UserCompany_id
+	am.QueryAiCar = amount
+	new(models.Redis).Save("amounts", Session.User.UserCompany_id, am)
 	data["code"] = 1
 	statuCode = 200
 	return
