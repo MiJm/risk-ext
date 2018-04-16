@@ -122,6 +122,7 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	open := ""
 	statuCode = 400
 	amount := Session.User.Amount.QueryAiCar
+	comId := Session.User.UserCompany_id
 	if amount <= 0 {
 		data["error"] = "查询次数不足"
 		data["code"] = 0
@@ -250,7 +251,7 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	report := new(models.Reports)
 	report.ReportType = 0
 	report.ReportPlate = carNum
-	report.ReportCompanyId = Session.User.UserCompany_id
+	report.ReportCompanyId = comId
 	report.ReportDataFrom = reportFrom
 	err = report.Insert()
 	if err != nil {
@@ -259,12 +260,14 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	Task := struct {
-		ReportId string //报表ID
-		Path     string //分析数据文件路径
+		ReportId  string //报表ID
+		CompanyId string //企业ID
+		Path      string //分析数据文件路径
 	}{}
 	reportId := report.ReportId.Hex()
 	Task.Path = open
 	Task.ReportId = reportId
+	Task.CompanyId = comId
 
 	err = new(models.Redis).ListPush("analysis_tasks", Task)
 	if err != nil {
@@ -274,9 +277,9 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	}
 	amount--
 	am := models.Amounts{}
-	am.CompanyId = Session.User.UserCompany_id
+	am.CompanyId = comId
 	am.QueryAiCar = amount
-	new(models.Redis).Save("amounts", Session.User.UserCompany_id, am)
+	new(models.Redis).Save("amounts", comId, am)
 	data["code"] = 1
 	statuCode = 200
 	return
