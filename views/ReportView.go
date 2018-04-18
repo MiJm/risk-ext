@@ -20,7 +20,7 @@ type ReportView struct {
 	Views
 }
 
-func (this *ReportView) Auth(ctx iris.Context) bool {
+func (this *ReportView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
 		"PUT":    MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN}},
@@ -70,16 +70,22 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{
 
 func (this *ReportView) Get(ctx iris.Context) (statuCode int, result interface{}) {
 	statuCode = 400
-
+	data := make(M)
 	page := ctx.FormValue("page")
 	size := ctx.FormValue("size")
 	reportId := ctx.Params().Get("report_id")
 	if reportId != "" {
 		statuCode, result = this.Detail(ctx)
+		if statuCode != 200 && statuCode != 204 {
+			data["code"] = 0
+			data["error"] = result
+		} else {
+			data["list"] = result
+			data["code"] = 1
+		}
+		result = data
 		return
 	}
-
-	data := make(M)
 
 	p, err := strconv.ParseInt(page, 10, 16)
 	if err != nil {
@@ -123,12 +129,13 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	statuCode = 400
 	amount := Session.User.Amount.QueryAiCar
 	comId := Session.User.UserCompany_id
+	groId := Session.User.UserGroupId
 	if amount <= 0 {
 		data["error"] = "查询次数不足"
 		data["code"] = 0
 		return
 	}
-	token := ctx.PostValue("token")
+	//	token := ctx.PostValue("token")
 	from, err := ctx.PostValueInt("data_from") //from为0是内部 1是外部
 	if err != nil {
 		data["code"] = 0
@@ -144,6 +151,7 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	var reportFrom uint8
 	if from == 1 {
 		reportFrom = 1
+		ctx.SetMaxRequestBodySize(2 << 31)
 		f, head, err := ctx.FormFile("file")
 		if err != nil {
 			data["code"] = 0
@@ -160,11 +168,6 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 
 		da := string(b)
 		result := strings.Split(da, "\n")
-		if len(result) < 10001 {
-			data["code"] = 0
-			data["error"] = "数据量不够10000条，无法分析产生报表"
-			return
-		}
 		rout_arr := make([]models.Routes, 0)
 		for k, v := range result {
 			if k == 0 {
@@ -172,39 +175,31 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 				continue
 			}
 			v1 := strings.Split(v, ",")
-			if len(v1) < 8 {
+			if len(v1) < 3 {
 				continue
 			}
 			routes := models.Routes{}
-			routes.Device_address = v1[5]
-			t := strings.Replace(v1[7], "/", "-", -1)
-			loctime := utils.Str2Time(t)
-			routes.Device_loctime = loctime
-			typ, err := strconv.Atoi(v1[6])
-			speed, err4 := strconv.Atoi(v1[4])
-			if err != nil || err4 != nil {
-				data["code"] = 0
-				data["error"] = "文件格式有误"
-				return
+
+			loctime := utils.Str2Time(v1[2])
+			if loctime == 0 {
+				continue
 			}
-			routes.Device_loctype = uint8(typ)
-			routes.Device_speed = uint8(speed)
-			var latlng = make([]float64, 0)
-			var slatlng = make([]float64, 0)
+			routes.Device_loctime = loctime
+			var latlng = make([]float64, 2)
 			lat, err := strconv.ParseFloat(v1[0], 64)
 			lng, err1 := strconv.ParseFloat(v1[1], 64)
-			slat, err2 := strconv.ParseFloat(v1[2], 64)
-			slng, err3 := strconv.ParseFloat(v1[3], 64)
-			if err != nil || err1 != nil || err2 != nil || err3 != nil {
-				data["code"] = 0
-				data["error"] = "文件格式有误"
-				return
+			if err != nil || err1 != nil {
+				continue
 			}
-			latlng = append(latlng, lng, lat)
-			slatlng = append(slatlng, slng, slat)
+			latlng[0] = lat
+			latlng[1] = lng
 			routes.Device_latlng.Coordinates = latlng
-			routes.Device_slatlng.Coordinates = slatlng
 			rout_arr = append(rout_arr, routes)
+		}
+		if len(rout_arr) < 10000 {
+			data["code"] = 0
+			data["error"] = "可用数据不足10000条，无法生成产生报告"
+			return
 		}
 		re, err := json.Marshal(rout_arr)
 		if err != nil {
@@ -230,28 +225,47 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 		}
 		open = openUrl
 	} else {
-		//请求内部数据接口
-		parame := "carNum=" + carNum + "&" + "token=" + token
-		result := struct {
-			Status int
-			Data   string
-			Msg    string
-		}{}
-		err := this.GetMainData("routes/analyse_track", parame, &result)
-		if err != nil {
-			data["code"] = 0
-			data["error"] = "查询轨迹失败"
-			return
-		}
-		if result.Status == 1 {
-			data1 := result.Data
-			open = data1
-		} else {
-			data["error"] = result.Msg
+		cou, err, car := new(models.Cars).OneCar(carNum)
+		if err != nil || cou == 0 {
+			data["error"] = "不存在该车辆"
 			data["code"] = 0
 			return
 		}
 
+		level := Session.User.UserLevel
+		if comId != "5a618eea8a5da54404b68e41" && comId != "5a4e41f78a5da57a9f95df11" {
+			if level == 2 {
+				if comId != car.Car_company_id {
+					data["error"] = "您没有权限查看该车辆"
+					data["code"] = 0
+					return
+				}
+			} else {
+				gro, err := new(models.Groups).One(groId)
+				if err != nil {
+					data["error"] = "不存在该组织"
+					data["code"] = 0
+					return
+				}
+				flg := false
+				for _, v := range gro.Group_sub {
+					if v.Group_id.Hex() == car.Car_group_id {
+						flg = true
+					}
+				}
+				if !flg {
+					data["error"] = "您没有权限查看该车辆"
+					data["code"] = 0
+					return
+				}
+			}
+		}
+
+		if len(car.Car_devices) == 0 {
+			data["error"] = "该车辆未绑定设备，无法分析产生报表"
+			data["code"] = 0
+			return
+		}
 	}
 
 	report := new(models.Reports)
@@ -268,12 +282,14 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	Task := struct {
 		ReportId  string //报表ID
 		CompanyId string //企业ID
+		CarNum    string //车牌号
 		Path      string //分析数据文件路径
 	}{}
 	reportId := report.ReportId.Hex()
 	Task.Path = open
 	Task.ReportId = reportId
 	Task.CompanyId = comId
+	Task.CarNum = carNum
 
 	err = new(models.Redis).ListPush("analysis_tasks", Task)
 	if err != nil {

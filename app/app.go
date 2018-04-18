@@ -57,15 +57,19 @@ func App() *iris.Application {
 			if fn.IsValid() {
 				args_ := []reflect.Value{reflect.ValueOf(k), reflect.ValueOf(func(ctx iris.Context) {
 					authFunc := v.MethodByName("Auth")
-					authResult := true
+					authResult := 1
 					if authFunc.IsValid() {
 						result := authFunc.Call([]reflect.Value{reflect.ValueOf(ctx)})
-						authResult = result[0].Bool()
+						authResult = int(result[0].Int())
 					}
 
-					if !authResult {
+					if authResult == 403 {
 						ctx.StatusCode(403)
 						ctx.JSON("没有权限")
+						return
+					} else if authResult == 401 {
+						ctx.StatusCode(401)
+						ctx.JSON("登录失效")
 						return
 					}
 

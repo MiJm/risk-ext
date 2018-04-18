@@ -14,7 +14,7 @@ type AmountView struct {
 	Views
 }
 
-func (this *AmountView) Auth(ctx iris.Context) bool {
+func (this *AmountView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
 		"PUT": MA{"ADMIN": A{MANAGER_ADMIN, MANAGER_ASSISTANT, MANAGER_SERVICE}, "USER": A{}},

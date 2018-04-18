@@ -6,7 +6,7 @@ type SimView struct {
 	Views
 }
 
-func (this *SimView) Auth(ctx iris.Context) bool {
+func (this *SimView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
 		"PUT":    MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN}},

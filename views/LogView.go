@@ -13,7 +13,7 @@ type LogView struct {
 	Views
 }
 
-func (this *LogView) Auth(ctx iris.Context) bool {
+func (this *LogView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
 		"PUT": MA{"ADMIN": A{MANAGER_ADMIN, MANAGER_ASSISTANT, MANAGER_SERVICE}, "USER": A{}},

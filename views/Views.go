@@ -40,47 +40,47 @@ var Session *models.Session
 type Views struct {
 }
 
-func (this *Views) Auth(ctx iris.Context) bool {
+func (this *Views) Auth(ctx iris.Context) int64 {
 	token := ctx.GetHeader("token")
 	if token == "" {
 		token = ctx.FormValue("token")
 	}
 	Session = new(models.Session).Data(token)
-	return true
+	return 1
 }
 
-func (this *Views) CheckPerms(perm MA) bool {
+func (this *Views) CheckPerms(perm MA) int {
 	if perm == nil {
-		return false //方法为授权默认无权限访问
+		return 403 //方法为授权默认无权限访问
 	}
 
 	if perm["NOLOGIN"] != nil {
-		return true //无需登录
+		return 1 //无需登录
 	}
 	if Session == nil {
-		return false //session不存在无权限访问
+		return 401 //session不存在无权限访问
 	}
 	if Session.Type == 1 { //当前登录用户为普通用户
 		if perm["USER"] == nil {
-			return false //普通用户无权限
+			return 403 //普通用户无权限
 		} else {
 			for _, p := range perm["USER"] {
 				if p == Session.User.UserLevel {
-					return true //找到了相应的权限
+					return 1 //找到了相应的权限
 				}
 			}
-			return false //未找到相应权限
+			return 403 //未找到相应权限
 		}
 	} else { //后台管理员
 		if perm["ADMIN"] == nil {
-			return false //管理员无权限
+			return 403 //管理员无权限
 		} else {
 			for _, p := range perm["ADMIN"] {
 				if p == Session.Manager.Manager_level {
-					return true //找到了相应的权限
+					return 1 //找到了相应的权限
 				}
 			}
-			return false //未找到相应权限
+			return 403 //未找到相应权限
 		}
 	}
 

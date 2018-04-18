@@ -16,5 +16,5 @@ func init() {
 	app.AddPath("v2/reports/", reportView)
 	app.AddPath("v2/reports/{report_id}", reportView)
 	app.AddPath("v2/shares/", shareView)
-	app.AddPath("v2/shares/{share_id}", shareView)
+	app.AddPath("v2/shares/{phone}", shareView)
 }

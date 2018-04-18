@@ -32,12 +32,8 @@ type Shares struct {
 }
 
 type Routes struct {
-	Device_speed   uint8  `json:"device_speed"`   //速度
 	Device_latlng  Latlng `json:"device_latlng"`  //经纬度
-	Device_slatlng Latlng `json:"device_slatlng"` //原坐标
-	Device_address string `json:"device_address"` //地址
-	Device_loctype uint8  `json:"device_loctype"` //定位类型0=GPS 1=基站 2=WiFi
-	Device_loctime uint32 `json:"device_loctime"` //定位时间}
+	Device_loctime uint32 `json:"device_loctime"` //定位时间
 }
 type Latlng struct {
 	Type        string    `json:"type"`        //Point
@@ -124,5 +120,82 @@ func (this *Reports) One(id ...string) (rs Reports, err error) {
 	if err == nil && rs.ReportDeleteAt > 0 {
 		err = errors.New("该报表已被删除了")
 	}
+	return
+}
+
+type Cars struct {
+	Model            `bson:"-" json:"-"` //model基类
+	Car_id           bson.ObjectId       `bson:"_id,omitempty" json:"car_id"`
+	Car_plate        string              `json:"car_plate"`        //车牌号
+	Car_company_id   string              `json:"car_company_id"`   //企业ID
+	Car_company_name string              `json:"car_company_name"` //企业简称
+	Car_group_id     string              `json:"car_group_id"`     //组织ID
+	Car_group_name   string              `json:"car_group_name"`   //组织简称
+	Car_devices      []Devices           `json:"car_devices"`      //绑定的设备
+	Car_deleted      uint32              `json:"car_deleted"`      //删除时间
+}
+
+type Devices struct {
+	Device_id           uint64        `json:"device_id"`                                            //设备号
+	Device_car_id       bson.ObjectId `bson:"device_car_id,omitempty" json:"device_car_id"`         //车辆ID
+	Device_car_plate    string        `json:"device_car_plate"`                                     //车牌号
+	Device_company_id   bson.ObjectId `bson:"device_company_id,omitempty" json:"device_company_id"` //企业ID
+	Device_company_name string        `json:"device_company_name"`                                  //企业名
+	Device_group_id     bson.ObjectId `bson:"device_group_id,omitempty" json:"device_group_id"`     //组织ID
+	Device_group_name   string        `json:"device_group_name"`                                    //组织名
+	Device_deleted      uint8         `json:"device_deleted"`                                       //是否已删除0未 1已
+	Device_bind_time    uint32        `json:"device_bind_time"`                                     //绑车时间
+	Device_unbind_time  uint32        `json:"device_unbind_time"`                                   //解绑时间
+}
+
+func (this *Cars) OneCar(carNum string) (count int, err error, ca Cars) {
+	count, err = this.Collection(this).Find(bson.M{"car_plate": carNum, "car_deleted": 0}).Count()
+	err = this.Collection(this).Find(bson.M{"car_plate": carNum, "car_deleted": 0}).One(&ca)
+	return
+}
+
+type Groups struct {
+	Model         `bson:"-" json:"-"` //model基类
+	Group_id      bson.ObjectId       `bson:"_id,omitempty" json:"group_id"` //id
+	Group_name    string              `json:"group_name"`                    //组织名
+	Group_comid   string              `json:"group_comid"`                   //所属企业ID
+	Group_carnum  int32               `json:"group_carnum"`                  //组织车辆数量
+	Group_devnum  int32               `json:"group_devnum"`                  //组织设备数量
+	Group_sub     []Groups            `json:"group_sub"`                     //子级组织
+	Group_parent  *Sgroups            `json:"group_parent"`                  //组织父节点
+	Group_deleted uint32              `json:"group_deleted"`                 //是否已删除0未 删除时间
+	Group_date    uint32              `json:"group_date"`                    //组织创建时间
+}
+
+type Sgroups struct {
+	Group_id   bson.ObjectId `json:"group_id"`   //id
+	Group_name string        `json:"group_name"` //组织名
+}
+
+func (this *Groups) One(id ...string) (gval Groups, err error) {
+
+	var gid bson.ObjectId
+	if len(id) == 1 {
+		if !bson.IsObjectIdHex(id[0]) {
+			err = errors.New("组织ID错误")
+			return
+		} else {
+			gid = bson.ObjectIdHex(id[0])
+		}
+	} else {
+		if this.Group_id == EmptyId {
+			err = errors.New("组织ID错误")
+			return
+		} else {
+			gid = this.Group_id
+		}
+	}
+
+	err = this.Collection(this).FindId(gid).One(&gval)
+
+	if err == nil && gval.Group_deleted == 1 {
+		err = errors.New("组织已被删除了")
+	}
+
 	return
 }

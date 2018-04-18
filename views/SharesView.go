@@ -12,7 +12,7 @@ type SharesView struct {
 	Views
 }
 
-func (this *SharesView) Auth(ctx iris.Context) bool {
+func (this *SharesView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
 		"PUT":    MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN}},
@@ -26,7 +26,8 @@ func (this *SharesView) Post(ctx iris.Context) (statusCode int, data M) {
 	data = make(M)
 	statusCode = 400
 	reportId := ctx.FormValue("reportId")
-	if Session.User.Amount.QueryAiCar <= 0 {
+	amount := Session.User.Amount.QueryAiCar
+	if amount <= 0 {
 		data["error"] = "查询次数不足"
 		data["code"] = 0
 		return
@@ -39,8 +40,7 @@ func (this *SharesView) Post(ctx iris.Context) (statusCode int, data M) {
 		return
 	}
 	phone := ctx.FormValue("phone")
-	fname := ctx.FormValue("fname")
-	if phone == "" || fname == "" {
+	if phone == "" {
 		data["error"] = "请输入完整参数"
 		data["code"] = 0
 		return
@@ -54,7 +54,7 @@ func (this *SharesView) Post(ctx iris.Context) (statusCode int, data M) {
 	shareId := bson.NewObjectId()
 	shareUser := models.Shares{}
 	shareUser.ShareId = shareId.Hex()
-	shareUser.ShareFname = fname
+	shareUser.ShareFname = Session.User.UserFname
 	shareUser.ShareMobile = phone
 	shareUser.ShareCreateAt = time.Now().Unix()
 	rs.ReportShares[phone] = shareUser
@@ -64,6 +64,12 @@ func (this *SharesView) Post(ctx iris.Context) (statusCode int, data M) {
 		data["code"] = 0
 		return
 	}
+	comId := Session.User.UserCompany_id
+	amount--
+	am := models.Amounts{}
+	am.CompanyId = comId
+	am.QueryAiCar = amount
+	new(models.Redis).Save("amounts", comId, am)
 	statusCode = 200
 	data["code"] = 1
 	return
@@ -73,16 +79,16 @@ func (this *SharesView) Delete(ctx iris.Context) (statusCode int, data M) {
 	data = make(M)
 	statusCode = 400
 	reportId := ctx.FormValue("reportId")
-	shareId := ctx.Params().Get("share_id")
-	flag := bson.IsObjectIdHex(shareId)
-	if !flag {
-		data["error"] = "参数有误"
-		data["code"] = 0
-		return
-	}
+	phone := ctx.Params().Get("phone")
+	//	flag := bson.IsObjectIdHex(shareId)
+	//	if !flag {
+	//		data["error"] = "参数有误"
+	//		data["code"] = 0
+	//		return
+	//	}
 	rep := new(models.Reports)
 	port, _ := rep.One(reportId)
-	err := port.RemoveShare(shareId)
+	err := port.RemoveShare(phone)
 	if err != nil {
 		data["error"] = "删除失败"
 		data["code"] = 0
