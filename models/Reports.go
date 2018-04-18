@@ -199,3 +199,18 @@ func (this *Groups) One(id ...string) (gval Groups, err error) {
 
 	return
 }
+
+func (this *Reports) CheckPhone(phone, reportId string) (res *Reports, err error) {
+	if !bson.IsObjectIdHex(reportId) {
+		err = errors.New("查看报告路径有误")
+		return
+	}
+	query := "report_shares." + phone
+	where := bson.M{}
+	where[query] = bson.M{"$ne": nil}
+	where["report_deleteat"] = 0
+	where["report_status"] = 1
+	where["_id"] = bson.ObjectIdHex(reportId)
+	err = this.Collection(this).Find(where).One(&res)
+	return
+}

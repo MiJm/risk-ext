@@ -1,13 +1,11 @@
 package views
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"errors"
 	"risk-ext/app"
 	"risk-ext/config"
 	"risk-ext/models"
 	"strconv"
+	"time"
 
 	"github.com/kataras/iris"
 )
@@ -86,55 +84,56 @@ func (this *Views) CheckPerms(perm MA) int {
 
 }
 
-func (this *Views) GetMainData(path, params string, result interface{}) error {
-	url := config.GetString("main_url") + path
-	if Session.Type == 1 {
-		if params == "" {
-			params = "token=" + Session.User.UserToken
-		} else {
-			params += "&token=" + Session.User.UserToken
-		}
-	}
-	return app.HttpClient(url, params, "POST", result)
-}
+//func (this *Views) GetMainData(path, params string, result interface{}) error {
+//	url := config.GetString("main_url") + path
+//	if Session.Type == 1 {
+//		if params == "" {
+//			params = "token=" + Session.User.UserToken
+//		} else {
+//			params += "&token=" + Session.User.UserToken
+//		}
+//	}
+//	return app.HttpClient(url, params, "POST", result)
+//}
 
-func (this *Views) GetAnalysisData(path string, params interface{}, result interface{}, method ...string) error {
-	m5 := md5.New()
-	m5.Write([]byte(config.GetString("analysis_pwd")))
-	loginParams := M{"username": config.GetString("analysis_name"), "password": hex.EncodeToString(m5.Sum(nil))}
-	loginUrl := config.GetString("analysis_url") + "authorize"
+//func (this *Views) GetAnalysisData(path string, params interface{}, result interface{}, method ...string) error {
+//	m5 := md5.New()
+//	m5.Write([]byte(config.GetString("analysis_pwd")))
+//	loginParams := M{"username": config.GetString("analysis_name"), "password": hex.EncodeToString(m5.Sum(nil))}
+//	loginUrl := config.GetString("analysis_url") + "authorize"
 
-	method_type := "POST"
-	if len(method) != 0 {
-		method_type = method[0]
-	}
+//	method_type := "POST"
+//	if len(method) != 0 {
+//		method_type = method[0]
+//	}
 
-	loginData := struct {
-		Code       int
-		Expires_in int
-		Msg        string
-		Token      string
-	}{}
+//	loginData := struct {
+//		Code       int
+//		Expires_in int
+//		Msg        string
+//		Token      string
+//	}{}
 
-	err := app.HttpClient(loginUrl, loginParams, "POST", &loginData)
+//	err := app.HttpClient(loginUrl, loginParams, "POST", &loginData)
 
-	if err != nil || loginData.Code != 0 {
-		return errors.New("认证失败")
-	}
-	url := config.GetString("analysis_url") + path
-	err = app.HttpClient(url, params, method_type, result, loginData.Token)
-	return err
-}
+//	if err != nil || loginData.Code != 0 {
+//		return errors.New("认证失败")
+//	}
+//	url := config.GetString("analysis_url") + path
+//	err = app.HttpClient(url, params, method_type, result, loginData.Token)
+//	return err
+//}
 
 //发送短信
-func (this *Views) SendMsg(phone, msg string, result interface{}, method ...string) int64 {
+func (this *Views) SendMsg(phone, msg string, method ...string) int64 {
+	var result interface{}
 	url := "http://www.jianzhou.sh.cn/JianzhouSMSWSServer/http/sendBatchMessage"
 	method_type := "POST"
 	if len(method) != 0 {
 		method_type = method[0]
 	}
-	params := M{"account": "sdk_jiujin", "destmobile": phone, "msgText": msg + " 【风控一号】", "password": "joy1101gin"}
-	err := app.HttpClient(url, params, method_type, result)
+	params := "account=sdk_jiujin&destmobile=" + phone + "&msgText=" + msg + " 【风控一号】&password=joy1101gin"
+	err, result := app.HttpClient(url, params, method_type, result)
 	if err != nil {
 		return 0
 	}
@@ -143,6 +142,34 @@ func (this *Views) SendMsg(phone, msg string, result interface{}, method ...stri
 		return 0
 	}
 	return code
+}
+
+//获取验证码
+func (this *Views) GetCode(phone string) string {
+	value, err := config.Redis.Get(phone).Result()
+	if err == nil && value != "" {
+		return value
+	}
+	code := models.GetRandCode()
+	config.Redis.Set(phone, code, time.Minute*30).Err()
+	return code
+}
+
+//检测验证码
+func (this *Views) CheckCode(phone string, code string) bool {
+	value, err := config.Redis.Get(phone).Result()
+
+	if err != nil {
+		return false
+	}
+
+	if value == "" {
+		return false
+	} else if code != value {
+		return false
+	}
+	config.Redis.Del(phone)
+	return true
 }
 
 //量讯平台登录
@@ -156,7 +183,7 @@ func (this *Views) SimLogin() (token string) {
 		Code  int
 		Token string
 	}{}
-	err := app.HttpClient(url, params, method_type, result)
+	err, _ := app.HttpClient(url, params, method_type, result)
 	if err == nil {
 		token = result.Token
 	}
@@ -168,7 +195,7 @@ func (this *Views) SimInfo(simCard string, result interface{}, token ...string) 
 	url := "http://120.26.213.169/api/card/" + simCard
 	method_type := "GET"
 	params := M{}
-	err := app.HttpClient(url, params, method_type, token[0])
+	err, _ := app.HttpClient(url, params, method_type, token[0])
 	if err == nil {
 
 	}

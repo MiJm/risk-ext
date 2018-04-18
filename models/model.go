@@ -2,9 +2,13 @@ package models
 
 import (
 	"encoding/json"
+	"math/rand"
 	"reflect"
+	"regexp"
 	"risk-ext/config"
+	"strconv"
 	"strings"
+	"time"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -37,6 +41,11 @@ func (this *Redis) Map(key, field string, result interface{}) (err error) {
 		return
 	}
 	err = json.Unmarshal(data, result)
+	return
+}
+
+func (this *Redis) Get(key string) (rs string, err error) {
+	rs, err = config.Redis.Get(key).Result()
 	return
 }
 
@@ -87,4 +96,20 @@ func _disName(coll interface{}) string {
 	strs := strings.Split(collName, ".")
 	key := strs[len(strs)-1]
 	return key
+}
+
+//检测手机号码是否合法
+func CheckPhone(phone string) bool {
+	reg := regexp.MustCompile(`^1[3-9]\d{9}$`)
+	return reg.MatchString(phone)
+}
+
+func GetRandCode() string {
+	rand.Seed(time.Now().Unix())
+	var code string = strconv.Itoa(rand.Intn(10)) +
+		strconv.Itoa(rand.Intn(10)) +
+		strconv.Itoa(rand.Intn(10)) +
+		strconv.Itoa(rand.Intn(10))
+
+	return code
 }

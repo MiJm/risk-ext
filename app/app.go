@@ -98,7 +98,7 @@ func Run() {
 	}
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
 }
-func HttpClient(url string, args interface{}, method string, result interface{}, token ...string) error {
+func HttpClient(url string, args interface{}, method string, result interface{}, token ...string) (err error, jsonStr string) {
 	client := &http.Client{}
 	var params = ""
 	var contentType = "application/x-www-form-urlencoded"
@@ -106,7 +106,7 @@ func HttpClient(url string, args interface{}, method string, result interface{},
 	if reflect.TypeOf(args).String() != "string" {
 		jsonData, err := json.Marshal(args)
 		if err != nil {
-			return err
+			return err, ""
 		}
 		params = string(jsonData)
 		contentType = "application/json"
@@ -115,15 +115,13 @@ func HttpClient(url string, args interface{}, method string, result interface{},
 	}
 
 	var req *http.Request
-	var err error
 	if method == "GET" {
 		req, err = http.NewRequest(method, url, nil)
 	} else {
 		req, err = http.NewRequest(method, url, strings.NewReader(params))
 	}
-
 	if err != nil {
-		return err
+		return err, ""
 	}
 
 	req.Header.Add("Content-Type", contentType)
@@ -131,17 +129,17 @@ func HttpClient(url string, args interface{}, method string, result interface{},
 	if len(token) != 0 {
 		req.Header.Add("Authorization", token[0])
 	}
-	//fmt.Println(contentType, url, params)
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return err, ""
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return err, ""
 	}
-	jsonStr := string(body)
-	err = json.Unmarshal([]byte(jsonStr), result)
-	return err
+	jsonStr = string(body)
+	//	err = json.Unmarshal([]byte(jsonStr), result)
+
+	return err, jsonStr
 }

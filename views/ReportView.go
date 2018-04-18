@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"risk-ext/config"
 	"risk-ext/models"
 	"risk-ext/utils"
@@ -179,8 +180,11 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 				continue
 			}
 			routes := models.Routes{}
-
-			loctime := utils.Str2Time(v1[2])
+			reg := regexp.MustCompile(`/(\d{1,2})(\/|\-)(\d{1,2})(\/|\-)(\d{1,2})\S(\d{1,2}):(\d{1,2}):(\d{1,2})/`)
+			var loctime uint32
+			if reg.MatchString(v1[2]) {
+				loctime = utils.Str2Time(v1[2])
+			}
 			if loctime == 0 {
 				continue
 			}
