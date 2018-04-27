@@ -11,6 +11,7 @@ func init() {
 	reportView := new(views.ReportView)
 	shareView := new(views.SharesView)
 	commonView := new(views.CommonsView)
+	simView := new(views.SimView)
 
 	app.AddPath("v2/amount/", amountView)
 	app.AddPath("v2/log/", logView)
@@ -20,4 +21,5 @@ func init() {
 	app.AddPath("v2/shares/{params}", shareView)
 	app.AddPath("v2/commons/", commonView)
 	app.AddPath("v2/commons/{report_id}", commonView)
+	app.AddPath("v2/sim/", simView)
 }

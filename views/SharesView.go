@@ -108,6 +108,11 @@ func (this *SharesView) Get(ctx iris.Context) (statusCode int, data M) {
 			data["error"] = "无可看的报告"
 			return
 		}
+		sharer := res.ReportShares[mobile]
+		cou := sharer.ShareViews + 1
+		sharer.ShareViews = cou
+		res.ReportShares[mobile] = sharer
+		res.Update()
 		statusCode = 200
 		data["list"] = res
 		data["code"] = 1

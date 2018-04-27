@@ -98,10 +98,10 @@ func Run() {
 	}
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
 }
-func HttpClient(url string, args interface{}, method string, result interface{}, token ...string) (err error, jsonStr string) {
+func HttpClient(url string, args interface{}, method string, result interface{}, contentType string, token ...string) (err error, jsonStr string) {
 	client := &http.Client{}
 	var params = ""
-	var contentType = "application/x-www-form-urlencoded"
+	//	var contentType = "application/x-www-form-urlencoded"
 
 	if reflect.TypeOf(args).String() != "string" {
 		jsonData, err := json.Marshal(args)
@@ -109,7 +109,6 @@ func HttpClient(url string, args interface{}, method string, result interface{},
 			return err, ""
 		}
 		params = string(jsonData)
-		contentType = "application/json"
 	} else {
 		params = args.(string)
 	}
@@ -140,6 +139,5 @@ func HttpClient(url string, args interface{}, method string, result interface{},
 	}
 	jsonStr = string(body)
 	//	err = json.Unmarshal([]byte(jsonStr), result)
-
 	return err, jsonStr
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"regexp"
 	"risk-ext/config"
 	"risk-ext/models"
 	"risk-ext/utils"
@@ -180,11 +179,7 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 				continue
 			}
 			routes := models.Routes{}
-			reg := regexp.MustCompile(`/(\d{1,2})(\/|\-)(\d{1,2})(\/|\-)(\d{1,2})\S(\d{1,2}):(\d{1,2}):(\d{1,2})/`)
-			var loctime uint32
-			if reg.MatchString(v1[2]) {
-				loctime = utils.Str2Time(v1[2])
-			}
+			loctime := utils.Str2Time(v1[2])
 			if loctime == 0 {
 				continue
 			}
@@ -195,14 +190,14 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 			if err != nil || err1 != nil {
 				continue
 			}
-			latlng[0] = lat
-			latlng[1] = lng
+			latlng[0] = lng
+			latlng[1] = lat
 			routes.Device_latlng.Coordinates = latlng
 			rout_arr = append(rout_arr, routes)
 		}
-		if len(rout_arr) < 10000 {
+		if len(rout_arr) < 1000 {
 			data["code"] = 0
-			data["error"] = "可用数据不足10000条，无法生成产生报告"
+			data["error"] = "可用数据不足1000条，无法生成产生报告"
 			return
 		}
 		re, err := json.Marshal(rout_arr)

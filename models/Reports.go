@@ -135,18 +135,18 @@ type Cars struct {
 	Car_deleted      uint32              `json:"car_deleted"`      //删除时间
 }
 
-type Devices struct {
-	Device_id           uint64        `json:"device_id"`                                            //设备号
-	Device_car_id       bson.ObjectId `bson:"device_car_id,omitempty" json:"device_car_id"`         //车辆ID
-	Device_car_plate    string        `json:"device_car_plate"`                                     //车牌号
-	Device_company_id   bson.ObjectId `bson:"device_company_id,omitempty" json:"device_company_id"` //企业ID
-	Device_company_name string        `json:"device_company_name"`                                  //企业名
-	Device_group_id     bson.ObjectId `bson:"device_group_id,omitempty" json:"device_group_id"`     //组织ID
-	Device_group_name   string        `json:"device_group_name"`                                    //组织名
-	Device_deleted      uint8         `json:"device_deleted"`                                       //是否已删除0未 1已
-	Device_bind_time    uint32        `json:"device_bind_time"`                                     //绑车时间
-	Device_unbind_time  uint32        `json:"device_unbind_time"`                                   //解绑时间
-}
+//type Devices struct {
+//	Device_id           uint64        `json:"device_id"`                                            //设备号
+//	Device_car_id       bson.ObjectId `bson:"device_car_id,omitempty" json:"device_car_id"`         //车辆ID
+//	Device_car_plate    string        `json:"device_car_plate"`                                     //车牌号
+//	Device_company_id   bson.ObjectId `bson:"device_company_id,omitempty" json:"device_company_id"` //企业ID
+//	Device_company_name string        `json:"device_company_name"`                                  //企业名
+//	Device_group_id     bson.ObjectId `bson:"device_group_id,omitempty" json:"device_group_id"`     //组织ID
+//	Device_group_name   string        `json:"device_group_name"`                                    //组织名
+//	Device_deleted      uint8         `json:"device_deleted"`                                       //是否已删除0未 1已
+//	Device_bind_time    uint32        `json:"device_bind_time"`                                     //绑车时间
+//	Device_unbind_time  uint32        `json:"device_unbind_time"`                                   //解绑时间
+//}
 
 func (this *Cars) OneCar(carNum string) (count int, err error, ca Cars) {
 	count, err = this.Collection(this).Find(bson.M{"car_plate": carNum, "car_deleted": 0}).Count()

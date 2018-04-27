@@ -1,6 +1,8 @@
 package views
 
 import (
+	"encoding/json"
+	"errors"
 	"risk-ext/app"
 	"risk-ext/config"
 	"risk-ext/models"
@@ -133,7 +135,8 @@ func (this *Views) SendMsg(phone, msg string, method ...string) int64 {
 		method_type = method[0]
 	}
 	params := "account=sdk_jiujin&destmobile=" + phone + "&msgText=" + msg + " 【风控一号】&password=joy1101gin"
-	err, result := app.HttpClient(url, params, method_type, result)
+	contentType := "application/x-www-form-urlencoded"
+	err, result := app.HttpClient(url, params, method_type, result, contentType)
 	if err != nil {
 		return 0
 	}
@@ -173,30 +176,130 @@ func (this *Views) CheckCode(phone string, code string) bool {
 }
 
 //量讯平台登录
-func (this *Views) SimLogin() (token string) {
+func (this *Views) SimLogin() (err error, token string) {
 	url := "http://120.26.213.169/api/access_token/"
 	method_type := "POST"
 	username := config.GetString("upiot_name")
 	passwd := config.GetString("upiot_pwd")
-	params := M{"username": username, "password": passwd}
+	params := "username=" + username + "&password=" + passwd
 	result := struct {
-		Code  int
-		Token string
+		Token string `json:"token"`
+		Code  int    `json:"code"`
 	}{}
-	err, _ := app.HttpClient(url, params, method_type, result)
+	contentType := "application/x-www-form-urlencoded"
+	err, jsonStr := app.HttpClient(url, params, method_type, result, contentType)
 	if err == nil {
-		token = result.Token
+		err = json.Unmarshal([]byte(jsonStr), &result)
+		if result.Code == 200 {
+			token = result.Token
+		}
 	}
+	if token == "" {
+		err = errors.New("请求失败")
+		return
+	}
+	err = config.Redis.Set("SimToken", token, time.Minute*120).Err()
 	return
 }
 
 //量讯获取卡号信息
-func (this *Views) SimInfo(simCard string, result interface{}, token ...string) {
-	url := "http://120.26.213.169/api/card/" + simCard
-	method_type := "GET"
-	params := M{}
-	err, _ := app.HttpClient(url, params, method_type, token[0])
-	if err == nil {
-
+func (this *Views) SimInfo(simCard string) (err error, simResult interface{}) {
+	simToken, err := config.Redis.Get("SimToken").Result()
+	if err != nil {
+		err, simToken = this.SimLogin()
+		if err != nil && simToken == "" {
+			return
+		}
 	}
+	simResult = struct {
+		Code                 int
+		Msisdn               string
+		Iccid                string
+		Imsi                 string
+		Carrier              string
+		Sp_code              string
+		Expiry_date          string
+		Data_plan            int
+		Data_usage           string
+		Account_status       string
+		Active               bool
+		Test_valid_date      string
+		Silent_valid_date    string
+		Test_used_data_usage string
+		Active_date          string
+		Data_balance         int
+		Outbound_date        string
+		Support_sms          bool
+	}{}
+	url := "http://120.26.213.169/api/card/" + simCard + "/"
+	method_type := "GET"
+	params := ""
+	simToken = "JWT " + simToken
+	contentType := "application/json"
+	err, jsonStr := app.HttpClient(url, params, method_type, simResult, contentType, simToken)
+	if err == nil {
+		err = json.Unmarshal([]byte(jsonStr), &simResult)
+	}
+	return
+}
+
+type bill_group struct {
+	Code int `json:"code"` //状态码
+	Data []struct {
+		Carrier   string `json:"carrier"`   //运营商
+		Bg_code   string `json:"bg_code"`   //计费组代码
+		Name      string `json:"name"`      //套餐名称
+		Data_plan int    `json:"data_plan"` //套餐大小
+	} `json:"data"`
+}
+
+//量讯平台获取计费组列表
+func (this *Views) GetBillGroup() (err error, bill bill_group) {
+	simToken, err := config.Redis.Get("SimToken").Result()
+	if err != nil {
+		err, simToken = this.SimLogin()
+		if err != nil && simToken == "" {
+			return
+		}
+	}
+	url := "http://120.26.213.169/api/billing_group/"
+	method_type := "GET"
+	params := ""
+	simToken = "JWT " + simToken
+	contentType := "application/json"
+	err, jsonStr := app.HttpClient(url, params, method_type, bill, contentType, simToken)
+	if err == nil {
+		err = json.Unmarshal([]byte(jsonStr), &bill)
+	}
+	return
+}
+
+type result struct {
+	Code      int
+	Data      []models.SimInfo
+	Per_page  int    //每页数量
+	Num_pages int    //总页数
+	Page      string //当前页数
+
+}
+
+//计费组物联卡列表
+func (this *Views) SimList(bdCode string, page, size int) (err error, res result) {
+	simToken, err := config.Redis.Get("SimToken").Result()
+	if err != nil {
+		err, simToken = this.SimLogin()
+		if err != nil && simToken == "" {
+			return
+		}
+	}
+	url := "http://120.26.213.169/api/card/" + "?bg_code=" + bdCode + "&page=" + strconv.Itoa(page) + "&per_page=" + strconv.Itoa(size)
+	method_type := "GET"
+	params := ""
+	simToken = "JWT " + simToken
+	contentType := "application/json"
+	err, jsonStr := app.HttpClient(url, params, method_type, res, contentType, simToken)
+	if err == nil {
+		err = json.Unmarshal([]byte(jsonStr), &res)
+	}
+	return
 }
