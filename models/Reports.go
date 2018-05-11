@@ -10,7 +10,7 @@ import (
 type Reports struct {
 	Model           `bson:"-" json:"-"` //model基类
 	ReportId        bson.ObjectId       `bson:"_id,omitempty" json:"report_id"`             //id
-	ReportType      uint8               `bson:"report_type" json:"report_type"`             //报表类型 0=追车，1=电话 2=违章
+	ReportType      uint8               `bson:"report_type" json:"report_type"`             //报表类型 0=追车，1=电话 2=违章 3=征信
 	ReportPlate     string              `bson:"report_plate" json:"report_plate"`           //报表车牌号
 	ReportDataFrom  uint8               `bson:"report_data_from" json:"report_data_from"`   //报表源数据来源0=内部数据库 1=外部导入 @ReportType=0 仅追车有效
 	ReportStatus    int8                `bson:"report_status" json:"report_status"`         //报表状态0=查询中 1=查询成功 -1=查询失败
