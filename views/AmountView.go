@@ -26,8 +26,8 @@ func (this *AmountView) Put(ctx iris.Context) (statuCode int, data interface{}) 
 	statuCode = 400
 	companyId := ctx.FormValue("company_id")
 	companyName := ctx.FormValue("company_name")
-	changeType, err := ctx.PostValueInt("type") //0=追车，1=电话 2=违章
-	if err != nil || changeType > 2 || changeType < 0 {
+	changeType, err := ctx.PostValueInt("type") //0=追车，1=电话 2=违章 3=征信
+	if err != nil || changeType > 3 || changeType < 0 {
 		data = "修改项目类型参数不正确"
 		return
 	}
@@ -47,7 +47,7 @@ func (this *AmountView) Put(ctx iris.Context) (statuCode int, data interface{}) 
 		data = "企业名不正确"
 		return
 	}
-	err = Session.ChangeAmount(companyId, changNum)
+	err = Session.ChangeAmount(companyId, changNum, changeType)
 	if err == nil {
 		logs := new(models.Logs)
 		logs.LogCompany = companyName
@@ -57,6 +57,7 @@ func (this *AmountView) Put(ctx iris.Context) (statuCode int, data interface{}) 
 		//logs.LogDetail += models.Extra[changeType] + "的查询次数。"
 		logs.LogDetail = fmt.Sprintf("%d", changNum)
 		logs.LogItem = models.Extra[changeType]
+		logs.LogType = changeType
 		logs.LogOperator = Session.Manager.Manager_fname
 		logs.LogOperatorId = Session.Manager.Manager_id.Hex()
 		logs.Insert()

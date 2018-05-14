@@ -57,9 +57,11 @@ type managers struct {
  * 余量redis表（目前是智能追车，以后会有征信 违章等）
  */
 type Amounts struct {
-	Redis      `bson:"-" json:"-"` //model基类
-	CompanyId  string              `json:"company_id"`   //id
-	QueryAiCar int                 `json:"query_ai_car"` //只能追车查询数量
+	Redis        `bson:"-" json:"-"` //model基类
+	CompanyId    string              `json:"company_id"`    //id
+	QueryAiCar   int                 `json:"query_ai_car"`  //只能追车查询数量
+	QueryCredit  int                 `json:"query_credit"`  //征信查询数量
+	QueryDianHua int                 `json:"query_dianhua"` //电话帮查询数量
 }
 
 //获取当前登录用户
@@ -93,11 +95,20 @@ func (this *Session) Data(token string) *Session {
 }
 
 //修改只能追车数量 erp使用
-func (this *Session) ChangeAmount(company_id string, aiCarAmount int) error {
+func (this *Session) ChangeAmount(company_id string, aiCarAmount, changeType int) error {
 	if this.Type == 0 {
 		var amount = new(Amounts)
 		this.Map("amounts", company_id, amount)
-		amount.QueryAiCar += aiCarAmount
+		if changeType == 0 { //智能追车
+			amount.QueryAiCar += aiCarAmount
+		} else if changeType == 1 { //电话
+			amount.QueryDianHua += aiCarAmount
+		} else if changeType == 2 { //违章
+
+		} else if changeType == 3 { //征信
+			amount.QueryCredit += aiCarAmount
+		}
+
 		amount.CompanyId = company_id
 		if amount.QueryAiCar < 0 {
 			return errors.New("减扣次数不能超过当前次数")

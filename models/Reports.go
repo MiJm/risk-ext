@@ -8,19 +8,22 @@ import (
 )
 
 type Reports struct {
-	Model           `bson:"-" json:"-"` //model基类
-	ReportId        bson.ObjectId       `bson:"_id,omitempty" json:"report_id"`             //id
-	ReportType      uint8               `bson:"report_type" json:"report_type"`             //报表类型 0=追车，1=电话 2=违章 3=征信
-	ReportPlate     string              `bson:"report_plate" json:"report_plate"`           //报表车牌号
-	ReportDataFrom  uint8               `bson:"report_data_from" json:"report_data_from"`   //报表源数据来源0=内部数据库 1=外部导入 @ReportType=0 仅追车有效
-	ReportStatus    int8                `bson:"report_status" json:"report_status"`         //报表状态0=查询中 1=查询成功 -1=查询失败
-	ReportOpenId    string              `bson:"report_open_id" json:"report_open_id"`       //报表关联第三方ID
-	ReportData      interface{}         `bson:"report_data" json:"report_data"`             //报表关联第三方结果
-	ReportShares    map[string]Shares   `bson:"report_shares" json:"report_shares"`         //报表分享列表  share_id作为键值
-	ReportCreateAt  int64               `bson:"report_createat" json:"report_createat"`     //报表查询时间
-	ReportDoneAt    int64               `bson:"report_doneat" json:"report_doneat"`         //报表查询完成时间
-	ReportDeleteAt  int64               `bson:"report_deleteat" json:"report_deleteat"`     //报表删除时间 0=未删除
-	ReportCompanyId string              `bson:"report_company_id" json:"report_company_id"` //报表关联企业ID
+	Model             `bson:"-" json:"-"` //model基类
+	ReportId          bson.ObjectId       `bson:"_id,omitempty" json:"report_id"`                 //id
+	ReportType        uint8               `bson:"report_type" json:"report_type"`                 //报表类型 0=追车，1=电话 2=违章 3=征信
+	ReportPlate       string              `bson:"report_plate" json:"report_plate"`               //报表车牌号
+	ReportName        string              `bson:"report_name" json:"report_name"`                 //姓名
+	ReportMobile      string              `bson:"report_mobile" json:"report_mobile"`             //手机号
+	ReportDataFrom    uint8               `bson:"report_data_from" json:"report_data_from"`       //报表源数据来源0=内部数据库 1=外部导入 @ReportType=0 仅追车有效
+	ReportStatus      int8                `bson:"report_status" json:"report_status"`             //报表状态0=查询中 1=查询成功 -1=查询失败 2=待审核 3=拒绝
+	ReportCompanyName string              `bson:"report_company_name" json:"report_company_name"` //企业名称
+	ReportOpenId      string              `bson:"report_open_id" json:"report_open_id"`           //报表关联第三方ID
+	ReportData        interface{}         `bson:"report_data" json:"report_data"`                 //报表关联第三方结果
+	ReportShares      map[string]Shares   `bson:"report_shares" json:"report_shares"`             //报表分享列表  share_id作为键值
+	ReportCreateAt    int64               `bson:"report_createat" json:"report_createat"`         //报表查询时间
+	ReportDoneAt      int64               `bson:"report_doneat" json:"report_doneat"`             //报表查询完成时间
+	ReportDeleteAt    int64               `bson:"report_deleteat" json:"report_deleteat"`         //报表删除时间 0=未删除
+	ReportCompanyId   string              `bson:"report_company_id" json:"report_company_id"`     //报表关联企业ID
 }
 
 type Shares struct {

@@ -23,6 +23,7 @@ func (this *LogView) Auth(ctx iris.Context) int {
 
 //日志列表
 func (this *LogView) Get(ctx iris.Context) (statuCode int, data M) {
+	data = make(M)
 	statuCode = 400
 	page := ctx.FormValue("page")
 	size := ctx.FormValue("size")
@@ -39,9 +40,17 @@ func (this *LogView) Get(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "企业ID不正确"
 		return
 	}
-
+	typ := ctx.FormValue("type")
+	if typ == "" {
+		data["error"] = "类型不正确"
+		return
+	}
+	t, err := strconv.ParseInt(typ, 10, 64)
+	if err != nil {
+		t = 0
+	}
 	logs := new(models.Logs)
-	query := bson.M{"log_company_id": companyId}
+	query := bson.M{"log_company_id": companyId, "log_type": t}
 	rs, num, err := logs.List(query, int(p), int(s))
 	if err != nil {
 		data["list"] = "无数据"
@@ -57,6 +66,8 @@ func (this *LogView) Get(ctx iris.Context) (statuCode int, data M) {
 	data["list"] = rs
 	data["num"] = num
 	data["ai_amount"] = amount.QueryAiCar
+	data["dianhua_amount"] = amount.QueryDianHua
+	data["credit_amount"] = amount.QueryCredit
 	statuCode = 200
 	return
 }

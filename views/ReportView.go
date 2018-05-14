@@ -74,6 +74,7 @@ func (this *ReportView) Get(ctx iris.Context) (statuCode int, result interface{}
 	page := ctx.FormValue("page")
 	size := ctx.FormValue("size")
 	reportId := ctx.Params().Get("report_id")
+	reportType := ctx.FormValueDefault("type", "0")
 	if reportId != "" {
 		statuCode, result = this.Detail(ctx)
 		if statuCode != 200 && statuCode != 204 {
@@ -95,13 +96,22 @@ func (this *ReportView) Get(ctx iris.Context) (statuCode int, result interface{}
 	if err != nil {
 		s = 30
 	}
+	rType, err := strconv.ParseInt(reportType, 10, 64)
+	if err != nil {
+		data["code"] = 0
+		data["error"] = "参数有误"
+		return
+	}
 	report := new(models.Reports)
 	companyId := Session.User.UserCompany_id
 	query := bson.M{}
 	query["report_company_id"] = companyId
 	query["report_deleteat"] = 0
+	query["report_type"] = uint8(rType)
 	data = make(M)
 	data["ai_amount"] = Session.User.Amount.QueryAiCar
+	data["dianhua_amount"] = Session.User.Amount.QueryDianHua
+	data["credit_amount"] = Session.User.Amount.QueryCredit
 	rs, num, err := report.Lists(query, int(p), int(s))
 	if err != nil {
 		data["error"] = err

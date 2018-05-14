@@ -12,6 +12,8 @@ func init() {
 	shareView := new(views.SharesView)
 	commonView := new(views.CommonsView)
 	simView := new(views.SimView)
+	creditView := new(views.CreditView)
+	dianhuaView := new(views.DianhuaView)
 
 	app.AddPath("v2/amount/", amountView)
 	app.AddPath("v2/log/", logView)
@@ -22,4 +24,7 @@ func init() {
 	app.AddPath("v2/commons/", commonView)
 	app.AddPath("v2/commons/{report_id}", commonView)
 	app.AddPath("v2/sim/", simView)
+	app.AddPath("v2/credit/", creditView)
+	app.AddPath("v2/dianhua/flow", dianhuaView)
+	app.AddPath("v2/dianhua/login", dianhuaView)
 }

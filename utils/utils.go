@@ -1,10 +1,18 @@
 package utils
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"errors"
+	"image"
+	"image/draw"
+	"log"
 	"os"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/disintegration/imaging"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -65,4 +73,73 @@ func Struct2Map(obj interface{}, noCom ...bool) bson.M {
 	}
 	return data
 
+}
+
+//缩放图片
+func ImageResize(src, savePath string) (err error) {
+	im, err := imaging.Open(src)
+	if err != nil {
+		errors.New("文件打开失败")
+	}
+	width := im.Bounds().Size().X
+	height := im.Bounds().Size().Y
+
+	//	if width <= 300 && height <= 300 { //小图不裁剪
+	//		return errors.New("hh")
+	//	}
+
+	var m *image.NRGBA
+	var dstWidth int
+	var desheigh int
+
+	if width > height {
+		if height <= 300 {
+			dstWidth = height
+			desheigh = height
+
+			m = imaging.Resize(im, 0, height, imaging.CatmullRom)
+		} else {
+			dstWidth = 300
+			desheigh = 300
+			width = width * 300 / height
+			height = 300
+			m = imaging.Resize(im, 0, 300, imaging.CatmullRom)
+		}
+
+	} else {
+		if width <= 300 {
+			dstWidth = width
+			desheigh = width
+			m = imaging.Resize(im, width, 0, imaging.CatmullRom)
+		} else {
+			dstWidth = 300
+			desheigh = 300
+			height = height * 300 / width
+			width = 300
+			m = imaging.Resize(im, 300, 0, imaging.CatmullRom)
+		}
+
+	}
+
+	jpg := image.NewRGBA(image.Rect(0, 0, dstWidth, desheigh))
+	pio := new(image.Point)
+	pio.X = (width - dstWidth) / 2
+	pio.Y = (height - desheigh) / 2
+	draw.Draw(jpg, m.Bounds().Add(image.Pt(0, 0)), m, *pio, draw.Src)
+	out, err := os.Create(savePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
+	//	imaging.Encode(out, m, imaging.PNG)
+	imaging.Encode(out, jpg, imaging.PNG)
+	return
+}
+
+//字符串转md5
+func String2Md5(str string) string {
+	h := md5.New()
+	h.Write([]byte(str)) // 需要加密的字符串为 123456
+	cipherStr := h.Sum(nil)
+	return hex.EncodeToString(cipherStr) // 输出加密结果
 }
