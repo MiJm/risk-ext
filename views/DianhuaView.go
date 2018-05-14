@@ -60,13 +60,13 @@ func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data M) {
 	pwd := ctx.FormValue("pwd")
 	sms := ctx.FormValue("sms")
 	captcha := ctx.FormValue("captcha")
-	res, err := models.Login(sid, tel, pwd, fname, idcard, sms, captcha)
+	_, err := models.Login(sid, tel, pwd, fname, idcard, sms, captcha)
 	if err != nil {
 		//		data["code"] = 0
 		//		data["error"] = err.Error()
 		//		return
 	}
-	data["result"] = res
+	//	data["result"] = res
 
 	report := new(models.Reports)
 	report.ReportType = 1
@@ -80,12 +80,14 @@ func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data M) {
 	Task := struct {
 		ReportId  string //报表ID
 		CompanyId string //企业ID
-		CarNum    string //车牌号
-		Path      string //分析数据文件路径
+		Type      int8   //类型
+		Sid       string //Sid
 	}{}
 	reportId := report.ReportId.Hex()
 	Task.ReportId = reportId
 	Task.CompanyId = comId
+	Task.Type = int8(1)
+	Task.Sid = sid
 
 	err = new(models.Redis).ListPush("analysis_tasks", Task)
 	if err != nil {
