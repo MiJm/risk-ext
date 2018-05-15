@@ -25,6 +25,8 @@ func init() {
 	app.AddPath("v2/commons/{report_id}", commonView)
 	app.AddPath("v2/sim/", simView)
 	app.AddPath("v2/credits/report", creditView)
+	app.AddPath("v2/credit/reports/review", creditView)
+	app.AddPath("v2/credit/action", creditView)
 	app.AddPath("v2/dianhua/flow", dianhuaView)
 	app.AddPath("v2/dianhua/login", dianhuaView)
 }

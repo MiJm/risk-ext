@@ -24,6 +24,10 @@ type Reports struct {
 	ReportDoneAt      int64               `bson:"report_doneat" json:"report_doneat"`             //报表查询完成时间
 	ReportDeleteAt    int64               `bson:"report_deleteat" json:"report_deleteat"`         //报表删除时间 0=未删除
 	ReportCompanyId   string              `bson:"report_company_id" json:"report_company_id"`     //报表关联企业ID
+	ReportImage       *Image              `bson:"report_image" json:"report_image"`               //征信相关文件图片
+	ReportIdCard      string              `bson:"report_idcard" json:"report_idcard"`             //征信查询证件号码
+	ReportAuditName   string              `bson:"report_audit_name" json:"report_audit_name"`     //审核人
+	ReportAuditTime   int64               `bson:"report_audit_time" json:"report_audit_time"`     //审核时间
 }
 
 type Shares struct {
@@ -32,6 +36,14 @@ type Shares struct {
 	ShareFname    string `bson:"share_fname" json:"share_fname"`       //分享人姓名
 	ShareViews    uint32 `bson:"share_views" json:"share_views"`       //报表分享人查看次数
 	ShareCreateAt int64  `bson:"share_createat" json:"share_createat"` //报表分享时间
+}
+
+type Image struct {
+	AuthImage       string `bson:"auth_image" json:"auth_image"`
+	FrontImageUrl   string `bson:"front_image_url" json:"front_image_url"`     //证件图片地址
+	FrontImageThumb string `bson:"front_image_thumb" json:"front_image_thumb"` //缩略图地址
+	BackImageUrl    string `bson:"back_image_url" json:"back_image_url"`       //证件图片地址
+	BackImageThumb  string `bson:"back_image_thumb" json:"back_image_thumb"`   //缩略图地址
 }
 
 type Routes struct {

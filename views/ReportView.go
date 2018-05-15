@@ -24,7 +24,7 @@ func (this *ReportView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
 		"PUT":    MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN}},
-		"GET":    MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN, MEMBER_GENERAL}},
+		"GET":    MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN, MEMBER_GENERAL}, "ADMIN": A{MANAGER_ADMIN, MANAGER_SERVICE, MANAGER_ASSISTANT}},
 		"POST":   MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN, MEMBER_GENERAL}},
 		"DELETE": MA{"USER": A{MEMBER_SUPER, MEMBER_ADMIN}}}
 	return this.CheckPerms(perms[ctx.Method()])
@@ -51,12 +51,15 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{
 		data = "报表已被删除"
 		return
 	}
-
-	if report.ReportStatus != 1 {
-		statuCode = 400
-		data = "报表当前状态不可用"
-		return
+	stype := Session.Type
+	if stype == 1 {
+		if report.ReportStatus != 1 {
+			statuCode = 400
+			data = "报表当前状态不可用"
+			return
+		}
 	}
+
 	type Poi struct {
 		Device_address string  `json:"device_address"`
 		Device_lat     float64 `json:"device_lat"`
@@ -288,19 +291,15 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 		data["code"] = 0
 		return
 	}
-	Task := struct {
-		ReportId  string //报表ID
-		CompanyId string //企业ID
-		CarNum    string //车牌号
-		Path      string //分析数据文件路径
-	}{}
+	task := models.Task{}
 	reportId := report.ReportId.Hex()
-	Task.Path = open
-	Task.ReportId = reportId
-	Task.CompanyId = comId
-	Task.CarNum = carNum
+	task.Path = open
+	task.ReportId = reportId
+	task.CompanyId = comId
+	task.CarNum = carNum
+	task.Type = 0
 
-	err = new(models.Redis).ListPush("analysis_tasks", Task)
+	err = new(models.Redis).ListPush("analysis_tasks", task)
 	if err != nil {
 		data["error"] = "建立任务失败"
 		data["code"] = 0

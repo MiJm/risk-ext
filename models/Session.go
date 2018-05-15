@@ -64,6 +64,18 @@ type Amounts struct {
 	QueryDianHua int                 `json:"query_dianhua"` //电话帮查询数量
 }
 
+//任务信息
+type Task struct {
+	ReportId  string //报表ID
+	CompanyId string //企业ID
+	Type      int8   //类型0=追车，1=电话 2=违章 3=征信
+	Sid       string //Sid 会话ID
+	CarNum    string //车牌号
+	Path      string //分析数据文件路径
+	Name      string //姓名
+	IdCard    string //身份证号
+}
+
 //获取当前登录用户
 func (this *Session) Data(token string) *Session {
 

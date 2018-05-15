@@ -62,9 +62,9 @@ func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data M) {
 	captcha := ctx.FormValue("captcha")
 	_, err := models.Login(sid, tel, pwd, fname, idcard, sms, captcha)
 	if err != nil {
-		//		data["code"] = 0
-		//		data["error"] = err.Error()
-		//		return
+		data["code"] = 0
+		data["error"] = err.Error()
+		return
 	}
 	//	data["result"] = res
 
@@ -77,19 +77,14 @@ func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data M) {
 		data["code"] = 0
 		return
 	}
-	Task := struct {
-		ReportId  string //报表ID
-		CompanyId string //企业ID
-		Type      int8   //类型
-		Sid       string //Sid
-	}{}
+	task := models.Task{}
 	reportId := report.ReportId.Hex()
-	Task.ReportId = reportId
-	Task.CompanyId = comId
-	Task.Type = int8(1)
-	Task.Sid = sid
+	task.ReportId = reportId
+	task.CompanyId = comId
+	task.Type = int8(1)
+	task.Sid = sid
 
-	err = new(models.Redis).ListPush("analysis_tasks", Task)
+	err = new(models.Redis).ListPush("analysis_tasks", task)
 	if err != nil {
 		data["error"] = "建立任务失败"
 		data["code"] = 0
