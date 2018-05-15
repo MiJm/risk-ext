@@ -96,6 +96,20 @@ func Run() {
 	if port == "" {
 		port = "80"
 	}
+	static := config.GetString("staticPath")
+	if strings.TrimSpace(static) != "" {
+		staticArr := strings.Split(static, " ")
+		for _, item := range staticArr {
+			if strings.TrimSpace(item) != "" {
+				static_items := strings.Split(item, ":")
+				if len(static_items) == 2 {
+					app.StaticWeb(static_items[0], static_items[1])
+				}
+			}
+
+		}
+	}
+
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
 }
 func HttpClient(url string, args interface{}, method string, result interface{}, contentType string, token ...string) (err error, jsonStr string) {
