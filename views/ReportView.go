@@ -285,6 +285,9 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	report.ReportPlate = carNum
 	report.ReportCompanyId = comId
 	report.ReportDataFrom = reportFrom
+	str := bson.NewObjectId().Hex()
+	numStr := utils.SubString(str, 12)
+	report.ReportNumber = numStr
 	err = report.Insert()
 	if err != nil {
 		data["error"] = "上传数据失败"
@@ -306,8 +309,7 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	amount--
-	am := models.Amounts{}
-	am.CompanyId = comId
+	am := Session.User.Amount
 	am.QueryAiCar = amount
 	new(models.Redis).Save("amounts", comId, am)
 	data["code"] = 1

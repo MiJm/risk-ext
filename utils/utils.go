@@ -143,3 +143,15 @@ func String2Md5(str string) string {
 	cipherStr := h.Sum(nil)
 	return hex.EncodeToString(cipherStr) // 输出加密结果
 }
+
+func SubString(str string, length int) (substr string) {
+	// 将字符串的转换成[]rune
+	rs := []rune(str)
+	lth := len(rs)
+	begin := lth - length
+	if length >= lth {
+		begin = 0
+	}
+	// 返回子串
+	return string(rs[begin:lth])
+}

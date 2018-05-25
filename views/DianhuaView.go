@@ -2,6 +2,9 @@ package views
 
 import (
 	"risk-ext/models"
+	"risk-ext/utils"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/kataras/iris"
 )
@@ -30,15 +33,21 @@ func (this *DianhuaView) Get(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "请输入完整手机号"
 		return
 	}
-	result, err := models.GetLoginMethod(tel)
+	res, err := models.GetLoginMethod(tel)
 	if err != nil {
 		data["code"] = 0
 		data["error"] = err.Error()
 		return
 	}
+
+	if res.Status != 0 {
+		data["code"] = 0
+		data["error"] = res.Msg
+		return
+	}
 	statuCode = 200
 	data["code"] = 1
-	data["result"] = result
+	data["result"] = res.Data
 	return
 }
 
@@ -60,18 +69,60 @@ func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data M) {
 	pwd := ctx.FormValue("pwd")
 	sms := ctx.FormValue("sms")
 	captcha := ctx.FormValue("captcha")
-	_, err := models.Login(sid, tel, pwd, fname, idcard, sms, captcha)
-	if err != nil {
-		data["code"] = 0
-		data["error"] = err.Error()
-		return
-	}
-	//	data["result"] = res
+	t := ctx.FormValueDefault("type", "1")
 
+	//二次校验
+	if t != "1" {
+		result, err := models.LoginVerify(sid, sms, captcha)
+		if err != nil {
+			data["code"] = 0
+			data["error"] = err.Error()
+			return
+		}
+		data["data"] = nil
+		if result.Status == 0 {
+			if result.CommonData.Action == "processing" {
+				statuCode = 200
+				data["code"] = 1
+				data["data"] = result.Data
+				return
+			}
+		} else {
+			data["code"] = 0
+			data["error"] = result.Msg
+			return
+		}
+	} else {
+
+		res, err := models.Login(sid, tel, pwd, fname, idcard, sms, captcha)
+		if err != nil {
+			data["code"] = 0
+			data["error"] = err.Error()
+			return
+		}
+		data["data"] = nil
+		if res.Status == 0 {
+			if res.CommonData.Action == "processing" {
+				statuCode = 200
+				data["code"] = 1
+				data["data"] = res.Data
+				return
+			}
+		} else {
+			data["code"] = 0
+			data["error"] = res.Msg
+			return
+		}
+	}
 	report := new(models.Reports)
 	report.ReportType = 1
 	report.ReportCompanyId = comId
-	err = report.Insert()
+	report.ReportMobile = tel
+	report.ReportName = fname
+	str := bson.NewObjectId().Hex()
+	numStr := utils.SubString(str, 12)
+	report.ReportNumber = numStr
+	err := report.Insert()
 	if err != nil {
 		data["error"] = "上传数据失败"
 		data["code"] = 0
@@ -91,8 +142,7 @@ func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	amount--
-	am := models.Amounts{}
-	am.CompanyId = comId
+	am := Session.User.Amount
 	am.QueryDianHua = amount
 	new(models.Redis).Save("amounts", comId, am)
 	data["code"] = 1

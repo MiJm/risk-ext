@@ -28,6 +28,8 @@ type Reports struct {
 	ReportIdCard      string              `bson:"report_idcard" json:"report_idcard"`             //征信查询证件号码
 	ReportAuditName   string              `bson:"report_audit_name" json:"report_audit_name"`     //审核人
 	ReportAuditTime   int64               `bson:"report_audit_time" json:"report_audit_time"`     //审核时间
+	ReportCheckName   string              `bson:"report_check_name" json:"report_check_name"`     //查询人
+	ReportNumber      string              `bson:"report_number" json:"report_num"`                //报告编号
 }
 
 type Shares struct {
@@ -39,7 +41,8 @@ type Shares struct {
 }
 
 type Image struct {
-	AuthImage       string `bson:"auth_image" json:"auth_image"`
+	AuthImage       string `bson:"auth_image" json:"auth_image"`               //认证文件原图
+	AuthImageThumb  string `bson:"auth_image_thumb" json:"auth_image_thumb"`   //认证文件缩略图
 	FrontImageUrl   string `bson:"front_image_url" json:"front_image_url"`     //证件图片地址
 	FrontImageThumb string `bson:"front_image_thumb" json:"front_image_thumb"` //缩略图地址
 	BackImageUrl    string `bson:"back_image_url" json:"back_image_url"`       //证件图片地址

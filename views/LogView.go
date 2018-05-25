@@ -68,6 +68,9 @@ func (this *LogView) Get(ctx iris.Context) (statuCode int, data M) {
 	data["ai_amount"] = amount.QueryAiCar
 	data["dianhua_amount"] = amount.QueryDianHua
 	data["credit_amount"] = amount.QueryCredit
+	data["ai_amount_time"] = amount.QueryAiCarTime
+	data["dianhua_amount_time"] = amount.QueryDianHuaTime
+	data["credit_amount_time"] = amount.QueryCreditTime
 	statuCode = 200
 	return
 }
