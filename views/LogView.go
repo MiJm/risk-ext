@@ -3,6 +3,7 @@ package views
 import (
 	"risk-ext/models"
 	"strconv"
+	"strings"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -35,22 +36,30 @@ func (this *LogView) Get(ctx iris.Context) (statuCode int, data M) {
 	if err != nil {
 		s = 30
 	}
-	companyId := ctx.FormValue("com_id")
-	if !bson.IsObjectIdHex(companyId) {
-		data["error"] = "企业ID不正确"
-		return
-	}
+	companyId := ctx.FormValueDefault("com_id", "")
 	typ := ctx.FormValue("type")
 	if typ == "" {
 		data["error"] = "类型不正确"
 		return
 	}
-	t, err := strconv.ParseInt(typ, 10, 64)
-	if err != nil {
-		t = 0
+	typeArr := strings.Split(typ, ",")
+	typeCondition := make([]int, 0)
+	for _, v := range typeArr {
+		t, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			t = 0
+		}
+		typeCondition = append(typeCondition, t)
 	}
+
 	logs := new(models.Logs)
-	query := bson.M{"log_company_id": companyId, "log_type": t}
+	query := bson.M{}
+	if bson.IsObjectIdHex(companyId) {
+		query = bson.M{"log_company_id": companyId, "log_type": bson.M{"$in": typeCondition}}
+	} else {
+		query = bson.M{"log_type": bson.M{"$in": typeCondition}}
+	}
+
 	rs, num, err := logs.List(query, int(p), int(s))
 	if err != nil {
 		data["list"] = "无数据"
