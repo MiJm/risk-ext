@@ -49,7 +49,7 @@ func (this *LogView) Get(ctx iris.Context) (statuCode int, data M) {
 		if err != nil {
 			t = 0
 		}
-		typeCondition = append(typeCondition, t)
+		typeCondition = append(typeCondition, int(t))
 	}
 
 	logs := new(models.Logs)

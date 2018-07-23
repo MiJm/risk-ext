@@ -17,6 +17,7 @@ type Logs struct {
 	LogDetail     string              `bson:"log_detail" json:"log_detail"`           //描述
 	LogOperator   string              `bson:"log_operator" json:"log_operator"`       //操作人
 	LogOperatorId string              `bson:"log_operator_id" json:"log_operator_id"` //操作人ID
+	LogOperateIp  string              `bson:"log_operate_ip" json:"log_operate_ip"`   //操作ip地址
 }
 
 func (this *Logs) Insert() error {
