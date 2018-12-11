@@ -1,8 +1,12 @@
 package app
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
 	"reflect"
 	"risk-ext/config"
+	"strings"
 
 	"github.com/kataras/iris/context"
 
@@ -14,7 +18,8 @@ import (
 var (
 	app    = iris.New()
 	method = []string{"Get", "Post", "Put", "Delete"}
-	paths  = context.Map{}
+
+	paths = context.Map{}
 )
 
 var conf = iris.Configuration{ // default configuration:
@@ -43,9 +48,7 @@ func AddPath(path string, obj interface{}) {
 	paths[path] = obj
 }
 
-func Run() {
-	host := config.GetString("host")
-	port := config.GetString("port")
+func App() *iris.Application {
 
 	for k, m := range paths {
 		v := reflect.ValueOf(m)
@@ -53,6 +56,19 @@ func Run() {
 			fn := v.MethodByName(md)
 			if fn.IsValid() {
 				args_ := []reflect.Value{reflect.ValueOf(k), reflect.ValueOf(func(ctx iris.Context) {
+					authFunc := v.MethodByName("Auth")
+					authResult := true
+					if authFunc.IsValid() {
+						result := authFunc.Call([]reflect.Value{reflect.ValueOf(ctx)})
+						authResult = result[0].Bool()
+					}
+
+					if !authResult {
+						ctx.StatusCode(403)
+						ctx.JSON("没有权限")
+						return
+					}
+
 					args := []reflect.Value{reflect.ValueOf(ctx)}
 					rs := fn.Call(args)
 					ctx.StatusCode(int(rs[0].Int()))
@@ -65,10 +81,63 @@ func Run() {
 				}
 			}
 		}
-
 	}
+	return app
+}
+
+func Run() {
+	app := App()
+	host := config.GetString("host")
+	port := config.GetString("port")
 	if port == "" {
 		port = "80"
 	}
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
+}
+func HttpClient(url string, args interface{}, method string, result interface{}, token ...string) error {
+	client := &http.Client{}
+	var params = ""
+	var contentType = "application/x-www-form-urlencoded"
+
+	if reflect.TypeOf(args).String() != "string" {
+		jsonData, err := json.Marshal(args)
+		if err != nil {
+			return err
+		}
+		params = string(jsonData)
+		contentType = "application/json"
+	} else {
+		params = args.(string)
+	}
+
+	var req *http.Request
+	var err error
+	if method == "GET" {
+		req, err = http.NewRequest(method, url, nil)
+	} else {
+		req, err = http.NewRequest(method, url, strings.NewReader(params))
+	}
+
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if len(token) != 0 {
+		req.Header.Add("X-Token", token[0])
+	}
+	//fmt.Println(contentType, url, params)
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	jsonStr := string(body)
+	err = json.Unmarshal([]byte(jsonStr), result)
+	return err
 }
