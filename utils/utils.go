@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -154,4 +155,52 @@ func SubString(str string, length int) (substr string) {
 	}
 	// 返回子串
 	return string(rs[begin:lth])
+}
+
+//将时间秒转天数
+func Timelen(intTimer int) (timeStr string) {
+	var day, hour, minute int
+	if intTimer > 24*3600 {
+		day = intTimer / (24 * 3600)
+		Dremain := intTimer % (24 * 3600)
+		if Dremain > 3600 {
+			hour = Dremain / 3600
+			Hremain := Dremain % 3600
+			if Hremain > 60 {
+				minute = Hremain / 60
+			}
+		} else {
+			minute = Dremain / 60
+		}
+	} else {
+		if intTimer > 3600 {
+			hour = intTimer / 3600
+			Hremain := intTimer % 3600
+			if Hremain > 60 {
+				minute = Hremain / 60
+			}
+		} else {
+			minute = intTimer / 60
+		}
+	}
+
+	if day > 0 {
+		timeStr = timeStr + strconv.Itoa(day) + "天"
+	}
+	if hour > 0 {
+		timeStr = timeStr + strconv.Itoa(hour) + "小时"
+	}
+	if minute > 0 {
+		timeStr = timeStr + strconv.Itoa(minute) + "分钟"
+	}
+	if day == 0 && hour == 0 && minute == 0 {
+		timeStr = "小于1分钟"
+	}
+	return timeStr
+}
+
+func Time2Str1(datetime uint32) string {
+	timeLayout := "2006-01-02"
+	tm := time.Unix(int64(datetime), 0)
+	return tm.Format(timeLayout)
 }

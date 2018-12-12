@@ -1,14 +1,12 @@
 package models
 
 import (
-	"encoding/json"
 	"fmt"
-	"risks-api/system/utils"
+	"risk-ext/utils"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-	"yue/system"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -111,6 +109,20 @@ func (this *Users) GetUsersByOpenId(openId string) (rs Users, err error) {
 	return
 }
 
+func (this *Users) GetUsersByPhone(phone string) (rs Users, err error) {
+	err = this.Collection(this).Find(bson.M{"user_mobile": phone, "user_deleted": 0}).One(&rs)
+	return
+}
+
+func (this *Users) Insert() (rs *Users, err error) {
+	this.UserId = bson.NewObjectId()
+	this.UserStatus = 1
+	this.UserDate = uint32(time.Now().Unix())
+	err = this.Collection(this).Insert(*this)
+	rs = this
+	return
+}
+
 func (this *Users) GetDeviceInfo(deviceId uint64) (info *DeviceInfo) {
 	err := this.Map("devices", fmt.Sprintf("%d", deviceId), &info)
 	if err != nil {
@@ -199,8 +211,7 @@ func (this *Users) GetDeviceInfo(deviceId uint64) (info *DeviceInfo) {
 			if startTime == 0 {
 				startTime = uint32(time.Now().Unix())
 				info.Device_last_tracking = startTime
-				redisData, _ := json.Marshal(info)
-				err = system.Redis.HSet("devices", strconv.Itoa(int(deviceId)), redisData).Err()
+				err = this.Save("devices", strconv.Itoa(int(deviceId)), info)
 				if err != nil {
 					return
 				}
@@ -526,4 +537,19 @@ func (this *Users) CheckStatus(deviceInfo DeviceInfo) bool {
 
 	}
 	return flag
+}
+
+//检测验证码
+func (this *Users) CheckCode(phone string, code string) bool {
+	value, err := this.Get(phone)
+	if err != nil {
+		return false
+	}
+	if value == "" {
+		return false
+	} else if code != value {
+		return false
+	}
+	//	Redis.Del(phone)
+	return true
 }
