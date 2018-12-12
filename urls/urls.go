@@ -14,6 +14,7 @@ func init() {
 	simView := new(views.SimView)
 	creditView := new(views.CreditView)
 	dianhuaView := new(views.DianhuaView)
+	userView := new(views.UsersView)
 
 	app.AddPath("v2/amount/", amountView)
 	app.AddPath("v2/log/", logView)
@@ -29,4 +30,6 @@ func init() {
 	app.AddPath("v2/credits/action", creditView)
 	app.AddPath("v2/dianhua/flow", dianhuaView)
 	app.AddPath("v2/dianhua/login", dianhuaView)
+	app.AddPath("v2/user/login", userView)
+	app.AddPath("v2/user/bind", userView)
 }

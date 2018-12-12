@@ -1,6 +1,8 @@
 package views
 
 import (
+	"risk-ext/models"
+
 	"github.com/kataras/iris"
 )
 
@@ -19,5 +21,21 @@ func (this *UsersView) Auth(ctx iris.Context) int {
 }
 
 func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
+	data = make(M)
+	statuCode = 400
+	openId := ctx.FormValue("openId")
+	if openId == "" {
+		data["code"] = 0
+		data["error"] = "openId参数缺失"
+		return
+	}
+	userInfo, err := new(models.Users).GetUsersByOpenId(openId)
+	statuCode = 200
+	if err != nil {
+		data["code"] = 0
+		return
+	}
+	data["code"] = 1
+	data["userInfo"] = userInfo
 	return
 }
