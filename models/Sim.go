@@ -35,6 +35,7 @@ type Devices struct {
 	Device_tracking         uint8               `json:"device_tracking"`                                      //状态0=未追踪 1=准备追踪 2=正在追踪 3=准备恢复正常模式
 	Device_bind_time        uint32              `json:"device_bind_time"`                                     //绑车时间
 	Device_unbind_time      uint32              `json:"device_unbind_time"`                                   //解绑时间
+	DeviceUser              *Users              `bson:"device_user" json:"device_user"`                       //C端客户信息
 }
 
 type SimInfo struct {
@@ -81,4 +82,9 @@ func (this *Devices) Update(flag bool, unsetfiled ...string) error {
 	}
 	err := this.Collection(this).Update(bson.M{"device_id": this.Device_id}, query)
 	return err
+}
+
+func (this *Devices) GetDeviceByDevId(deviceId uint64) (dev DevInfo, err error) {
+	err = this.Collection(this).Find(bson.M{"device_id": deviceId}).One(&dev)
+	return
 }

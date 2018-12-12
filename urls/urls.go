@@ -32,4 +32,5 @@ func init() {
 	app.AddPath("v2/dianhua/login", dianhuaView)
 	app.AddPath("v2/user/login", userView)
 	app.AddPath("v2/user/bind", userView)
+	app.AddPath("v2/user/active", userView)
 }

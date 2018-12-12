@@ -40,10 +40,12 @@ type Travel struct {
 }
 
 type DevInfo struct {
-	DeviceId    uint64 `json:"device_id"`     //设备号
-	DeviceIdStr string `json:"device_id_str"` //设备号
-	DeviceSim   uint64 `json:"device_sim"`    //设备sim卡号
-	DeviceModel Models `json:"device_model"`  //设备类型
+	DeviceId      uint64 `bson:"device_id" json:"device_id"`             //设备号
+	DeviceIdStr   string `bson:"device_id_str" json:"device_id_str"`     //设备号
+	DeviceSim     uint64 `bson:"device_sim" json:"device_sim"`           //设备sim卡号
+	DeviceModel   Models `bson:"device_model" json:"device_model"`       //设备类型
+	DeviceUser    *Users `bson:"device_user" json:"device_user"`         //C端客户信息
+	DeviceOutType uint8  `bson:"device_out_type" json:"device_out_type"` //设备出库类型  0正式出库 1测试出库 2To customer 出库
 }
 type Models struct {
 	Model_name string `json:"model_name"` //型号名
@@ -552,4 +554,12 @@ func (this *Users) CheckCode(phone string, code string) bool {
 	}
 	//	Redis.Del(phone)
 	return true
+}
+
+func (this *Users) Update() (err error) {
+	if this.UserId != EmptyId {
+		update := bson.M{"$set": *this}
+		err = this.Collection(this).UpdateId(this.UserId, update)
+	}
+	return
 }

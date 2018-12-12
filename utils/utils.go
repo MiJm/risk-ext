@@ -65,7 +65,8 @@ func Struct2Map(obj interface{}, noCom ...bool) bson.M {
 	nv := reflect.ValueOf(emptyObj)
 	var data = bson.M{}
 	for i := 0; i < t.NumField(); i++ {
-		key := strings.ToLower(t.Field(i).Name)
+		//key := strings.ToLower(t.Field(i).Name)
+		key := t.Field(i).Tag.Get("json")
 		if len(noCom) > 0 && noCom[0] {
 			data[key] = v.Field(i).Interface()
 		} else if !reflect.DeepEqual(nv.Field(i).Interface(), v.Field(i).Interface()) {
