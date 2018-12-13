@@ -179,6 +179,15 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "激活失败"
 		return
 	}
+	var deviceInfo models.DeviceInfo
+	err = userModel.Map("devices", deviceId, &deviceInfo)
+	if err != nil {
+		data["code"] = 0
+		data["error"] = err.Error()
+		return
+	}
+	deviceInfo.Device_activity_time = uint32(travelInfo.TravelDate)
+	userModel.Save("devices", deviceId, deviceInfo)
 	statuCode = 200
 	data["code"] = 1
 	return
