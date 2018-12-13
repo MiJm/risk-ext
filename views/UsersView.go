@@ -34,6 +34,7 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 			data["error"] = err.Error()
 			return
 		}
+		statuCode = 200
 		data["code"] = 1
 		data["info"] = reponse
 		return
