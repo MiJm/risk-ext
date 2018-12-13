@@ -30,7 +30,7 @@ func init() {
 	app.AddPath("v2/credits/action", creditView)
 	app.AddPath("v2/dianhua/flow", dianhuaView)
 	app.AddPath("v2/dianhua/login", dianhuaView)
-	app.AddPath("v2/user/login", userView)
+	app.AddPath("v2/user/detail", userView)
 	app.AddPath("v2/user/bind", userView)
 	app.AddPath("v2/user/active", userView)
 }

@@ -73,7 +73,7 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 			data["error"] = "手机号已绑定"
 			return
 		}
-		userName := ctx.FormValue("nickName")
+		userName := ctx.FormValue("userName")
 		userAvatar := ctx.FormValue("userAvatar")
 		user.UserFname = userName
 		user.UserAvatar = userAvatar
