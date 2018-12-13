@@ -1,7 +1,11 @@
 package models
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"risk-ext/app"
+	"risk-ext/config"
 	"risk-ext/utils"
 	"sort"
 	"strconv"
@@ -28,6 +32,18 @@ type Users struct {
 	UserRead    uint32              `bson:"user_read" json:"user_read"`       //阅读报警的时间
 	UserDeleted uint32              `bson:"user_deleted" json:"user_deleted"` //删除时间
 	UserDate    uint32              `bson:"user_date" json:"user_date"`       //创建时间
+}
+
+const APPID = "wx1e72aeeba77e0307"
+const APPSECRET = "70fed4b77c2a2b0f2a9bbaa8d36e5e1b"
+const WECHATAPIURL = "https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code"
+
+type WxResponse struct {
+	OpenId     string `json:"openid"`
+	SessionKey string `json:"session_key"`
+	UnionId    string `json:"unionid"`
+	Errcode    int    `json:"errcode"`
+	Errmsg     string `json:"errmsg"`
 }
 
 type Travel struct {
@@ -560,6 +576,21 @@ func (this *Users) Update() (err error) {
 	if this.UserId != EmptyId {
 		update := bson.M{"$set": *this}
 		err = this.Collection(this).UpdateId(this.UserId, update)
+	}
+	return
+}
+
+func (this *Users) GetOpenIdFormWechat(code string) (rep WxResponse, err error) {
+	url := fmt.Sprintf(WECHATAPIURL, APPID, APPSECRET, code)
+	err, jsonStr := app.HttpClient(url, "", "GET", "", "application/json", "")
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal([]byte(jsonStr), &rep)
+	if rep.Errcode == 0 {
+		config.Redis.Set("wx_session_key", rep.SessionKey, 0)
+	} else {
+		err = errors.New(rep.Errmsg)
 	}
 	return
 }

@@ -26,6 +26,18 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
 	openId := ctx.FormValue("openId")
+	code := ctx.Params().Get("code")
+	if code != "" {
+		reponse, err := new(models.Users).GetOpenIdFormWechat(code)
+		if err != nil {
+			data["code"] = 0
+			data["error"] = err.Error()
+			return
+		}
+		data["code"] = 1
+		data["info"] = reponse
+		return
+	}
 	if openId == "" {
 		data["code"] = 0
 		data["error"] = "openId参数缺失"

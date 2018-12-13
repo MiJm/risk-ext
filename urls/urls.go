@@ -33,4 +33,5 @@ func init() {
 	app.AddPath("v2/user/detail", userView)
 	app.AddPath("v2/user/bind", userView)
 	app.AddPath("v2/user/active", userView)
+	app.AddPath("v2/user/wxlogin/{code}", userView)
 }
