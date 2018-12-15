@@ -5,7 +5,10 @@ import (
 	"strconv"
 	"time"
 
+	"risk-ext/config"
+
 	"github.com/kataras/iris"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type UsersView struct {
@@ -25,31 +28,56 @@ func (this *UsersView) Auth(ctx iris.Context) int {
 func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
-	openId := ctx.FormValue("openId")
+	//openId := ctx.FormValue("openId")
+	token := ctx.FormValue("token")
 	code := ctx.Params().Get("code")
 	if code != "" {
-		reponse, err := new(models.Users).GetOpenIdFormWechat(code)
+		reponse, err := new(models.Users).GetOpenIdFromWechat(code)
 		if err != nil {
 			data["code"] = 0
 			data["error"] = err.Error()
 			return
 		}
 		statuCode = 200
+		userInfos, err := new(models.Users).GetUsersByOpenId(reponse.OpenId)
+		if err != nil {
+			data["code"] = -1
+			data["openId"] = reponse.OpenId
+			return
+		}
+		oldToken := userInfos.UserToken
+		userToken := bson.NewObjectId().Hex()
+		userInfos.UserToken = userToken
+		err = userInfos.Update()
+		if err == nil {
+			config.Redis.HDel("logincustomer", oldToken)
+			userInfos.Redis.Save("logincustomer", userToken, userInfos)
+		}
 		data["code"] = 1
-		data["info"] = reponse
+		data["userInfo"] = userInfos
 		return
 	}
-	if openId == "" {
+	if token == "" {
 		data["code"] = 0
-		data["error"] = "openId参数缺失"
+		data["error"] = "token参数缺失"
 		return
 	}
-	userInfo, err := new(models.Users).GetUsersByOpenId(openId)
-	statuCode = 200
+	userModel := new(models.Users)
+	var userInfo models.Users
+	err := userModel.Redis.Map("logincustomer", token, &userInfo)
 	if err != nil {
 		data["code"] = -1
+		data["error"] = "登录失效"
 		return
 	}
+
+	//userInfo, err := new(models.Users).GetUsersByOpenId(openId)
+
+	//	statuCode = 200
+	//	if err != nil {
+	//		data["code"] = -1
+	//		return
+	//	}
 	data["code"] = 1
 	data["userInfo"] = userInfo
 	return
@@ -92,12 +120,15 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 		user.UserAvatar = userAvatar
 		user.UserOpenId = openId
 		user.UserMobile = phone
+		userToken := bson.NewObjectId().Hex()
+		user.UserToken = userToken
 		userInfo, err := user.Insert()
 		if err != nil {
 			data["code"] = 0
 			data["error"] = "绑定失败"
 			return
 		}
+		user.Redis.Save("logincustomer", userToken, userInfo)
 		statuCode = 200
 		data["code"] = 1
 		data["userInfo"] = userInfo
@@ -112,18 +143,34 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
+	token := ctx.FormValue("token")
+	if token == "" {
+		statuCode = 403
+		data["code"] = 0
+		data["error"] = "token参数缺失"
+		return
+	}
+	userModel := new(models.Users)
+	var userData models.Users
+	err := userModel.Redis.Map("logincustomer", token, &userData)
+	if err != nil {
+		statuCode = 403
+		data["code"] = -1
+		data["error"] = "登录失效"
+		return
+	}
 	deviceId := ctx.FormValue("deviceId")
 	if deviceId == "" {
 		data["code"] = 0
 		data["error"] = "deviceId参数缺失"
 		return
 	}
-	openId := ctx.FormValue("openId")
-	if openId == "" {
-		data["code"] = 0
-		data["error"] = "openId参数缺失"
-		return
-	}
+	//	openId := ctx.FormValue("openId")
+	//	if openId == "" {
+	//		data["code"] = 0
+	//		data["error"] = "openId参数缺失"
+	//		return
+	//	}
 	travelName := ctx.FormValue("travelName")
 	if travelName == "" {
 		data["code"] = 0
@@ -131,8 +178,7 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	travelType, _ := ctx.PostValueInt("travelType")
-	userModel := new(models.Users)
-	userInfo, err := userModel.GetUsersByOpenId(openId)
+	userInfo, err := userModel.GetUsersByOpenId(userData.UserOpenId)
 	if err != nil {
 		data["code"] = 0
 		data["error"] = "用户已被注销"

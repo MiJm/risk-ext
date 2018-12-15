@@ -580,7 +580,7 @@ func (this *Users) Update() (err error) {
 	return
 }
 
-func (this *Users) GetOpenIdFormWechat(code string) (rep WxResponse, err error) {
+func (this *Users) GetOpenIdFromWechat(code string) (rep WxResponse, err error) {
 	url := fmt.Sprintf(WECHATAPIURL, APPID, APPSECRET, code)
 	err, jsonStr := app.HttpClient(url, "", "GET", "", "application/json", "")
 	if err != nil {
