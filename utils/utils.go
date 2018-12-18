@@ -1,9 +1,14 @@
 package utils
 
 import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/md5"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"image"
 	"image/draw"
 	"log"
@@ -205,3 +210,65 @@ func Time2Str1(datetime uint32) string {
 	tm := time.Unix(int64(datetime), 0)
 	return tm.Format(timeLayout)
 }
+
+/***
+ * 加密算法开始
+ */
+func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
+	padding := blockSize - len(ciphertext)%blockSize
+	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(ciphertext, padtext...)
+}
+
+func PKCS5UnPadding(origData []byte) []byte {
+	length := len(origData)
+	unpadding := int(origData[length-1])
+	return origData[:(length - unpadding)]
+}
+
+func AesEncrypt(origData, key []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	blockSize := block.BlockSize()
+	origData = PKCS5Padding(origData, blockSize)
+	blockMode := cipher.NewCBCEncrypter(block, key[:blockSize])
+	crypted := make([]byte, len(origData))
+	blockMode.CryptBlocks(crypted, origData)
+	return crypted, nil
+}
+
+func AesDecrypt(crypted, key []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	blockSize := block.BlockSize()
+	blockMode := cipher.NewCBCDecrypter(block, key[:blockSize])
+	origData := make([]byte, len(crypted))
+	blockMode.CryptBlocks(origData, crypted)
+	origData = PKCS5UnPadding(origData)
+	return origData, nil
+}
+
+//解密入口
+func AesDecode(str string) (rs string, err error) {
+	var aeskey = []byte("joygin1234567890")
+	bytesPass, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	tpass, err := AesDecrypt(bytesPass, aeskey)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	rs = string(tpass)
+	return
+}
+
+/***
+ * 加密算法结束
+ */

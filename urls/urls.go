@@ -15,6 +15,7 @@ func init() {
 	creditView := new(views.CreditView)
 	dianhuaView := new(views.DianhuaView)
 	userView := new(views.UsersView)
+	deviceView := new(views.DevicesView)
 
 	app.AddPath("v2/amount/", amountView)
 	app.AddPath("v2/log/", logView)
@@ -34,4 +35,7 @@ func init() {
 	app.AddPath("v2/user/bind", userView)
 	app.AddPath("v2/user/active", userView)
 	app.AddPath("v2/user/wxlogin/{code}", userView)
+	app.AddPath("v2/devices/active", deviceView)
+	app.AddPath("v2/devices/detail", deviceView)
+	app.AddPath("v2/devices/checkdev/{qrcodeStr}", deviceView)
 }
