@@ -13,13 +13,15 @@ type UsersView struct {
 	Views
 }
 
+var coll = "loginuser"
+
 func (this *UsersView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
-		"PUT":    MA{"NOLOGIN": A{1}},
+		"PUT":    MA{"CUSTOMER": A{1}},
 		"GET":    MA{"NOLOGIN": A{1}},
-		"POST":   MA{"NOLOGIN": A{1}},
-		"DELETE": MA{"NOLOGIN": A{1}}}
+		"POST":   MA{"CUSTOMER": A{1}},
+		"DELETE": MA{"CUSTOMER": A{1}}}
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
@@ -27,7 +29,6 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
 	//openId := ctx.FormValue("openId")
-	token := ctx.FormValue("token")
 	code := ctx.Params().Get("code")
 	if code != "" {
 		reponse, err := new(models.Users).GetOpenIdFromWechat(code)
@@ -48,28 +49,14 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 		userInfos.UserToken = userToken
 		err = userInfos.Update()
 		if err == nil {
-			config.Redis.HDel("logincustomer", oldToken)
-			userInfos.Redis.Save("logincustomer", userToken, userInfos)
+			config.Redis.HDel(coll, oldToken+"_1")
+			userInfos.Redis.Save(coll, userToken+"_1", userInfos)
 		}
 		data["code"] = 1
 		data["userInfo"] = userInfos
 		return
 	}
-	if token == "" {
-		data["code"] = 0
-		data["error"] = "token参数缺失"
-		return
-	}
-	userModel := new(models.Users)
-	var userInfo models.Users
-	err := userModel.Redis.Map("logincustomer", token, &userInfo)
-	if err != nil {
-		statuCode = 403
-		data["code"] = -1
-		data["error"] = "登录失效"
-		return
-	}
-	usersInfo, err := new(models.Users).GetUsersByOpenId(userInfo.UserOpenId)
+	usersInfo, err := new(models.Users).GetUsersByOpenId(Session.Customer.UserOpenId)
 	if err != nil {
 		data["code"] = 0
 		data["error"] = err.Error()
@@ -126,7 +113,7 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 			data["error"] = "绑定失败"
 			return
 		}
-		user.Redis.Save("logincustomer", userToken, userInfo)
+		user.Redis.Save(coll, userToken+"_1", userInfo)
 		statuCode = 200
 		data["code"] = 1
 		data["userInfo"] = userInfo

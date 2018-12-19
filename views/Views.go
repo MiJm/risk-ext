@@ -71,6 +71,11 @@ func (this *Views) CheckPerms(perm MA) int {
 			}
 			return 403 //未找到相应权限
 		}
+	} else if Session.Type == 2 { //C端用户
+		if perm["CUSTOMER"] == nil {
+			return 403
+		}
+		return 1
 	} else { //后台管理员
 		if perm["ADMIN"] == nil {
 			return 403 //管理员无权限

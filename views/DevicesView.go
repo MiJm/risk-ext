@@ -17,34 +17,20 @@ type DevicesView struct {
 func (this *DevicesView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
-		"PUT":    MA{"NOLOGIN": A{1}},
-		"GET":    MA{"NOLOGIN": A{1}},
-		"POST":   MA{"NOLOGIN": A{1}},
-		"DELETE": MA{"NOLOGIN": A{1}}}
+		"PUT":    MA{"CUSTOMER": A{1}},
+		"GET":    MA{"CUSTOMER": A{1}},
+		"POST":   MA{"CUSTOMER": A{1}},
+		"DELETE": MA{"CUSTOMER": A{1}}}
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
 func (this *DevicesView) Get(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
-	token := ctx.FormValue("token")
 	qrcodeStr := ctx.Params().Get("qrcodeStr")
 	qrcodeStr, _ = url.QueryUnescape(qrcodeStr)
 	deviceId := ctx.FormValue("deviceId")
-	if token == "" {
-		data["code"] = 0
-		data["error"] = "token参数缺失"
-		return
-	}
-	userModel := new(models.Users)
-	var userData models.Users
-	err := userModel.Redis.Map("logincustomer", token, &userData)
-	if err != nil {
-		statuCode = 403
-		data["code"] = -1
-		data["error"] = "登录失效"
-		return
-	}
+	var userData = Session.Customer
 	if qrcodeStr != "" {
 		deviceId, err := utils.AesDecode(qrcodeStr)
 		if err != nil {
@@ -91,23 +77,10 @@ func (this *DevicesView) Get(ctx iris.Context) (statuCode int, data M) {
 func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
-	token := ctx.FormValue("token")
-	if token == "" {
-		data["code"] = 0
-		data["error"] = "token参数缺失"
-		return
-	}
 	userModel := new(models.Users)
-	var userData models.Users
-	err := userModel.Redis.Map("logincustomer", token, &userData)
-	if err != nil {
-		statuCode = 403
-		data["code"] = -1
-		data["error"] = "登录失效"
-		return
-	}
+	var userData = Session.Customer
 	qrcodeStr := ctx.FormValue("qrcodeStr")
-	qrcodeStr, err = url.QueryUnescape(qrcodeStr)
+	qrcodeStr, err := url.QueryUnescape(qrcodeStr)
 	//deviceId := ctx.FormValue("deviceId")
 	if qrcodeStr == "" || err != nil {
 		data["code"] = 0

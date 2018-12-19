@@ -12,10 +12,11 @@ import (
 var coll = "loginuser"
 
 type Session struct {
-	Redis   `bson:"-" json:"-"` //model基类
-	Type    int8                //用户类型 0=manager 1=member
-	User    users               //前端用户
-	Manager managers            //管理员
+	Redis    `bson:"-" json:"-"` //model基类
+	Type     int8                //用户类型 0=manager 1=member 2=C端用户
+	User     users               //前端用户
+	Manager  managers            //管理员
+	Customer Users               //C端用户
 }
 
 type users struct {
@@ -84,7 +85,7 @@ type Task struct {
 func (this *Session) Data(token string) *Session {
 
 	var user = struct {
-		Type int8   `json:"type"` //用户类型 0=manager 1=member
+		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
 		Data string `json:"data"` //用户内容json
 	}{}
 
@@ -106,6 +107,8 @@ func (this *Session) Data(token string) *Session {
 		if err == nil {
 			this.Map("amounts", this.User.UserCompany_id, &this.User.Amount)
 		}
+	} else {
+		json.Unmarshal([]byte(user.Data), &this.Customer)
 	}
 	return this
 }
