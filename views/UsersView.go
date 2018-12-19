@@ -1,6 +1,7 @@
 package views
 
 import (
+	"encoding/json"
 	"risk-ext/models"
 
 	"risk-ext/config"
@@ -123,7 +124,14 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 			data["error"] = "绑定失败"
 			return
 		}
-		user.Redis.Save(coll, userToken+"_1", userInfo)
+		var userData = struct {
+			Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
+			Data string `json:"data"` //用户内容json
+		}{}
+		userStr, _ := json.Marshal(userInfo)
+		userData.Type = 2
+		userData.Data = string(userStr)
+		user.Redis.Save(coll, userToken+"_1", userData)
 		statuCode = 200
 		data["code"] = 1
 		data["userInfo"] = userInfo
