@@ -52,12 +52,10 @@ type Travel struct {
 }
 
 type DevInfo struct {
-	DeviceId      uint64 `bson:"device_id" json:"device_id"`             //设备号
-	DeviceIdStr   string `bson:"device_id_str" json:"device_id_str"`     //设备号
-	DeviceSim     uint64 `bson:"device_sim" json:"device_sim"`           //设备sim卡号
-	DeviceModel   Models `bson:"device_model" json:"device_model"`       //设备类型
-	DeviceUser    *Users `bson:"device_user" json:"device_user"`         //C端客户信息
-	DeviceOutType uint8  `bson:"device_out_type" json:"device_out_type"` //设备出库类型  0正式出库 1测试出库 2To customer 出库
+	DeviceId    uint64 `bson:"device_id" json:"device_id"`         //设备号
+	DeviceIdStr string `bson:"device_id_str" json:"device_id_str"` //设备号
+	DeviceSim   uint64 `bson:"device_sim" json:"device_sim"`       //设备sim卡号
+	DeviceModel Models `bson:"device_model" json:"device_model"`   //设备类型
 }
 
 //type Models struct {

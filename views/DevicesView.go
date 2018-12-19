@@ -43,18 +43,18 @@ func (this *DevicesView) Get(ctx iris.Context) (statuCode int, data M) {
 		deviceData, err := deviceModel.GetDeviceByDevId(devId)
 		if err != nil {
 			data["code"] = 0
-			data["error"] = "设备不存在"
+			data["error"] = "该设备不存在"
 			return
 		}
 		if deviceData.DeviceOutType != 2 {
 			data["code"] = 0
-			data["error"] = "设备未出库"
+			data["error"] = "该设备未出库"
 			return
 		}
 		if deviceData.DeviceUser != nil {
 			if deviceData.DeviceUser.UserId != models.EmptyId {
 				data["code"] = 0
-				data["error"] = "设备已激活"
+				data["error"] = "该设备已激活"
 				return
 			}
 		}
@@ -78,7 +78,7 @@ func (this *DevicesView) Get(ctx iris.Context) (statuCode int, data M) {
 	deviceData, err := deviceModel.GetDeviceByDevId(devId)
 	if err != nil {
 		data["code"] = 0
-		data["error"] = "设备不存在"
+		data["error"] = "该设备不存在"
 		return
 	}
 	if deviceData.DeviceUser.UserId != userData.UserId {
@@ -136,18 +136,18 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 	deviceData, err := device.GetDeviceByDevId(devId)
 	if err != nil {
 		data["code"] = 0
-		data["error"] = "设备不存在"
+		data["error"] = "该设备不存在"
 		return
 	}
 	if deviceData.DeviceOutType != 2 {
 		data["code"] = 0
-		data["error"] = "设备未出库"
+		data["error"] = "该设备未出库"
 		return
 	}
 	if deviceData.DeviceUser != nil {
 		if deviceData.DeviceUser.UserId != models.EmptyId {
 			data["code"] = 0
-			data["error"] = "设备已激活"
+			data["error"] = "该设备已激活"
 			return
 		}
 	}
