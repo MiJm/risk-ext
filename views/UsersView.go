@@ -20,7 +20,7 @@ func (this *UsersView) Auth(ctx iris.Context) int {
 	var perms = PMS{
 		"PUT":    MA{"CUSTOMER": A{1}},
 		"GET":    MA{"NOLOGIN": A{1}},
-		"POST":   MA{"CUSTOMER": A{1}},
+		"POST":   MA{"NOLOGIN": A{1}},
 		"DELETE": MA{"CUSTOMER": A{1}}}
 	return this.CheckPerms(perms[ctx.Method()])
 }
@@ -56,7 +56,17 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 		data["userInfo"] = userInfos
 		return
 	}
-	usersInfo, err := new(models.Users).GetUsersByOpenId(Session.Customer.UserOpenId)
+	token := ctx.FormValue("token")
+	userModel := new(models.Users)
+	var userInfo models.Users
+	err := userModel.Redis.Map(coll, token+"_1", &userInfo)
+	if err != nil {
+		statuCode = 401
+		data["code"] = 0
+		data["error"] = "登录失效"
+		return
+	}
+	usersInfo, err := new(models.Users).GetUsersByOpenId(userInfo.UserOpenId)
 	if err != nil {
 		data["code"] = 0
 		data["error"] = err.Error()
