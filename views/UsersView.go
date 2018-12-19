@@ -60,13 +60,18 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 	token := ctx.FormValue("token")
 	userModel := new(models.Users)
 	var userInfo models.Users
-	err := userModel.Redis.Map(coll, token+"_1", &userInfo)
+	var userData = struct {
+		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
+		Data string `json:"data"` //用户内容json
+	}{}
+	err := userModel.Redis.Map(coll, token+"_1", &userData)
 	if err != nil {
 		statuCode = 401
 		data["code"] = 0
 		data["error"] = "登录失效"
 		return
 	}
+	json.Unmarshal([]byte(userData.Data), &userInfo)
 	usersInfo, err := new(models.Users).GetUsersByOpenId(userInfo.UserOpenId)
 	if err != nil {
 		data["code"] = 0
