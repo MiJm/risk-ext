@@ -31,6 +31,10 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 	statuCode = 400
 	//openId := ctx.FormValue("openId")
 	code := ctx.Params().Get("code")
+	var userData = struct {
+		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
+		Data string `json:"data"` //用户内容json
+	}{}
 	if code != "" {
 		reponse, err := new(models.Users).GetOpenIdFromWechat(code)
 		if err != nil {
@@ -51,7 +55,10 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 		err = userInfos.Update()
 		if err == nil {
 			config.Redis.HDel(coll, oldToken+"_1")
-			userInfos.Redis.Save(coll, userToken+"_1", userInfos)
+			userStr, _ := json.Marshal(userInfos)
+			userData.Type = 2
+			userData.Data = string(userStr)
+			userInfos.Redis.Save(coll, userToken+"_1", userData)
 		}
 		data["code"] = 1
 		data["userInfo"] = userInfos
@@ -60,10 +67,6 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 	token := ctx.FormValue("token")
 	userModel := new(models.Users)
 	var userInfo models.Users
-	var userData = struct {
-		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
-		Data string `json:"data"` //用户内容json
-	}{}
 	err := userModel.Redis.Map(coll, token+"_1", &userData)
 	if err != nil {
 		statuCode = 401

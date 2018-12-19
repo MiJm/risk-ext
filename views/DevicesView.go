@@ -31,12 +31,32 @@ func (this *DevicesView) Get(ctx iris.Context) (statuCode int, data M) {
 	qrcodeStr, _ = url.QueryUnescape(qrcodeStr)
 	deviceId := ctx.FormValue("deviceId")
 	var userData = Session.Customer
+	deviceModel := new(models.Devices)
 	if qrcodeStr != "" {
 		deviceId, err := utils.AesDecode(qrcodeStr)
 		if err != nil {
 			data["code"] = 0
 			data["error"] = "无效的二维码"
 			return
+		}
+		devId, _ := strconv.ParseUint(deviceId, 10, 64)
+		deviceData, err := deviceModel.GetDeviceByDevId(devId)
+		if err != nil {
+			data["code"] = 0
+			data["error"] = "设备不存在"
+			return
+		}
+		if deviceData.DeviceOutType != 2 {
+			data["code"] = 0
+			data["error"] = "设备未出库"
+			return
+		}
+		if deviceData.DeviceUser != nil {
+			if deviceData.DeviceUser.UserId != models.EmptyId {
+				data["code"] = 0
+				data["error"] = "设备已激活"
+				return
+			}
 		}
 		statuCode = 200
 		data["code"] = 1
@@ -54,7 +74,7 @@ func (this *DevicesView) Get(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "无效的deviceId"
 		return
 	}
-	deviceModel := new(models.Devices)
+
 	deviceData, err := deviceModel.GetDeviceByDevId(devId)
 	if err != nil {
 		data["code"] = 0
@@ -119,17 +139,17 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "设备不存在"
 		return
 	}
+	if deviceData.DeviceOutType != 2 {
+		data["code"] = 0
+		data["error"] = "设备未出库"
+		return
+	}
 	if deviceData.DeviceUser != nil {
 		if deviceData.DeviceUser.UserId != models.EmptyId {
 			data["code"] = 0
 			data["error"] = "设备已激活"
 			return
 		}
-	}
-	if deviceData.DeviceOutType != 2 {
-		data["code"] = 0
-		data["error"] = "设备未出库"
-		return
 	}
 	var travelDev models.DevInfo
 	travelDev.DeviceId = deviceData.Device_id
