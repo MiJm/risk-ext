@@ -3,6 +3,7 @@ package views
 import (
 	"encoding/json"
 	"risk-ext/models"
+	"time"
 
 	"risk-ext/config"
 
@@ -49,8 +50,15 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 			data["openId"] = reponse.OpenId
 			return
 		}
+		if userInfos.UserStatus == 0 {
+			statuCode = 400
+			data["code"] = 0
+			data["error"] = "该用户已被禁用"
+			return
+		}
 		oldToken := userInfos.UserToken
 		userToken := bson.NewObjectId().Hex()
+		userInfos.UserLogin = uint32(time.Now().Unix())
 		userInfos.UserToken = userToken
 		err = userInfos.Update()
 		if err == nil {
