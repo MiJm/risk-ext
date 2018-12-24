@@ -16,6 +16,7 @@ func init() {
 	dianhuaView := new(views.DianhuaView)
 	userView := new(views.UsersView)
 	deviceView := new(views.DevicesView)
+	alarmView := new(views.AlarmsView)
 
 	app.AddPath("v2/amount/", amountView)
 	app.AddPath("v2/log/", logView)
@@ -38,4 +39,6 @@ func init() {
 	app.AddPath("v2/devices/active", deviceView)
 	app.AddPath("v2/devices/detail", deviceView)
 	app.AddPath("v2/devices/checkdev/{qrcodeStr}", deviceView)
+	app.AddPath("v2/alarms/detail", alarmView)
+	app.AddPath("v2/alarms/list", alarmView)
 }

@@ -151,12 +151,7 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 			return
 		}
 	}
-	var travelDev models.DevInfo
-	travelDev.DeviceId = deviceData.Device_id
-	travelDev.DeviceIdStr = deviceData.Device_id_str
-	travelDev.DeviceSim = deviceData.Device_sim
-	travelDev.DeviceModel = deviceData.Device_model
-	travelInfo.TravelDevice = travelDev
+	travelInfo.TravelDeviceId = devId
 	var travels = []models.Travel{travelInfo}
 	//userTravel = append(userInfo.UserTravel, travelInfo)
 	userTravel = append(travels, userInfo.UserTravel...)
@@ -169,6 +164,7 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 	}
 	device.Device_id = deviceData.Device_id
 	device.DeviceUser = &userInfo
+	device.DeviceActivateTime = uint32(time.Now().Unix())
 	err = device.Update(false)
 	if err != nil {
 		data["code"] = 0
@@ -183,6 +179,7 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	deviceInfo.Device_activity_time = uint32(travelInfo.TravelDate)
+	deviceInfo.DeviceUserId = userInfo.UserId.Hex()
 	userModel.Save("devices", deviceId, deviceInfo)
 	statuCode = 200
 	data["code"] = 1

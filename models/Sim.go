@@ -58,6 +58,7 @@ type Devices struct {
 	DeviceCarVin            string              `bson:"device_car_vin" json:"device_car_vin"`                 //VIN车架号
 	DeviceOnline            uint8               `bson:"device_online" json:"device_online"`                   //状态 1=在线 0=离线
 	DeviceUser              *Users              `bson:"device_user" json:"device_user"`                       //C端客户信息
+	DeviceActivateTime      uint32              `bson:"device_activate_time" json:"device_activate_time"`     //C端设备激活时间
 }
 
 /*******************实时数据字段****************************/
@@ -107,6 +108,7 @@ type DeviceInfo struct {
 	DeviceOnline           uint8  `json:"device_online"`          //状态 1=在线 0=离线
 	DeviceStoreState       uint8  `json:"device_store_state"`     //设备库存状态 0=正常 1=待检测 2=报废 主要对入库
 	DeviceCmdNum           uint8  `json:"device_cmd_num"`         //设备当前正在执行的指令个数
+	DeviceUserId           string `json:"device_user_id"`         //用户ID（C端设备）
 }
 
 type Models struct {
