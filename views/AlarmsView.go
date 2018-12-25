@@ -35,6 +35,10 @@ func (this *AlarmsView) Get(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = err.Error()
 		return
 	}
+	if alarmInfo.Alarm_read == 0 {
+		alarmInfo.Alarm_read = 1
+		alarmInfo.Update()
+	}
 	statuCode = 200
 	data["code"] = 1
 	data["alarmInfo"] = alarmInfo
@@ -52,9 +56,16 @@ func (this *AlarmsView) Post(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = err.Error()
 		return
 	}
+	unReadAlarmNum, err := new(models.Alarms).GetUnReadAlarmNums()
+	if err != nil {
+		data["code"] = 0
+		data["error"] = err.Error()
+		return
+	}
 	statuCode = 200
 	data["code"] = 1
 	data["count"] = count
+	data["unreadCount"] = unReadAlarmNum
 	data["alarmList"] = alarmList
 	return
 }
