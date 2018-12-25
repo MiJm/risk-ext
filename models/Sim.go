@@ -189,7 +189,7 @@ func (this *Devices) GetDeviceInfo(deviceId uint64) (info *DeviceInfo) {
 	}
 	nextTime := ""
 	if info != nil {
-		if info.Device_will_params.Mod == 0 || len(info.Device_will_params.Timer) == 0 {
+		if info.Device_running_params.Mod == 0 || len(info.Device_running_params.Timer) == 0 {
 			nextTime = ""
 		} else {
 			nextTime = this.GetTrackInterval(*info)
