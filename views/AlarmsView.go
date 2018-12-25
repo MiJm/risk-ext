@@ -48,15 +48,16 @@ func (this *AlarmsView) Get(ctx iris.Context) (statuCode int, data M) {
 func (this *AlarmsView) Post(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
+	deviceId := ctx.FormValue("deviceId")
 	page := ctx.PostValueIntDefault("page", 1)
 	pageSize := ctx.PostValueIntDefault("pageSize", 15)
-	alarmList, count, err := new(models.Alarms).GetAlarmListByUserId(Session.Customer.UserId.Hex(), page, pageSize)
+	alarmList, count, err := new(models.Alarms).GetAlarmListByUserId(Session.Customer.UserId.Hex(), deviceId, page, pageSize)
 	if err != nil {
 		data["code"] = 0
 		data["error"] = err.Error()
 		return
 	}
-	unReadAlarmNum, err := new(models.Alarms).GetUnReadAlarmNums()
+	unReadAlarmNum, err := new(models.Alarms).GetUnReadAlarmNums(deviceId)
 	if err != nil {
 		data["code"] = 0
 		data["error"] = err.Error()

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"strconv"
+
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -31,13 +33,19 @@ type Alarms struct {
 	Alarm_desc         string              `json:"alarm_desc"`                         //报警描述()
 }
 
-func (this *Alarms) GetAlarmListByUserId(userId string, page, pageSize int) (rs []Alarms, count int, err error) {
+func (this *Alarms) GetAlarmListByUserId(userId, deviceId string, page, pageSize int) (rs []Alarms, count int, err error) {
 	if page < 1 {
 		page = 1
 	}
 	var offset = (page - 1) * pageSize
 	var where = bson.M{}
 	where["alarm_user_id"] = userId
+	if deviceId != "" {
+		devId, err := strconv.ParseUint(deviceId, 10, 64)
+		if err == nil {
+			where["alarm_device_id"] = devId
+		}
+	}
 	count, _ = this.Collection(this).Find(where).Count()
 	err = this.Collection(this).Find(where).Sort("-alarm_date").Limit(pageSize).Skip(offset).All(&rs)
 	if rs == nil {
@@ -60,7 +68,15 @@ func (this *Alarms) Update() (err error) {
 }
 
 //获取未读预警数量
-func (this *Alarms) GetUnReadAlarmNums() (num int, err error) {
-	num, err = this.Collection(this).Find(bson.M{"alarm_read": 0}).Count()
+func (this *Alarms) GetUnReadAlarmNums(deviceId string) (num int, err error) {
+	var where = bson.M{}
+	where["alarm_read"] = 0
+	if deviceId != "" {
+		devId, err := strconv.ParseUint(deviceId, 10, 64)
+		if err == nil {
+			where["alarm_device_id"] = devId
+		}
+	}
+	num, err = this.Collection(this).Find(where).Count()
 	return
 }

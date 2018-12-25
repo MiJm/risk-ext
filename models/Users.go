@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"risk-ext/app"
 	"risk-ext/config"
+	"strconv"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -49,14 +50,19 @@ type Travel struct {
 	TravelDeviceInfo *DeviceInfo `bson:"travel_device_info" json:"travel_device_info"` //绑定的设备实时数据
 	TravelShare      string      `bson:"travel_share" json:"travel_share"`             //共享用户ID 为空则不是共享设备 共享设备只有查看权
 	TravelDate       int64       `bson:"travel_date" json:"travel_date"`               //绑定时间
+	TravleAlarmNum   int         `bson:"travel_alarm_num" json:"travel_alarm_num"`     //未读事件数量
 }
 
 func (this *Users) GetUsersByOpenId(openId string) (rs Users, err error) {
 	err = this.Collection(this).Find(bson.M{"user_open_id": openId, "user_deleted": 0}).One(&rs)
 	if err == nil {
+		deviceModel := new(Devices)
+		alarmModel := new(Alarms)
 		for key, val := range rs.UserTravel {
-			deviceInfo := new(Devices).GetDeviceInfo(val.TravelDeviceId)
+			deviceInfo := deviceModel.GetDeviceInfo(val.TravelDeviceId)
 			rs.UserTravel[key].TravelDeviceInfo = deviceInfo
+			unReadAlarmNum, _ := alarmModel.GetUnReadAlarmNums(strconv.FormatUint(val.TravelDeviceId, 10))
+			rs.UserTravel[key].TravleAlarmNum = unReadAlarmNum
 		}
 	}
 	return
