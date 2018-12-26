@@ -13,22 +13,24 @@ import (
 )
 
 type Users struct {
-	Model       `bson:"-" json:"-"` //model基类
-	Redis       `bson:"-" json:"-"` //model基类
-	UserId      bson.ObjectId       `bson:"_id,omitempty" json:"user_id"`     //id
-	UserFname   string              `bson:"user_fname" json:"user_fname"`     //姓名
-	UserUname   string              `bson:"user_uname" json:"user_uname"`     //登录名
-	UserPasswd  string              `bson:"user_passwd" json:"user_passwd"`   //密码
-	UserAvatar  string              `bson:"user_avatar" json:"user_avatar"`   //头像
-	UserTravel  []Travel            `bson:"user_travel" json:"user_travel"`   //交通工具
-	UserOpenId  string              `bson:"user_open_id" json:"user_open_id"` //微信openId
-	UserMobile  string              `bson:"user_mobile" json:"user_mobile"`   //登录手机号码
-	UserStatus  uint8               `bson:"user_status" json:"user_status"`   //用户状态0禁用 1启用 2未注册
-	UserToken   string              `bson:"user_token" json:"user_token"`     //登录token
-	UserLogin   uint32              `bson:"user_login" json:"user_login"`     //最后登录时间
-	UserRead    uint32              `bson:"user_read" json:"user_read"`       //阅读报警的时间
-	UserDeleted uint32              `bson:"user_deleted" json:"user_deleted"` //删除时间
-	UserDate    uint32              `bson:"user_date" json:"user_date"`       //创建时间
+	Model        `bson:"-" json:"-"` //model基类
+	Redis        `bson:"-" json:"-"` //model基类
+	UserId       bson.ObjectId       `bson:"_id,omitempty" json:"user_id"`         //id
+	UserFname    string              `bson:"user_fname" json:"user_fname"`         //姓名
+	UserUname    string              `bson:"user_uname" json:"user_uname"`         //登录名
+	UserPasswd   string              `bson:"user_passwd" json:"user_passwd"`       //密码
+	UserAvatar   string              `bson:"user_avatar" json:"user_avatar"`       //头像
+	UserTravel   []Travel            `bson:"user_travel" json:"user_travel"`       //交通工具
+	UserOpenId   string              `bson:"user_open_id" json:"user_open_id"`     //微信openId
+	UserWxOpenId string              `bson:"user_wxopen_id" json:"user_wxopen_id"` //微信公众号openId
+	UserUnionId  string              `bson:"user_union_id" json:"user_union_id"`   //微信唯一ID
+	UserMobile   string              `bson:"user_mobile" json:"user_mobile"`       //登录手机号码
+	UserStatus   uint8               `bson:"user_status" json:"user_status"`       //用户状态0禁用 1启用 2未注册
+	UserToken    string              `bson:"user_token" json:"user_token"`         //登录token
+	UserLogin    uint32              `bson:"user_login" json:"user_login"`         //最后登录时间
+	UserRead     uint32              `bson:"user_read" json:"user_read"`           //阅读报警的时间
+	UserDeleted  uint32              `bson:"user_deleted" json:"user_deleted"`     //删除时间
+	UserDate     uint32              `bson:"user_date" json:"user_date"`           //创建时间
 }
 
 const APPID = "wx1e72aeeba77e0307"
