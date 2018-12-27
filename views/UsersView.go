@@ -137,9 +137,9 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 		user.UserMobile = phone
 		userToken := bson.NewObjectId().Hex()
 		user.UserToken = userToken
-		userUnionId, err := config.Redis.HGet("wechatuser", openId).Bytes()
-		if err != nil {
-			user.UserUnionId = string(userUnionId)
+		userUnionId := config.Redis.HGet("wechatuser", openId).Val()
+		if userUnionId != "" {
+			user.UserUnionId = userUnionId
 		}
 		userInfo, err := user.Insert()
 		if err != nil {
