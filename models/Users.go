@@ -46,9 +46,12 @@ type WxResponse struct {
 }
 
 type Travel struct {
-	TravelName       string      `bson:"travel_name" json:"travel_name"`               //交通工具名称
-	TravelType       uint8       `bson:"travel_type" json:"travel_type"`               //交通工具类型0=电动车 1=自行车 2=汽车
-	TravelDeviceId   uint64      `bson:"travel_device_id" json:"travel_device_id"`     //绑定的设备id
+	TravelName     string `bson:"travel_name" json:"travel_name"`           //交通工具名称
+	TravelType     uint8  `bson:"travel_type" json:"travel_type"`           //交通工具类型0=电动车 1=自行车 2=汽车
+	TravelDeviceId uint64 `bson:"travel_device_id" json:"travel_device_id"` //绑定的设备id
+	TravelDevice   struct {
+		DeviceId uint64 `bson:"device_id" json:"device_id"` //绑定的设备id
+	} `bson:"travel_device" json:"travel_device"` //绑定的设备信息
 	TravelDeviceInfo *DeviceInfo `bson:"travel_device_info" json:"travel_device_info"` //绑定的设备实时数据
 	TravelShare      string      `bson:"travel_share" json:"travel_share"`             //共享用户ID 为空则不是共享设备 共享设备只有查看权
 	TravelDate       int64       `bson:"travel_date" json:"travel_date"`               //绑定时间
