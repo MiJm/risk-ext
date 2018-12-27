@@ -46,7 +46,9 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 		statuCode = 200
 		userInfos, err := new(models.Users).GetUsersByOpenId(reponse.OpenId)
 		if err != nil {
-			config.Redis.HSet("wechatuser", reponse.OpenId, reponse.UnionId)
+			if reponse.UnionId != "" {
+				config.Redis.HSet("wechatuser", reponse.OpenId, reponse.UnionId)
+			}
 			data["code"] = -1
 			data["openId"] = reponse.OpenId
 			return
@@ -135,8 +137,10 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 		user.UserMobile = phone
 		userToken := bson.NewObjectId().Hex()
 		user.UserToken = userToken
-		userUnionId := config.Redis.HGet("wechatuser", openId).String()
-		user.UserUnionId = userUnionId
+		userUnionId, err := config.Redis.HGet("wechatuser", openId).Result()
+		if userUnionId != "" && err != nil {
+			user.UserUnionId = userUnionId
+		}
 		userInfo, err := user.Insert()
 		if err != nil {
 			data["code"] = 0
