@@ -63,7 +63,7 @@ func (this *Users) GetUsersByOpenId(openId string) (rs Users, err error) {
 		for key, val := range rs.UserTravel {
 			deviceInfo := deviceModel.GetDeviceInfo(val.TravelDeviceId)
 			rs.UserTravel[key].TravelDeviceInfo = deviceInfo
-			unReadAlarmNum, _ := alarmModel.GetUnReadAlarmNums(strconv.FormatUint(val.TravelDeviceId, 10))
+			unReadAlarmNum, _ := alarmModel.GetUnReadAlarmNums(rs.UserId.Hex(), strconv.FormatUint(val.TravelDeviceId, 10))
 			rs.UserTravel[key].TravleAlarmNum = unReadAlarmNum
 		}
 	}

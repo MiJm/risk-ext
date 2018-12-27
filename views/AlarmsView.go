@@ -57,7 +57,7 @@ func (this *AlarmsView) Post(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = err.Error()
 		return
 	}
-	unReadAlarmNum, err := new(models.Alarms).GetUnReadAlarmNums(deviceId)
+	unReadAlarmNum, err := new(models.Alarms).GetUnReadAlarmNums(deviceId, Session.Customer.UserId.Hex())
 	if err != nil {
 		data["code"] = 0
 		data["error"] = err.Error()

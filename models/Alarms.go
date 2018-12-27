@@ -68,9 +68,10 @@ func (this *Alarms) Update() (err error) {
 }
 
 //获取未读预警数量
-func (this *Alarms) GetUnReadAlarmNums(deviceId string) (num int, err error) {
+func (this *Alarms) GetUnReadAlarmNums(deviceId, userId string) (num int, err error) {
 	var where = bson.M{}
 	where["alarm_read"] = 0
+	where["alarm_user_id"] = userId
 	if deviceId != "" {
 		devId, err := strconv.ParseUint(deviceId, 10, 64)
 		if err == nil {
