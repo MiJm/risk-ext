@@ -63,6 +63,9 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 		userToken := bson.NewObjectId().Hex()
 		userInfos.UserLogin = uint32(time.Now().Unix())
 		userInfos.UserToken = userToken
+		if userInfos.UserUnionId == "" {
+			userInfos.UserUnionId = reponse.UnionId
+		}
 		err = userInfos.Update()
 		if err == nil {
 			config.Redis.HDel(coll, oldToken+"_1")
