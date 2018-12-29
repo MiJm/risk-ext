@@ -18,6 +18,7 @@ func init() {
 	deviceView := new(views.DevicesView)
 	alarmView := new(views.AlarmsView)
 	routeView := new(views.RoutesView)
+	stayView := new(views.StayView)
 
 	app.AddPath("v2/amount/", amountView)
 	app.AddPath("v2/log/", logView)
@@ -43,4 +44,5 @@ func init() {
 	app.AddPath("v2/alarms/detail", alarmView)
 	app.AddPath("v2/alarms/list", alarmView)
 	app.AddPath("v2/routes/list", routeView)
+	app.AddPath("v2/stay/list", stayView)
 }

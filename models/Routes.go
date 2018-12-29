@@ -68,8 +68,8 @@ func (this *Route) NewGetRoutesByPaging(deviceId string, startTime, endTime uint
 
 	var offset = (page - 1) * pageSize
 	lentime := endTime - startTime
-	if lentime > 31*24*60*60 {
-		err = errors.New("查看轨迹超过31天，请分段查询")
+	if lentime > 30*24*60*60 {
+		err = errors.New("查看轨迹超过30天，请分段查询")
 		return
 	}
 	where := bson.M{}
@@ -91,5 +91,38 @@ func (this *Route) NewGetRoutesByPaging(deviceId string, startTime, endTime uint
 	} else { //轨迹打点
 		err = this.Collection(this).Find(where).Sort("device_loctime").Skip(offset).Limit(pageSize).Select(data).All(&rou)
 	}
+	return
+}
+
+//获取设备停留列表
+func (this *Route) GetStayList(startTime, endTime, stayTime uint32, deviceId string) (rou []Routes, err error) {
+	devId, _ := strconv.ParseUint(deviceId, 10, 64)
+	devInfo, err := new(Devices).GetDeviceByDevId(devId)
+	if err != nil {
+		err = errors.New("不存在该设备")
+		return
+	}
+	lentime := endTime - startTime
+	if lentime > 30*24*60*60 {
+		err = errors.New("查看轨迹超过30天，请分段查询")
+		return
+	}
+	where := bson.M{}
+	lent := bson.M{}
+	if endTime > startTime {
+		if startTime < devInfo.DeviceActivateTime {
+			err = errors.New("起止时间不能小于设备激活时间")
+			return
+		}
+	} else {
+		err = errors.New("开始时间不能小于结束时间")
+		return
+	}
+	lent["$gte"] = stayTime
+	where["device_staticlen"] = lent
+	where["device_id"] = devId
+	where["device_loctime"] = bson.M{"$gte": startTime, "$lte": endTime}
+	//	routes = system.RoutesMongo.C("locs_" + dev.Device_id_str[len(dev.Device_id_str)-3:])
+	err = this.Collection(this).Find(where).Sort("device_loctime").All(&rou)
 	return
 }
