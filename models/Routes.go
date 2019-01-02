@@ -84,8 +84,8 @@ func (this *Route) NewGetRoutesByPaging(deviceId string, startTime, endTime uint
 	}
 	where["device_id"] = devInfo.Device_id
 	where["device_loctime"] = bson.M{"$gte": startTime, "$lte": endTime}
-	count, _ = this.Collection(this).Find(where).Count()
 	key := "locs"
+	count, _ = this.RouteCollection(key).Find(where).Count()
 	data := bson.M{"device_latlng": 1, "device_address": 1, "device_id": 1, "device_loctype": 1, "device_direction": 1, "device_status": 1, "device_loctime": 1, "device_voltage": 1}
 	if types == 0 { //轨迹列表
 		err = this.RouteCollection(key).Find(where).Sort("-device_loctime").Skip(offset).Limit(pageSize).Select(data).All(&rou)

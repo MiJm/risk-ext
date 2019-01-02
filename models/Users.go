@@ -88,6 +88,7 @@ func (this *Users) Insert() (rs *Users, err error) {
 	this.UserId = bson.NewObjectId()
 	this.UserStatus = 1
 	this.UserDate = uint32(time.Now().Unix())
+	this.UserLogin = uint32(time.Now().Unix())
 	err = this.Collection(this).Insert(*this)
 	rs = this
 	return
