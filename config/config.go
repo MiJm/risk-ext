@@ -16,9 +16,10 @@ import (
 type M map[interface{}]interface{}
 
 var (
-	_config = M{}
-	Mongo   *mgo.Database
-	Redis   *redis.Client
+	_config    = M{}
+	Mongo      *mgo.Database
+	Redis      *redis.Client
+	RouteMongo *mgo.Database
 )
 
 func Type(obj interface{}) string {
@@ -52,6 +53,7 @@ func init() {
 	initConfig()
 	initMongo()
 	initRedis()
+	initRouteMongo()
 }
 
 func initConfig() {
@@ -135,6 +137,46 @@ func initMongo() {
 	}
 	session.SetMode(mgo.Eventual, true)
 	Mongo = session.DB(dbName)
+}
+
+func initRouteMongo() {
+	db := Get("routedb")
+
+	if Type(db) != "config.M" {
+		return
+	}
+
+	dbMap := db.(M)
+
+	if dbMap["type"] != "mongodb" {
+		return
+	}
+	hosts := dbMap["host"].([]interface{})
+	dbName := dbMap["name"].(string)
+	user := dbMap["user"].(string)
+	pwd := dbMap["pwd"].(string)
+
+	var hs = make([]string, 0)
+
+	for _, h := range hosts {
+		if Type(h) == "string" && h != "" {
+			hs = append(hs, h.(string))
+		}
+	}
+
+	info := &mgo.DialInfo{
+		Addrs:    hs,
+		Database: dbName,
+		Timeout:  60 * time.Second,
+		Username: user,
+		Password: pwd,
+	}
+	session, err := mgo.DialWithInfo(info)
+	if err != nil {
+		log.Fatal("mongodb:", err)
+	}
+	session.SetMode(mgo.Eventual, true)
+	RouteMongo = session.DB(dbName)
 }
 
 func initRedis() {

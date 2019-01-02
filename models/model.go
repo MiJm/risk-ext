@@ -75,6 +75,11 @@ func (this *Model) Collection(coll interface{}) (c *mgo.Collection) {
 	return
 }
 
+func (this *Model) RouteCollection(key string) (c *mgo.Collection) {
+	c = config.RouteMongo.C(key)
+	return
+}
+
 func (this *Model) One(coll interface{}) {
 	key := initColl(coll)
 	c := colls[key]
