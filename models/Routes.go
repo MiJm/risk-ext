@@ -96,7 +96,7 @@ func (this *Route) NewGetRoutesByPaging(deviceId string, startTime, endTime uint
 }
 
 //获取设备停留列表
-func (this *Route) GetStayList(startTime, endTime, stayTime uint32, deviceId string) (rou []Routes, err error) {
+func (this *Route) GetStayList(startTime, endTime, stayTime uint32, deviceId string) (rou []Route, err error) {
 	devId, _ := strconv.ParseUint(deviceId, 10, 64)
 	devInfo, err := new(Devices).GetDeviceByDevId(devId)
 	if err != nil {

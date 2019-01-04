@@ -58,6 +58,10 @@ func (this *StayView) Get(ctx iris.Context) (statuCode int, data M) {
 			data["error"] = "请选择正确的停留时间"
 			return
 		}
+	} else {
+		data["code"] = 0
+		data["error"] = "请选择停留时间"
+		return
 	}
 	stayList, err := new(models.Route).GetStayList(uint32(startTime), uint32(endTime), uint32(stayTime), deviceId)
 	if err != nil {
