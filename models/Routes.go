@@ -75,7 +75,9 @@ func (this *Route) NewGetRoutesByPaging(deviceId string, startTime, endTime uint
 	where := bson.M{}
 	if endTime > startTime {
 		if startTime < devInfo.DeviceActivateTime {
-			err = errors.New("起止时间不能小于设备激活时间")
+			startTime = devInfo.DeviceActivateTime
+		}
+		if endTime < devInfo.DeviceActivateTime {
 			return
 		}
 	} else {
@@ -113,7 +115,9 @@ func (this *Route) GetStayList(startTime, endTime, stayTime uint32, deviceId str
 	lent := bson.M{}
 	if endTime > startTime {
 		if startTime < devInfo.DeviceActivateTime {
-			err = errors.New("起止时间不能小于设备激活时间")
+			startTime = devInfo.DeviceActivateTime
+		}
+		if endTime < devInfo.DeviceActivateTime {
 			return
 		}
 	} else {
