@@ -84,7 +84,8 @@ func (this *Route) NewGetRoutesByPaging(deviceId string, startTime, endTime uint
 	}
 	where["device_id"] = devInfo.Device_id
 	where["device_loctime"] = bson.M{"$gte": startTime, "$lte": endTime}
-	key := "locs"
+	// key := "locs"
+	key := "locs_" + deviceId[len(deviceId)-3]
 	count, _ = this.RouteCollection(key).Find(where).Count()
 	data := bson.M{"device_latlng": 1, "device_address": 1, "device_id": 1, "device_loctype": 1, "device_direction": 1, "device_status": 1, "device_loctime": 1, "device_voltage": 1}
 	if types == 0 { //轨迹列表
@@ -124,7 +125,7 @@ func (this *Route) GetStayList(startTime, endTime, stayTime uint32, deviceId str
 	where["device_id"] = devId
 	where["device_loctime"] = bson.M{"$gte": startTime, "$lte": endTime}
 	//	routes = system.RoutesMongo.C("locs_" + dev.Device_id_str[len(dev.Device_id_str)-3:])
-	key := "locs"
+	key := "locs_" + deviceId[len(deviceId)-3]
 	err = this.RouteCollection(key).Find(where).Sort("device_loctime").All(&rou)
 	return
 }

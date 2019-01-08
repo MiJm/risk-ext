@@ -15,7 +15,7 @@ type SimView struct {
 func (this *SimView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
-	//		"GET": MA{"ADMIN": A{MANAGER_ADMIN, MANAGER_SERVICE, MANAGER_ASSISTANT}}
+		//		"GET": MA{"ADMIN": A{MANAGER_ADMIN, MANAGER_SERVICE, MANAGER_ASSISTANT}}
 	}
 	return this.CheckPerms(perms[ctx.Method()])
 }
