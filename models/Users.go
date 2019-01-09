@@ -52,10 +52,41 @@ type Travel struct {
 	TravelDevice   struct {
 		DeviceId uint64 `bson:"device_id" json:"device_id"` //绑定的设备id
 	} `bson:"travel_device" json:"travel_device"` //绑定的设备信息
+	TravelPen struct {
+		PenPoint  Latlng `bson:"pen_point" json:"pen_point"`   //中心坐标
+		PenRadius uint32 `bson:"pen_radius" json:"pen_radius"` //半径 米
+		PenType   uint8  `bson:"pen_type" json:"pen_type"`     //围栏类型0=圆 1=多边形 2区域
+		PenStatus uint8  `bson:"pen_status" json:"pen_status"` //围栏状态 0已开启 1已关闭
+		PenDate   uint32 `bson:"pen_date" json:"pen_date"`     //创建时间
+	} `bson:"travel_pen" json:"travel_pen"` //车辆围栏信息
 	TravelDeviceInfo *DeviceInfo `bson:"travel_device_info" json:"travel_device_info"` //绑定的设备实时数据
 	TravelShare      string      `bson:"travel_share" json:"travel_share"`             //共享用户ID 为空则不是共享设备 共享设备只有查看权
 	TravelDate       int64       `bson:"travel_date" json:"travel_date"`               //绑定时间
 	TravleAlarmNum   int         `bson:"travel_alarm_num" json:"travel_alarm_num"`     //未读事件数量
+}
+
+type Pens struct {
+	Pen_id         bson.ObjectId `bson:"_id" json:"pen_id"`
+	Pen_name       string        `json:"pen_name"`       //围栏名称
+	Pen_type       uint8         `json:"pen_type"`       //围栏类型0=圆 1=多边形 2区域
+	Pen_inout      uint8         `json:"pen_inout"`      //围栏出入0=入围 1=出围
+	Pen_company    string        `json:"pen_company"`    //企业客户ID
+	Pen_group      string        `json:"pen_group"`      //组织ID
+	Pen_area       string        `json:"pen_area"`       //区域围栏省/市
+	Pen_child_area string        `json:"pen_child_area"` //区域围栏区/县
+	Pen_citycode   string        `json:"pen_citycode"`   //区域围栏 城市 编号 例如：010（北京）
+	Pen_area_type  uint8         `json:"pen_area_type"`  //区域围栏类型0=市 1=省 2=区县
+	Pen_polygon    Polygon       `json:"pen_polygon"`    //多边形围栏
+	Pen_point      Latlng        `json:"pen_point"`      //中心坐标
+	Pen_radius     uint32        `json:"pen_radius"`     //半径 米
+	Pen_date       uint32        `json:"pen_date"`       //创建时间
+	Pen_alarm      bool          `json:"pen_alarm"`      //是否有警报
+	Pen_alarm_time uint32        `json:"pen_alarm_time"` //警报时间
+}
+
+type Polygon struct {
+	Type        string        `json:"type"`        //Polygon
+	Coordinates [][][]float64 `json:"coordinates"` //lng lat[[[ 89.8496, 14.093 ], [ 90.3933, 14.004 ]]]
 }
 
 func (this *Users) GetUsersByOpenId(openId string) (rs Users, err error) {
@@ -76,6 +107,11 @@ func (this *Users) GetUsersByOpenId(openId string) (rs Users, err error) {
 			rs.UserTravel[key].TravleAlarmNum = unReadAlarmNum
 		}
 	}
+	return
+}
+
+func (this *Users) GetUsersByUserId(userId bson.ObjectId) (rs Users, err error) {
+	err = this.Collection(this).Find(bson.M{"_id": userId}).One(&rs)
 	return
 }
 

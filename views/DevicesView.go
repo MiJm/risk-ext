@@ -2,6 +2,7 @@ package views
 
 import (
 	"net/url"
+	"risk-ext/config"
 	"risk-ext/models"
 	"risk-ext/utils"
 	"strconv"
@@ -181,6 +182,53 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 	deviceInfo.Device_activity_time = uint32(travelInfo.TravelDate)
 	deviceInfo.DeviceUserId = userInfo.UserId.Hex()
 	userModel.Save("devices", deviceId, deviceInfo)
+	statuCode = 200
+	data["code"] = 1
+	return
+}
+
+func (this *DevicesView) Delete(ctx iris.Context) (statuCode int, data M) {
+	data = make(M)
+	statuCode = 400
+	deviceId := ctx.FormValue("deviceId")
+	if deviceId == "" {
+		data["code"] = 0
+		data["error"] = "参数deviceId缺失"
+		return
+	}
+	var deviceModel = new(models.Devices)
+	devId, _ := strconv.ParseUint(deviceId, 10, 64)
+	deviceData, err := deviceModel.GetDeviceByDevId(devId)
+	if err != nil {
+		data["code"] = 0
+		data["error"] = "设备不存在"
+		return
+	}
+	userInfo, _ := new(models.Users).GetUsersByUserId(Session.Customer.UserId)
+	var index = -1
+	for key, travel := range userInfo.UserTravel {
+		var id = travel.TravelDeviceId
+		if travel.TravelDeviceId == 0 {
+			id = travel.TravelDevice.DeviceId
+		}
+		if id == devId {
+			index = key
+			break
+		}
+	}
+	userTravels := append(userInfo.UserTravel[:index], userInfo.UserTravel[index+1:]...)
+	userInfo.UserTravel = userTravels
+	err = userInfo.Update()
+	if err == nil {
+		deviceData.DeviceActivateTime = 0
+		deviceData.Update(true, "device_user")
+		var deviceInfo models.DeviceInfo
+		deviceModel.Map("devices", deviceId, &deviceInfo)
+		deviceInfo.Device_activity_time = 0
+		deviceInfo.DeviceUserId = ""
+		deviceModel.Save("devices", deviceId, deviceInfo)
+		config.Redis.HDel("pens_user_"+userInfo.UserId.Hex(), deviceId)
+	}
 	statuCode = 200
 	data["code"] = 1
 	return

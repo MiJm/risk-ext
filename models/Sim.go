@@ -37,11 +37,6 @@ func (this *Devices) OneBySim(sim uint64) (dev Devices, err error) {
 	return
 }
 
-func (this *Devices) GetDeviceByDevId(deviceId uint64) (dev Devices, err error) {
-	err = this.Collection(this).Find(bson.M{"device_id": deviceId}).One(&dev)
-	return
-}
-
 func (this *Devices) GetDeviceInfo(deviceId uint64) (info *DeviceInfo) {
 	err := this.Map("devices", fmt.Sprintf("%d", deviceId), &info)
 	if err != nil {
