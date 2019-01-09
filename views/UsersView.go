@@ -46,7 +46,7 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 			return
 		}
 		statuCode = 200
-		userInfos, err := new(models.Users).GetUsersByOpenId(reponse.OpenId)
+		userInfos, err := new(models.Users).GetUsersByOpenId(reponse.OpenId, true)
 		if err != nil {
 			if reponse.UnionId != "" {
 				config.Redis.HSet("wechatuser", reponse.OpenId, reponse.UnionId)
