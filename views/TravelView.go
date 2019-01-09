@@ -40,6 +40,11 @@ func (this *TravelView) Delete(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "设备不存在"
 		return
 	}
+	if deviceData.DeviceUser.UserId != Session.Customer.UserId {
+		data["code"] = 0
+		data["error"] = "你无权限操作该设备"
+		return
+	}
 	userInfo, _ := new(models.Users).GetUsersByUserId(Session.Customer.UserId)
 	var index = -1
 	for key, travel := range userInfo.UserTravel {
@@ -79,6 +84,18 @@ func (this *TravelView) Put(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "参数deviceId缺失"
 		return
 	}
+	devId, _ := strconv.ParseUint(deviceId, 10, 64)
+	deviceData, err := new(models.Devices).GetDeviceByDevId(devId)
+	if err != nil {
+		data["code"] = 0
+		data["error"] = "设备不存在"
+		return
+	}
+	if deviceData.DeviceUser.UserId != Session.Customer.UserId {
+		data["code"] = 0
+		data["error"] = "你无权限操作该设备"
+		return
+	}
 	travelName := ctx.PostValue("travelName")
 	if travelName == "" {
 		data["code"] = 0
@@ -86,13 +103,6 @@ func (this *TravelView) Put(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	travelType, _ := ctx.PostValueInt("travelType")
-	devId, _ := strconv.ParseUint(deviceId, 10, 64)
-	_, err := new(models.Devices).GetDeviceByDevId(devId)
-	if err != nil {
-		data["code"] = 0
-		data["error"] = "设备不存在"
-		return
-	}
 	userInfo, _ := new(models.Users).GetUsersByUserId(Session.Customer.UserId)
 	var index = -1
 	for key, travel := range userInfo.UserTravel {

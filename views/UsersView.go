@@ -180,8 +180,19 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "参数deviceId缺失"
 		return
 	}
-	types := ctx.PostValueIntDefault("type", 0)
 	devId, _ := strconv.ParseUint(deviceId, 10, 64)
+	deviceData, err := new(models.Devices).GetDeviceByDevId(devId)
+	if err != nil {
+		data["code"] = 0
+		data["error"] = "设备不存在"
+		return
+	}
+	if deviceData.DeviceUser.UserId != Session.Customer.UserId {
+		data["code"] = 0
+		data["error"] = "你无权限操作该设备"
+		return
+	}
+	types := ctx.PostValueIntDefault("type", 0)
 	userInfo, _ := new(models.Users).GetUsersByUserId(Session.Customer.UserId)
 	var index = -1
 	for key, travel := range userInfo.UserTravel {
@@ -210,15 +221,15 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 		latlng.Type = "Point"
 		latlng.Coordinates = []float64{longitude, latitude}
 		userTravels[index].TravelPen.PenType = 0
-		userTravels[index].TravelPen.PenStatus = 0
+		userTravels[index].TravelPen.PenStatus = 1
 		userTravels[index].TravelPen.PenRadius = uint32(radius)
 		userTravels[index].TravelPen.PenPoint = latlng
 		userTravels[index].TravelPen.PenDate = uint32(time.Now().Unix())
 	} else { //关闭设防
-		userTravels[index].TravelPen.PenStatus = 1
+		userTravels[index].TravelPen.PenStatus = 0
 	}
 	userInfo.UserTravel = userTravels
-	err := userInfo.Update()
+	err = userInfo.Update()
 	if err != nil {
 		data["code"] = 0
 		data["error"] = "开启设防失败"

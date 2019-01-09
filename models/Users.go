@@ -56,7 +56,7 @@ type Travel struct {
 		PenPoint  Latlng `bson:"pen_point" json:"pen_point"`   //中心坐标
 		PenRadius uint32 `bson:"pen_radius" json:"pen_radius"` //半径 米
 		PenType   uint8  `bson:"pen_type" json:"pen_type"`     //围栏类型0=圆 1=多边形 2区域
-		PenStatus uint8  `bson:"pen_status" json:"pen_status"` //围栏状态 0已开启 1已关闭
+		PenStatus uint8  `bson:"pen_status" json:"pen_status"` //围栏状态 0已关闭 1已开启
 		PenDate   uint32 `bson:"pen_date" json:"pen_date"`     //创建时间
 	} `bson:"travel_pen" json:"travel_pen"` //车辆围栏信息
 	TravelDeviceInfo *DeviceInfo `bson:"travel_device_info" json:"travel_device_info"` //绑定的设备实时数据
