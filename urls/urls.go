@@ -20,6 +20,7 @@ func init() {
 	routeView := new(views.RoutesView)
 	stayView := new(views.StayView)
 	commandView := new(views.CommandView)
+	travelView := new(views.TravelView)
 
 	app.AddPath("v2/amount/", amountView)
 	app.AddPath("v2/log/", logView)
@@ -42,11 +43,12 @@ func init() {
 	app.AddPath("v2/user/wxlogin/{code}", userView)
 	app.AddPath("v2/devices/active", deviceView)
 	app.AddPath("v2/devices/detail", deviceView)
-	app.AddPath("v2/devices/delete", deviceView)
 	app.AddPath("v2/devices/checkdev/{qrcodeStr}", deviceView)
 	app.AddPath("v2/alarms/detail", alarmView)
 	app.AddPath("v2/alarms/list", alarmView)
 	app.AddPath("v2/routes/list", routeView)
 	app.AddPath("v2/stay/list", stayView)
 	app.AddPath("v2/command/send", commandView)
+	app.AddPath("v2/travel/delete", travelView)
+	app.AddPath("v2/travel/edit", travelView)
 }
