@@ -88,9 +88,20 @@ func (this *DevicesView) Get(ctx iris.Context) (statuCode int, data M) {
 	}
 	deviceInfo := deviceModel.GetDeviceInfo(devId)
 	deviceData.Device_info = deviceInfo
+	var deviceTravel models.Travel
+	for _, travel := range Session.Customer.UserTravel {
+		var id = travel.TravelDeviceId
+		if travel.TravelDeviceId == 0 {
+			id = travel.TravelDevice.DeviceId
+		}
+		if id == devId {
+			deviceTravel = travel
+		}
+	}
 	statuCode = 200
 	data["code"] = 1
 	data["device"] = deviceData
+	data["travelInfo"] = deviceTravel
 	return
 }
 
