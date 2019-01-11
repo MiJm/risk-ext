@@ -110,6 +110,11 @@ type DeviceInfo struct {
 	DeviceUserId           string `json:"device_user_id"`         //用户ID（C端设备）
 }
 
+func (this *Devices) GetDeviceByDevId(deviceId uint64) (dev Devices, err error) {
+	err = this.Collection(this).Find(bson.M{"device_id": deviceId}).One(&dev)
+	return
+}
+
 //更新本对象
 func (this *Devices) Update(flag bool, unsetfiled ...string) error {
 	if this.Device_id == 0 {

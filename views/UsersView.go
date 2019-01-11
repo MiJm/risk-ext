@@ -3,6 +3,8 @@ package views
 import (
 	"encoding/json"
 	"risk-ext/models"
+	"strconv"
+	"strings"
 	"time"
 
 	"risk-ext/config"
@@ -44,7 +46,7 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 			return
 		}
 		statuCode = 200
-		userInfos, err := new(models.Users).GetUsersByOpenId(reponse.OpenId)
+		userInfos, err := new(models.Users).GetUsersByOpenId(reponse.OpenId, true)
 		if err != nil {
 			if reponse.UnionId != "" {
 				config.Redis.HSet("wechatuser", reponse.OpenId, reponse.UnionId)
@@ -167,4 +169,86 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "验证码错误"
 		return
 	}
+}
+
+func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
+	data = make(M)
+	statuCode = 400
+	deviceId := ctx.PostValue("deviceId")
+	if deviceId == "" {
+		data["code"] = 0
+		data["error"] = "参数deviceId缺失"
+		return
+	}
+	devId, _ := strconv.ParseUint(deviceId, 10, 64)
+	deviceData, err := new(models.Devices).GetDeviceByDevId(devId)
+	if err != nil {
+		data["code"] = 0
+		data["error"] = "设备不存在"
+		return
+	}
+	if deviceData.DeviceUser.UserId != Session.Customer.UserId {
+		data["code"] = 0
+		data["error"] = "你无权限操作该设备"
+		return
+	}
+	types := ctx.PostValueIntDefault("type", 0)
+	userInfo, _ := new(models.Users).GetUsersByUserId(Session.Customer.UserId)
+	var index = -1
+	for key, travel := range userInfo.UserTravel {
+		var id = travel.TravelDeviceId
+		if travel.TravelDeviceId == 0 {
+			id = travel.TravelDevice.DeviceId
+		}
+		if id == devId {
+			index = key
+			break
+		}
+	}
+	userTravels := userInfo.UserTravel
+	var latlng models.Latlng
+	radius := 200
+	if types == 0 { //开启设防
+		positionStr := ctx.PostValue("latlngs")
+		if positionStr == "" {
+			data["code"] = 0
+			data["error"] = "参数latlng缺失"
+			return
+		}
+		positionArr := strings.Split(positionStr, ",")
+		longitude, _ := strconv.ParseFloat(positionArr[0], 64) //经度
+		latitude, _ := strconv.ParseFloat(positionArr[1], 64)  //纬度
+		latlng.Type = "Point"
+		latlng.Coordinates = []float64{longitude, latitude}
+		userTravels[index].TravelPen.PenType = 0
+		userTravels[index].TravelPen.PenStatus = 1
+		userTravels[index].TravelPen.PenRadius = uint32(radius)
+		userTravels[index].TravelPen.PenPoint = latlng
+		userTravels[index].TravelPen.PenDate = uint32(time.Now().Unix())
+	} else { //关闭设防
+		userTravels[index].TravelPen.PenStatus = 0
+	}
+	userInfo.UserTravel = userTravels
+	err = userInfo.Update()
+	if err != nil {
+		data["code"] = 0
+		data["error"] = "开启设防失败"
+		return
+	} else {
+		if types == 0 {
+			var penInfo models.Pens
+			penInfo.Pen_inout = 1
+			penInfo.Pen_point = latlng
+			penInfo.Pen_radius = uint32(radius)
+			penInfo.Pen_type = 0
+			penInfo.Pen_date = uint32(time.Now().Unix())
+			penData, _ := json.Marshal(penInfo)
+			config.Redis.HSet("pens_user_"+userInfo.UserId.Hex(), deviceId, string(penData))
+		} else {
+			config.Redis.HDel("pens_user_"+userInfo.UserId.Hex(), deviceId)
+		}
+	}
+	statuCode = 200
+	data["code"] = 1
+	return
 }
