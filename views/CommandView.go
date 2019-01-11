@@ -85,11 +85,13 @@ func (this *CommandView) Post(ctx iris.Context) (statuCode int, data M) {
 			}
 			deviceInfo.Device_tracking_params = uint16(track_min)
 			arg = fmt.Sprintf("%d", track_min)
-		}
-		if deviceInfo.Device_tracking == 3 || deviceInfo.Device_tracking == 2 || deviceInfo.Device_tracking == 5 {
-			deviceInfo.Device_tracking = 5
+			if deviceInfo.Device_tracking == 3 || deviceInfo.Device_tracking == 2 || deviceInfo.Device_tracking == 5 {
+				deviceInfo.Device_tracking = 5
+			} else {
+				deviceInfo.Device_tracking = 1 //准备追踪
+			}
 		} else {
-			deviceInfo.Device_tracking = 1 //准备追踪
+			deviceInfo.Device_tracking = 2
 		}
 
 		cmd_type = 3
