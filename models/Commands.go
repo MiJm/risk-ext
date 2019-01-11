@@ -82,6 +82,15 @@ func (this *Commands) Command(devIdStr string, typ uint8, deviceInfo *DeviceInfo
 		return
 	}
 	dev, _ := new(Devices).GetDeviceByDevId(uint64(deviceId))
+	if (typ == 3 || typ == 2) && deviceInfo.Device_type == 1 {
+		redisData, _ := json.Marshal(&deviceInfo)
+		if config.Redis.HSet("devices", devIdStr, redisData).Err() == nil {
+			deviceData.Update(false)
+			trackInterval = new(Devices).GetTrackInterval(*deviceInfo)
+		} else {
+			err = errors.New("指令发送失败")
+		}
+	}
 	if typ != 3 && typ != 4 && typ != 5 && typ != 6 {
 		flag := false
 		for _, v := range mod.Model_command {
@@ -102,7 +111,7 @@ func (this *Commands) Command(devIdStr string, typ uint8, deviceInfo *DeviceInfo
 			return
 		}
 	}
-	oil_status := dev.Device_info.Device_oil_status
+	oil_status := deviceInfo.Device_oil_status
 	if typ == 1 || typ == 2 {
 		if oil_status == typ {
 			if typ == 1 {

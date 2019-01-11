@@ -29,13 +29,14 @@ func (this *CommandView) Auth(ctx iris.Context) int {
 //set_work int cmd_type 为3 传值 0:闹钟模式 2:星期
 //cmd_param string 设置的参数 cmd_type=1(5分钟) cmd_type=2(可空) cmd_type=3(set_work=0>>[10:00;13:00;18:00;20:00] set_work=2>>[10:00;1,2,3,4,5,6,7])
 //deviceId int 设备号
-func (this *CommandView) post(ctx iris.Context) (statuCode int, data M) {
+func (this *CommandView) Post(ctx iris.Context) (statuCode int, data M) {
 	statuCode = 400
 	data = make(M)
 	mem := Session.Customer
 	deviceModel := new(models.Devices)
 	deviceId := ctx.PostValueInt64Default("deviceId", 0)
 	cmd_type := ctx.PostValueInt64Default("cmd_type", 0)
+	fmt.Println(deviceId, cmd_type)
 	if deviceId == 0 || cmd_type == 0 {
 		data["code"] = 0
 		data["error"] = "下发指令失败,请联系工作人员"
@@ -94,24 +95,29 @@ func (this *CommandView) post(ctx iris.Context) (statuCode int, data M) {
 		cmd_type = 3
 		deviceData.Device_tracking = deviceInfo.Device_tracking
 	} else if cmd_type == 2 { //设备关闭追踪
-		deviceInfo.Device_tracking = 3 //准备恢复正常模式
-		params := deviceInfo.Device_running_params
-		if params.Mod == 1 { //闹钟
-			for k, v := range params.Timer {
-				if k == 0 {
-					arg = fmt.Sprintf("%s", v)
-				} else {
-					arg = fmt.Sprintf("%s,%s", arg, v)
+		if mod.Model_type == 0 { //无线设备
+			deviceInfo.Device_tracking = 3 //准备恢复正常模式
+			params := deviceInfo.Device_running_params
+			if params.Mod == 1 { //闹钟
+				for k, v := range params.Timer {
+					if k == 0 {
+						arg = fmt.Sprintf("%s", v)
+					} else {
+						arg = fmt.Sprintf("%s,%s", arg, v)
+					}
+
 				}
-
+			} else if params.Mod == 2 || params.Mod == 3 { //定时 星期
+				arg = fmt.Sprintf("%s,%s", params.Timer[0], params.Selector)
 			}
-		} else if params.Mod == 2 || params.Mod == 3 { //定时 星期
-			arg = fmt.Sprintf("%s,%s", params.Timer[0], params.Selector)
-		}
-		cmd_type = int64(3) + int64(params.Mod)
+			cmd_type = int64(3) + int64(params.Mod)
 
-		deviceInfo.Device_tracking = 4
-		deviceData.Device_tracking = 4
+			deviceInfo.Device_tracking = 4
+			deviceData.Device_tracking = 4
+		} else { //有线设备
+			deviceInfo.Device_tracking = 0
+			deviceData.Device_tracking = 0
+		}
 	} else if cmd_type == 3 { //设备设置工作模式
 		set_work := ctx.PostValueInt64Default("set_work", -1)
 		Mar := strings.Split(cmd_param, ";")
