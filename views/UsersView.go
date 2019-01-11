@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"risk-ext/models"
 	"strconv"
-	"strings"
 	"time"
 
 	"risk-ext/config"
@@ -209,17 +208,8 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 	var latlng models.Latlng
 	radius := 200
 	if types == 0 { //开启设防
-		positionStr := ctx.PostValue("latlngs")
-		if positionStr == "" {
-			data["code"] = 0
-			data["error"] = "参数latlng缺失"
-			return
-		}
-		positionArr := strings.Split(positionStr, ",")
-		longitude, _ := strconv.ParseFloat(positionArr[0], 64) //经度
-		latitude, _ := strconv.ParseFloat(positionArr[1], 64)  //纬度
-		latlng.Type = "Point"
-		latlng.Coordinates = []float64{longitude, latitude}
+		deviceInfo := new(models.Devices).GetDeviceInfo(devId)
+		latlng = deviceInfo.Device_latlng
 		userTravels[index].TravelPen.PenType = 0
 		userTravels[index].TravelPen.PenStatus = 1
 		userTravels[index].TravelPen.PenRadius = uint32(radius)
