@@ -90,6 +90,7 @@ func (this *Commands) Command(devIdStr string, typ uint8, deviceInfo *DeviceInfo
 		} else {
 			err = errors.New("指令发送失败")
 		}
+		return
 	}
 	if typ != 3 && typ != 4 && typ != 5 && typ != 6 {
 		flag := false
