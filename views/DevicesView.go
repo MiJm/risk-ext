@@ -88,8 +88,9 @@ func (this *DevicesView) Get(ctx iris.Context) (statuCode int, data M) {
 	}
 	deviceInfo := deviceModel.GetDeviceInfo(devId)
 	deviceData.Device_info = deviceInfo
+	userInfo, _ := new(models.Users).GetUsersByUserId(Session.Customer.UserId)
 	var deviceTravel models.Travel
-	for _, travel := range Session.Customer.UserTravel {
+	for _, travel := range userInfo.UserTravel {
 		var id = travel.TravelDeviceId
 		if travel.TravelDeviceId == 0 {
 			id = travel.TravelDevice.DeviceId
