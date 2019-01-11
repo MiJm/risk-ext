@@ -6,6 +6,7 @@ import (
 	"risk-ext/models"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/kataras/iris"
 )
@@ -92,6 +93,7 @@ func (this *CommandView) Post(ctx iris.Context) (statuCode int, data M) {
 			}
 		} else {
 			deviceInfo.Device_tracking = 2
+			deviceInfo.Device_last_tracking = uint32(time.Now().Unix())
 		}
 
 		cmd_type = 3
