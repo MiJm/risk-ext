@@ -14,50 +14,47 @@ import (
 type Devices struct {
 	Model                   `bson:"-" json:"-"` //model基类
 	Redis                   `bson:"-" json:"-"` //redis基类
-	Device_id               uint64              `json:"device_id"`                                            //设备号
-	Device_id_str           string              `json:"device_id_str"`                                        //字符串设备号
-	Device_name             string              `json:"device_name"`                                          //设备名
-	Device_model            Models              `json:"device_model"`                                         //设备型号
-	Device_sim              uint64              `json:"device_sim"`                                           //sim卡
-	Device_sim_info         SimInfo             `bson:"device_sim_info" json:"device_sim_info"`               //SIM卡详细信息
-	Device_car_id           bson.ObjectId       `bson:"device_car_id,omitempty" json:"device_car_id"`         //车辆ID
-	Device_car_plate        string              `json:"device_car_plate"`                                     //车牌号
-	Device_company_id       bson.ObjectId       `bson:"device_company_id,omitempty" json:"device_company_id"` //企业ID
-	Device_company_name     string              `json:"device_company_name"`                                  //企业名
-	Device_group_id         bson.ObjectId       `bson:"device_group_id,omitempty" json:"device_group_id"`     //组织ID
-	Device_group_name       string              `json:"device_group_name"`                                    //组织名
-	Device_server_starttime uint32              `json:"device_server_starttime"`                              //服务开始时间
-	Device_server_endtime   uint32              `json:"device_server_endtime"`                                //服务结束时间
-	Device_due              uint8               `json:"device_due"`                                           //是否到期0未到期 1到期
-	Device_remark           string              `json:"device_remark"`                                        //备注
-	Device_sim_starttime    uint32              `json:"device_sim_starttime"`                                 //sim开始时间
-	Device_sim_endtime      uint32              `json:"device_sim_endtime"`                                   //sim结束时间
-	Device_install          uint8               `json:"device_install"`                                       //安装位置
-	Device_outtime          uint32              `json:"device_outtime"`                                       //出库时间
-	Device_batch_id         uint32              `json:"device_batch_id"`                                      //入库批次号
-	Device_batch_id_str     string              `json:"device_batch_id_str"`                                  //入库批次号(ObjectIdStr)
-	Device_batch_no         string              `json:"device_batch_no"`                                      //入库批次号(模糊查询显示使用，入库objectId后6位)
-	Device_serial_id        uint32              `json:"device_serial_id"`                                     //出库流水号
-	Device_serial_objid     string              `json:"device_serial_objid"`                                  //出库流水号ObjectId
-	Device_intime           uint32              `json:"device_intime"`                                        //入库时间
-	Device_rectime          uint32              `json:"device_rectime"`                                       //回收时间
-	Device_deleted          uint8               `json:"device_deleted"`                                       //是否已删除0未 1已
-	Device_info             *DeviceInfo         `json:"device_info"`                                          //设备实时数据
-	Device_tracking         uint8               `json:"device_tracking"`                                      //状态0=未追踪 1=准备追踪 2=正在追踪 3=准备恢复正常模式
-	Device_bind_time        uint32              `json:"device_bind_time"`                                     //绑车时间
-	Device_unbind_time      uint32              `json:"device_unbind_time"`                                   //解绑时间
-	Device_tracking_time    int64               `json:"device_tracking_time"`                                 //开启追踪的时间
-	DeviceStoreState        uint8               `bson:"device_store_state" json:"device_store_state"`         //设备库存状态 0=正常 1=待检测 2=报废 主要对入库
-	DeviceStoreType         uint8               `bson:"device_store_type" json:"device_store_type"`           //设备设备来源 0=采购 1=试用 2=回收
-	DeviceState             uint8               `bson:"device_state" json:"device_state"`                     //设备调度类型 0=正常 1=调度中（锁定）
-	DeviceOutType           uint8               `bson:"device_out_type" json:"device_out_type"`               //设备出库类型  0正式出库 1测试出库 2To customer 出库
-	DeviceBatcheNo          string              `bson:"device_batche_no" json:"device_batche_no"`             //所属批次号
-	DeviceReposId           string              `bson:"device_repos_id" json:"device_repos_id"`               //所属仓库ID
-	DeviceCarOwner          string              `bson:"device_car_owner" json:"device_car_owner"`             //车主
-	DeviceCarVin            string              `bson:"device_car_vin" json:"device_car_vin"`                 //VIN车架号
-	DeviceOnline            uint8               `bson:"device_online" json:"device_online"`                   //状态 1=在线 0=离线
-	DeviceUser              *Users              `bson:"device_user" json:"device_user"`                       //C端客户信息
-	DeviceActivateTime      uint32              `bson:"device_activate_time" json:"device_activate_time"`     //C端设备激活时间
+	Device_id               uint64              `json:"device_id"`                                        //设备号
+	Device_id_str           string              `json:"device_id_str"`                                    //字符串设备号
+	Device_name             string              `json:"device_name"`                                      //设备名
+	Device_model            Models              `json:"device_model"`                                     //设备型号
+	Device_sim              uint64              `json:"device_sim"`                                       //sim卡
+	Device_sim_info         SimInfo             `bson:"device_sim_info" json:"device_sim_info"`           //SIM卡详细信息
+	Device_car_plate        string              `json:"device_car_plate"`                                 //车牌号
+	Device_company_name     string              `json:"device_company_name"`                              //企业名
+	Device_group_name       string              `json:"device_group_name"`                                //组织名
+	Device_server_starttime uint32              `json:"device_server_starttime"`                          //服务开始时间
+	Device_server_endtime   uint32              `json:"device_server_endtime"`                            //服务结束时间
+	Device_due              uint8               `json:"device_due"`                                       //是否到期0未到期 1到期
+	Device_remark           string              `json:"device_remark"`                                    //备注
+	Device_sim_starttime    uint32              `json:"device_sim_starttime"`                             //sim开始时间
+	Device_sim_endtime      uint32              `json:"device_sim_endtime"`                               //sim结束时间
+	Device_install          uint8               `json:"device_install"`                                   //安装位置
+	Device_outtime          uint32              `json:"device_outtime"`                                   //出库时间
+	Device_batch_id         uint32              `json:"device_batch_id"`                                  //入库批次号
+	Device_batch_id_str     string              `json:"device_batch_id_str"`                              //入库批次号(ObjectIdStr)
+	Device_batch_no         string              `json:"device_batch_no"`                                  //入库批次号(模糊查询显示使用，入库objectId后6位)
+	Device_serial_id        uint32              `json:"device_serial_id"`                                 //出库流水号
+	Device_serial_objid     string              `json:"device_serial_objid"`                              //出库流水号ObjectId
+	Device_intime           uint32              `json:"device_intime"`                                    //入库时间
+	Device_rectime          uint32              `json:"device_rectime"`                                   //回收时间
+	Device_deleted          uint8               `json:"device_deleted"`                                   //是否已删除0未 1已
+	Device_info             *DeviceInfo         `json:"device_info"`                                      //设备实时数据
+	Device_tracking         uint8               `json:"device_tracking"`                                  //状态0=未追踪 1=准备追踪 2=正在追踪 3=准备恢复正常模式
+	Device_bind_time        uint32              `json:"device_bind_time"`                                 //绑车时间
+	Device_unbind_time      uint32              `json:"device_unbind_time"`                               //解绑时间
+	Device_tracking_time    int64               `json:"device_tracking_time"`                             //开启追踪的时间
+	DeviceStoreState        uint8               `bson:"device_store_state" json:"device_store_state"`     //设备库存状态 0=正常 1=待检测 2=报废 主要对入库
+	DeviceStoreType         uint8               `bson:"device_store_type" json:"device_store_type"`       //设备设备来源 0=采购 1=试用 2=回收
+	DeviceState             uint8               `bson:"device_state" json:"device_state"`                 //设备调度类型 0=正常 1=调度中（锁定）
+	DeviceOutType           uint8               `bson:"device_out_type" json:"device_out_type"`           //设备出库类型  0正式出库 1测试出库 2To customer 出库
+	DeviceBatcheNo          string              `bson:"device_batche_no" json:"device_batche_no"`         //所属批次号
+	DeviceReposId           string              `bson:"device_repos_id" json:"device_repos_id"`           //所属仓库ID
+	DeviceCarOwner          string              `bson:"device_car_owner" json:"device_car_owner"`         //车主
+	DeviceCarVin            string              `bson:"device_car_vin" json:"device_car_vin"`             //VIN车架号
+	DeviceOnline            uint8               `bson:"device_online" json:"device_online"`               //状态 1=在线 0=离线
+	DeviceUser              *Users              `bson:"device_user" json:"device_user"`                   //C端客户信息
+	DeviceActivateTime      uint32              `bson:"device_activate_time" json:"device_activate_time"` //C端设备激活时间
 }
 
 /*******************实时数据字段****************************/

@@ -61,8 +61,10 @@ func (this *TravelView) Delete(ctx iris.Context) (statuCode int, data M) {
 	userInfo.UserTravel = userTravels
 	err = userInfo.Update()
 	if err == nil {
-		deviceData.DeviceActivateTime = 0
-		deviceData.Update(true, "device_user")
+		var device models.Devices
+		device.Device_id = deviceData.Device_id
+		device.DeviceActivateTime = 1
+		device.Update(false, "device_user")
 		var deviceInfo models.DeviceInfo
 		deviceModel.Map("devices", deviceId, &deviceInfo)
 		deviceInfo.Device_activity_time = 0
