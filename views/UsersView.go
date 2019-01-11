@@ -209,10 +209,11 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 	radius := 200
 	if types == 0 { //开启设防
 		deviceInfo := new(models.Devices).GetDeviceInfo(devId)
+		latlng = deviceInfo.Device_latlng
 		userTravels[index].TravelPen.PenType = 0
 		userTravels[index].TravelPen.PenStatus = 1
 		userTravels[index].TravelPen.PenRadius = uint32(radius)
-		userTravels[index].TravelPen.PenPoint = deviceInfo.Device_latlng
+		userTravels[index].TravelPen.PenPoint = latlng
 		userTravels[index].TravelPen.PenDate = uint32(time.Now().Unix())
 	} else { //关闭设防
 		userTravels[index].TravelPen.PenStatus = 0
