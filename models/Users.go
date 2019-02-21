@@ -170,3 +170,46 @@ func (this *Users) GetOpenIdFromWechat(code string) (rep WxResponse, err error) 
 	}
 	return
 }
+
+//校验手机号是否存在
+func (this *Users) GetUserByPhone(phone, code string) (err error, userInfo Users) {
+	flag := this.CheckCode(phone, code)
+	if !flag {
+		err = errors.New("验证码错误")
+		return
+	}
+	err = this.Collection(this).Find(bson.M{"user_mobile": phone}).One(&userInfo)
+	if err != nil || userInfo.UserMobile == "" { //查询不到该手机号做新增操作
+		userInfo.UserMobile = phone
+		userInfo.UserId = bson.NewObjectId()
+		userInfo.UserStatus = 1
+		userInfo.UserDate = uint32(time.Now().Unix())
+		userToken := bson.NewObjectId().Hex()
+		userInfo.UserToken = userToken
+		_, err = userInfo.Insert()
+		if err != nil {
+			err = errors.New("登录失败(新增账户失败)")
+			return
+		}
+	} else { //存在该用户信息处理
+		oldToken := userInfo.UserToken
+		if oldToken != "" {
+			config.Redis.HDel("loginuser", oldToken+"_1")
+		}
+		userInfo.UserToken = bson.NewObjectId().Hex()
+		err = userInfo.Update()
+		if err != nil {
+			err = errors.New("登录失败(后台程序)")
+		}
+	}
+	var userData = struct {
+		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
+		Data string `json:"data"` //用户内容json
+	}{}
+	userStr, _ := json.Marshal(userInfo)
+	userData.Type = 2
+	userData.Data = string(userStr)
+	this.Redis.Save("loginuser", userInfo.UserToken+"_1", userData)
+	// err = this.Redis.Delete(phone)
+	return
+}

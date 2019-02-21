@@ -28,11 +28,17 @@ func (this *UsersView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
+//小程序登录
 func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
+	isApp := ctx.FormValueDefault("app", "")
+	if isApp != "" {
+		statuCode, data = this.Login(ctx)
+		return
+	}
 	data = make(M)
 	statuCode = 400
 	//openId := ctx.FormValue("openId")
-	code := ctx.Params().Get("code")
+	code := ctx.Params().Get("code") //微信code
 	var userData = struct {
 		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
 		Data string `json:"data"` //用户内容json
@@ -240,5 +246,32 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 	}
 	statuCode = 200
 	data["code"] = 1
+	return
+}
+
+//APP登录
+func (this *UsersView) Login(ctx iris.Context) (statuCode int, data M) {
+	data = make(M)
+	statuCode = 400
+	code := ctx.FormValue("vcode")  //手机验证码
+	phone := ctx.FormValue("phone") //手机号
+	err, userInfo := new(models.Users).GetUserByPhone(phone, code)
+
+	if err != nil {
+		data["code"] = 0
+		data["error"] = err.Error()
+		return
+	}
+
+	if userInfo.UserStatus == 0 {
+		statuCode = 400
+		data["code"] = 0
+		data["error"] = "该用户已被禁用"
+		return
+	}
+
+	statuCode = 200
+	data["code"] = 1
+	data["userInfo"] = userInfo
 	return
 }

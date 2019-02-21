@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/mgo.v2"
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -46,6 +46,11 @@ func (this *Redis) Map(key, field string, result interface{}) (err error) {
 
 func (this *Redis) Get(key string) (rs string, err error) {
 	rs, err = config.Redis.Get(key).Result()
+	return
+}
+
+func (this *Redis) Delete(key string) (err error) {
+	err = config.Redis.Del(key).Err()
 	return
 }
 
