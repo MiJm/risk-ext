@@ -12,13 +12,11 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type UsersView struct {
+type UsersViewForApp struct {
 	Views
 }
 
-var coll = "loginuser"
-
-func (this *UsersView) Auth(ctx iris.Context) int {
+func (this *UsersViewForApp) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
 		"PUT":    MA{"CUSTOMER": A{1}},
@@ -29,7 +27,7 @@ func (this *UsersView) Auth(ctx iris.Context) int {
 }
 
 //小程序登录
-func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
+func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 	isApp := ctx.FormValueDefault("app", "")
 	if isApp != "" {
 		statuCode, data = this.Login(ctx)
@@ -47,7 +45,8 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 		reponse, err := new(models.Users).GetOpenIdFromWechat(code)
 		if err != nil {
 			data["code"] = 0
-			data["error"] = err.Error()
+			data["msg"] = err.Error()
+			data["data"] = nil
 			return
 		}
 		statuCode = 200
@@ -57,13 +56,15 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 				config.Redis.HSet("wechatuser", reponse.OpenId, reponse.UnionId)
 			}
 			data["code"] = -1
-			data["openId"] = reponse.OpenId
+			data["msg"] = "OK"
+			data["data"] = reponse.OpenId
 			return
 		}
 		if userInfos.UserStatus == 0 {
 			statuCode = 400
 			data["code"] = 0
-			data["error"] = "该用户已被禁用"
+			data["msg"] = "该用户已被禁用"
+			data["data"] = nil
 			return
 		}
 		oldToken := userInfos.UserToken
@@ -82,7 +83,8 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 			userInfos.Redis.Save(coll, userToken+"_1", userData)
 		}
 		data["code"] = 1
-		data["userInfo"] = userInfos
+		data["msg"] = "OK"
+		data["data"] = userInfos
 		return
 	}
 	token := ctx.FormValue("token")
@@ -92,42 +94,48 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 	if err != nil {
 		statuCode = 401
 		data["code"] = 0
-		data["error"] = "登录失效"
+		data["msg"] = "登录失效"
+		data["data"] = nil
 		return
 	}
 	json.Unmarshal([]byte(userData.Data), &userInfo)
 	usersInfo, err := new(models.Users).GetUsersByOpenId(userInfo.UserOpenId)
 	if err != nil {
 		data["code"] = 0
-		data["error"] = err.Error()
+		data["msg"] = err.Error()
+		data["data"] = nil
 		return
 	}
 	statuCode = 200
 	data["code"] = 1
-	data["userInfo"] = usersInfo
+	data["msg"] = "OK"
+	data["data"] = usersInfo
 	return
 }
 
-func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
+func (this *UsersViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
 	openId := ctx.FormValue("openId")
 	if openId == "" {
 		data["code"] = 0
-		data["error"] = "openId参数缺失"
+		data["msg"] = "openId参数缺失"
+		data["data"] = nil
 		return
 	}
 	phone := ctx.FormValue("phone")
 	isTrue := models.CheckPhone(phone)
 	if !isTrue {
 		data["code"] = 0
-		data["error"] = "请输入正确的手机号"
+		data["msg"] = "请输入正确的手机号"
+		data["data"] = nil
 		return
 	}
 	code := ctx.FormValue("code")
 	if code == "" {
 		data["code"] = 0
-		data["error"] = "请输入验证码"
+		data["msg"] = "请输入验证码"
+		data["data"] = nil
 		return
 	}
 	user := new(models.Users)
@@ -136,7 +144,8 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 		_, err := user.GetUsersByPhone(phone)
 		if err == nil {
 			data["code"] = 0
-			data["error"] = "手机号已绑定"
+			data["msg"] = "手机号已绑定"
+			data["data"] = nil
 			return
 		}
 		userName := ctx.FormValue("userName")
@@ -154,7 +163,8 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 		userInfo, err := user.Insert()
 		if err != nil {
 			data["code"] = 0
-			data["error"] = "绑定失败"
+			data["msg"] = "绑定失败"
+			data["data"] = nil
 			return
 		}
 		var userData = struct {
@@ -167,34 +177,39 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 		user.Redis.Save(coll, userToken+"_1", userData)
 		statuCode = 200
 		data["code"] = 1
-		data["userInfo"] = userInfo
+		data["data"] = userInfo
+		data["msg"] = "OK"
 		return
 	} else {
 		data["code"] = 0
-		data["error"] = "验证码错误"
+		data["msg"] = "验证码错误"
+		data["data"] = nil
 		return
 	}
 }
 
-func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
+func (this *UsersViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
 	deviceId := ctx.PostValue("deviceId")
 	if deviceId == "" {
 		data["code"] = 0
-		data["error"] = "参数deviceId缺失"
+		data["msg"] = "参数deviceId缺失"
+		data["data"] = nil
 		return
 	}
 	devId, _ := strconv.ParseUint(deviceId, 10, 64)
 	deviceData, err := new(models.Devices).GetDeviceByDevId(devId)
 	if err != nil {
 		data["code"] = 0
-		data["error"] = "设备不存在"
+		data["msg"] = "设备不存在"
+		data["data"] = nil
 		return
 	}
 	if deviceData.DeviceUser.UserId != Session.Customer.UserId {
 		data["code"] = 0
-		data["error"] = "你无权限操作该设备"
+		data["msg"] = "你无权限操作该设备"
+		data["data"] = nil
 		return
 	}
 	types := ctx.PostValueIntDefault("type", 0)
@@ -212,7 +227,7 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 	}
 	userTravels := userInfo.UserTravel
 	var latlng models.Latlng
-	radius := 100
+	radius := 200
 	if types == 0 { //开启设防
 		deviceInfo := new(models.Devices).GetDeviceInfo(devId)
 		latlng = deviceInfo.Device_latlng
@@ -228,7 +243,8 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 	err = userInfo.Update()
 	if err != nil {
 		data["code"] = 0
-		data["error"] = "开启设防失败"
+		data["msg"] = "开启设防失败"
+		data["data"] = nil
 		return
 	} else {
 		if types == 0 {
@@ -246,11 +262,13 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 	}
 	statuCode = 200
 	data["code"] = 1
+	data["data"] = nil
+	data["msg"] = "OK"
 	return
 }
 
 //APP登录
-func (this *UsersView) Login(ctx iris.Context) (statuCode int, data M) {
+func (this *UsersViewForApp) Login(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
 	code := ctx.FormValue("vcode")  //手机验证码
@@ -259,19 +277,22 @@ func (this *UsersView) Login(ctx iris.Context) (statuCode int, data M) {
 
 	if err != nil {
 		data["code"] = 0
-		data["error"] = err.Error()
+		data["msg"] = err.Error()
+		data["data"] = nil
 		return
 	}
 
 	if userInfo.UserStatus == 0 {
 		statuCode = 400
 		data["code"] = 0
-		data["error"] = "该用户已被禁用"
+		data["msg"] = "该用户已被禁用"
+		data["data"] = nil
 		return
 	}
 
 	statuCode = 200
 	data["code"] = 1
-	data["userInfo"] = userInfo
+	data["data"] = userInfo
+	data["msg"] = "OK"
 	return
 }
