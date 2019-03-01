@@ -7,11 +7,13 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
 	"image/draw"
 	"log"
+	"net"
 	"os"
 	"reflect"
 	"strconv"
@@ -20,6 +22,7 @@ import (
 
 	"github.com/disintegration/imaging"
 
+	socketgo "github.com/nulijiabei/socketgo"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -272,3 +275,54 @@ func AesDecode(str string) (rs string, err error) {
 /***
  * 加密算法结束
  */
+
+//发送实时指令
+//devId设备ID
+//Type指令类型  0=重启设备 1=断油电 2=通油电 3开追踪 4设置闹钟 5设置定时 6设置星期 7设防 8撤防 9寻车
+//args 指令参数 不填为空
+//
+func ExeCmd(devId uint64, Type uint8, args string) bool {
+	var rs = make(chan bool, 1)
+	var cmd = struct {
+		Imei  uint64 `json:"cmd_imei"`
+		Type  uint8  `json:"cmd_type"` //指令类型  0=重启设备 1=断油电 2=通油电 3开追踪 4设置闹钟 5设置定时 6设置星期 7设防 8撤防 9寻车
+		Args  string `json:"cmd_args"`
+		CmdId string `json:"cmd_id"`
+	}{devId, Type, args, ""}
+
+	err := socketgo.NewTCP("cmdServer", "1985", 3).ReadWrite(func(conn *net.TCPConn) error {
+		mjson, err := json.Marshal(cmd)
+		if err != nil {
+			rs <- false
+			return nil
+		}
+
+		_, err = conn.Write([]byte("execmd|" + string(mjson) + "$"))
+
+		if err != nil {
+			rs <- false
+			return nil
+		}
+		var buf = make([]byte, 128)
+
+		blen, err := conn.Read(buf)
+		if err != nil {
+			rs <- false
+			return nil
+		}
+		buf = buf[:blen]
+		if string(buf) != "ok" {
+			rs <- false
+			return nil
+		}
+
+		rs <- true
+		return nil
+	})
+
+	if err != nil {
+		return false
+	} else {
+		return <-rs
+	}
+}
