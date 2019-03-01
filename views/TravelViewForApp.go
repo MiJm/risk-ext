@@ -143,3 +143,22 @@ func (this *TravelViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 	data["data"] = nil
 	return
 }
+
+//获取车辆列表
+func (this *TravelViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
+	userId := Session.Customer.UserId
+	data = make(M)
+	statuCode = 400
+	data["code"] = 0
+	data["data"] = nil
+	Travels, err := new(models.Users).TravelList(userId.Hex())
+	if err != nil {
+		data["msg"] = err.Error()
+		return
+	}
+	statuCode = 200
+	data["code"] = 1
+	data["msg"] = "OK"
+	data["data"] = Travels
+	return
+}

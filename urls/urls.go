@@ -75,4 +75,5 @@ func init() {
 	app.AddPath("v2/app/command/send", commandViewForApp)
 	app.AddPath("v2/app/travel/delete", travelViewForApp)
 	app.AddPath("v2/app/travel/edit", travelViewForApp)
+	app.AddPath("v2/app/travel/list", travelViewForApp)
 }

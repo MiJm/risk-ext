@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"strconv"
 
 	"gopkg.in/mgo.v2/bson"
@@ -33,6 +34,14 @@ type Alarms struct {
 	Alarm_desc         string              `json:"alarm_desc"`                         //报警描述()
 }
 
+var Alarm_type_string = []string{"断电/关机预警", "通电/开机预警", "光感预警", "出围预警", "入围预警", "低电量预警", "风险点预警", "离线预警", "异动报警"}
+var Alarm_type_color = []string{"#F0644E", "#3ED080", "#F8AD2E", "#886EFF", "#886EFF", "#F78C75", " #F66A00", "#F53E35", "#3A9CFF"}
+
+var Alarm_descrip = []bson.M{{"type": "断电", "color": "#F0644E", "discription": "电源被切断", "args": 0}, {"type": "见光", "color": "#F8AD2E", "discription": "检测到光感报警", "args": 0}, {"type": "出围", "color": "#886EFF", "discription": "驶出围栏[%s]", "args": 1}, {"type": "入围", "color": "#886EFF", "discription": "驶入围栏[%s]", "args": 1},
+	{"type": "关机", "color": "#F0644E", "discription": "已关机", "args": 0}, {"type": "开机", "color": "#3ED080", "discription": "关机报警解除，已重新开机", "args": 0}, {"type": "低电量", "color": "#F78C75", "discription": "电量少于20%", "args": 0}, {"type": "通电", "color": "#3ED080", "discription": "断电报警解除，已恢复通电", "args": 0},
+	{"type": "见光恢复", "color": "#F8AD2E", "discription": "光感报警解除，已复位", "args": 0}, {"type": "低电恢复", "color": "#F78C75", "discription": "低电报警解除，已复位", "args": 0}, {"type": "出围解除", "color": "#886EFF", "discription": "围栏报警解除", "args": 0}, {"type": "入围解除", "color": "#886EFF", "discription": "围栏报警解除", "args": 0},
+	{"type": "风险点", "color": "#F66A00", "discription": "进入风险点[%s]", "args": -1}, {"type": "离线", "color": "#F53E35", "discription": "离线报警", "args": 0}, {"type": "异动", "color": "#3A9CFF", "discription": "异动报警", "args": 0}}
+
 func (this *Alarms) GetAlarmListByUserId(userId, deviceId string, page, pageSize int) (rs []Alarms, count int, err error) {
 	if page < 1 {
 		page = 1
@@ -50,12 +59,28 @@ func (this *Alarms) GetAlarmListByUserId(userId, deviceId string, page, pageSize
 	err = this.Collection(this).Find(where).Sort("-alarm_date").Limit(pageSize).Skip(offset).All(&rs)
 	if rs == nil {
 		rs = make([]Alarms, 0)
+	} else {
+		for k, v := range rs {
+			if Alarm_descrip[v.Alarm_type]["args"].(int) > 0 {
+				v.Alarm_desc = fmt.Sprintf(Alarm_descrip[v.Alarm_type]["discription"].(string), v.Alarm_pen_name)
+			} else if Alarm_descrip[v.Alarm_type]["args"].(int) == 0 {
+				v.Alarm_desc = Alarm_descrip[v.Alarm_type]["discription"].(string)
+			}
+			rs[k] = v
+		}
 	}
 	return
 }
 
 func (this *Alarms) GetAlarmInfo(alarmId string) (rs Alarms, err error) {
 	err = this.Collection(this).FindId(bson.ObjectIdHex(alarmId)).One(&rs)
+	if err == nil {
+		if Alarm_descrip[rs.Alarm_type]["args"].(int) > 0 {
+			rs.Alarm_desc = fmt.Sprintf(Alarm_descrip[rs.Alarm_type]["discription"].(string), rs.Alarm_pen_name)
+		} else if Alarm_descrip[rs.Alarm_type]["args"].(int) == 0 {
+			rs.Alarm_desc = Alarm_descrip[rs.Alarm_type]["discription"].(string)
+		}
+	}
 	return
 }
 
