@@ -212,7 +212,7 @@ func (this *UsersView) Put(ctx iris.Context) (statuCode int, data M) {
 	}
 	userTravels := userInfo.UserTravel
 	var latlng models.Latlng
-	radius := 200
+	radius := 100
 	if types == 0 { //开启设防
 		deviceInfo := new(models.Devices).GetDeviceInfo(devId)
 		latlng = deviceInfo.Device_latlng
