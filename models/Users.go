@@ -215,11 +215,27 @@ func (this *Users) GetUserByPhone(phone, code string) (err error, userInfo Users
 }
 
 //根据用户ID获取用户下车辆列表
-func (this *Users) TravelList(userId string) (Travels interface{}, err error) {
+func (this *Users) TravelList(userId string) (Travels []Travel, err error) {
 	if !bson.IsObjectIdHex(userId) {
 		err = errors.New("请求参数有误")
 		return
 	}
-	err = this.Collection(this).FindId(bson.ObjectIdHex(userId)).Select(bson.M{"user_travel": 1, "_id": 0}).One(&Travels)
+	var userInfo Users
+	err = this.Collection(this).FindId(bson.ObjectIdHex(userId)).Select(bson.M{"user_travel": 1, "_id": 0}).One(&userInfo)
+
+	Travels = userInfo.UserTravel
+	for k, v := range Travels {
+		var devId uint64
+		if v.TravelDeviceId != 0 {
+			devId = v.TravelDeviceId
+		} else {
+			devId = v.TravelDevice.DeviceId
+		}
+		deviceInfo := new(Devices).GetDeviceInfo(devId)
+		Travels[k].TravelDeviceInfo = deviceInfo
+		unReadAlarmNum, _ := new(Alarms).GetUnReadAlarmNums(strconv.FormatUint(devId, 10), userId)
+		Travels[k].TravleAlarmNum = unReadAlarmNum
+	}
+
 	return
 }
