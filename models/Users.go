@@ -13,36 +13,54 @@ import (
 )
 
 type Users struct {
-	Model        `bson:"-" json:"-"` //model基类
-	Redis        `bson:"-" json:"-"` //model基类
-	UserId       bson.ObjectId       `bson:"_id,omitempty" json:"user_id"`         //id
-	UserFname    string              `bson:"user_fname" json:"user_fname"`         //姓名
-	UserUname    string              `bson:"user_uname" json:"user_uname"`         //登录名
-	UserPasswd   string              `bson:"user_passwd" json:"user_passwd"`       //密码
-	UserAvatar   string              `bson:"user_avatar" json:"user_avatar"`       //头像
-	UserTravel   []Travel            `bson:"user_travel" json:"user_travel"`       //交通工具
-	UserOpenId   string              `bson:"user_open_id" json:"user_open_id"`     //微信openId
-	UserWxOpenId string              `bson:"user_wxopen_id" json:"user_wxopen_id"` //微信公众号openId
-	UserUnionId  string              `bson:"user_union_id" json:"user_union_id"`   //微信唯一ID
-	UserMobile   string              `bson:"user_mobile" json:"user_mobile"`       //登录手机号码
-	UserStatus   uint8               `bson:"user_status" json:"user_status"`       //用户状态0禁用 1启用 2未注册
-	UserToken    string              `bson:"user_token" json:"user_token"`         //登录token
-	UserLogin    uint32              `bson:"user_login" json:"user_login"`         //最后登录时间
-	UserRead     uint32              `bson:"user_read" json:"user_read"`           //阅读报警的时间
-	UserDeleted  uint32              `bson:"user_deleted" json:"user_deleted"`     //删除时间
-	UserDate     uint32              `bson:"user_date" json:"user_date"`           //创建时间
+	Model         `bson:"-" json:"-"` //model基类
+	Redis         `bson:"-" json:"-"` //model基类
+	UserId        bson.ObjectId       `bson:"_id,omitempty" json:"user_id"`           //id
+	UserFname     string              `bson:"user_fname" json:"user_fname"`           //姓名
+	UserUname     string              `bson:"user_uname" json:"user_uname"`           //登录名
+	UserPasswd    string              `bson:"user_passwd" json:"user_passwd"`         //密码
+	UserAvatar    string              `bson:"user_avatar" json:"user_avatar"`         //头像
+	UserTravel    []Travel            `bson:"user_travel" json:"user_travel"`         //交通工具
+	UserOpenId    string              `bson:"user_open_id" json:"user_open_id"`       //微信openId
+	UserWxOpenId  string              `bson:"user_wxopen_id" json:"user_wxopen_id"`   //微信公众号openId
+	UserAppOpenId string              `bson:"user_appopen_id" json:"user_appopen_id"` //微信App登录openId
+	UserUnionId   string              `bson:"user_union_id" json:"user_union_id"`     //微信唯一ID
+	UserMobile    string              `bson:"user_mobile" json:"user_mobile"`         //登录手机号码
+	UserStatus    uint8               `bson:"user_status" json:"user_status"`         //用户状态0禁用 1启用 2未注册
+	UserToken     string              `bson:"user_token" json:"user_token"`           //登录token
+	UserLogin     uint32              `bson:"user_login" json:"user_login"`           //最后登录时间
+	UserRead      uint32              `bson:"user_read" json:"user_read"`             //阅读报警的时间
+	UserDeleted   uint32              `bson:"user_deleted" json:"user_deleted"`       //删除时间
+	UserDate      uint32              `bson:"user_date" json:"user_date"`             //创建时间
 }
 
 const APPID = "wx1e72aeeba77e0307"
 const APPSECRET = "70fed4b77c2a2b0f2a9bbaa8d36e5e1b"
 const WECHATAPIURL = "https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code"
 
+//手机端APP微信授权登录相关信息
+const APPID2 = "wxaf20cb020743a753"
+const APPSECRET2 = "5b4b4fd781dc78df66d9a2b389bac3e3"
+const WECHATAPIURL2 = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
+const GETWXUSERINFO = "https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s"
+
 type WxResponse struct {
-	OpenId     string `json:"openid"`
-	SessionKey string `json:"session_key"`
-	UnionId    string `json:"unionid"`
-	Errcode    int    `json:"errcode"`
-	Errmsg     string `json:"errmsg"`
+	OpenId      string `json:"openid"`
+	SessionKey  string `json:"session_key"`
+	AccessToken string `json:"access_token"`
+	UnionId     string `json:"unionid"`
+	Headimgurl  string `json:"headimgurl"`
+	Nickname    string `json:"nickname"`
+	Errcode     int    `json:"errcode"`
+	Errmsg      string `json:"errmsg"`
+}
+
+type WeChat struct {
+	AccessToken string `json:"access_token"`
+	Openid      string `json:"openid"`
+	UnionId     string `json:"unionid"`
+	Errcode     int    `json:"errcode"`
+	Errmsg      string `json:"errmsg"`
 }
 
 type Travel struct {
@@ -237,5 +255,41 @@ func (this *Users) TravelList(userId string) (Travels []Travel, err error) {
 		Travels[k].TravleAlarmNum = unReadAlarmNum
 	}
 
+	return
+}
+
+//APP获取AccessToken方法
+func (this *Users) GetAccessToken(code string) (rep WxResponse, err error) {
+	url := fmt.Sprintf(WECHATAPIURL2, APPID2, APPSECRET2, code)
+	err, jsonStr := app.HttpClient(url, "", "GET", "", "application/json", "")
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal([]byte(jsonStr), &rep)
+	if rep.Errcode == 0 {
+		config.Redis.Set("wx_app_token", rep.AccessToken, 7200)
+	} else {
+		err = errors.New(rep.Errmsg)
+	}
+	return
+}
+
+//获取微信用户信息
+func (this *Users) GetWxUserInfo(access_token, openid string) (rep WxResponse, err error) {
+	url := fmt.Sprintf(GETWXUSERINFO, access_token, openid)
+	err, jsonStr := app.HttpClient(url, "", "GET", "", "application/json", "")
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal([]byte(jsonStr), &rep)
+	if rep.Errcode != 0 {
+		err = errors.New(rep.Errmsg)
+	}
+	return
+}
+
+//app微信授权登录时通过openID查询数据库是否存在
+func (this *Users) GetUsers(openId string, flag ...bool) (rs Users, err error) {
+	err = this.Collection(this).Find(bson.M{"user_open_id": openId, "user_deleted": 0}).One(&rs)
 	return
 }

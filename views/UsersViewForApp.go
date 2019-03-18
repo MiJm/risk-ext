@@ -2,6 +2,7 @@ package views
 
 import (
 	"encoding/json"
+	"fmt"
 	"risk-ext/models"
 	"strconv"
 	"time"
@@ -28,11 +29,11 @@ func (this *UsersViewForApp) Auth(ctx iris.Context) int {
 
 //小程序登录
 func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
-	isApp := ctx.FormValueDefault("app", "")
-	if isApp != "" {
-		statuCode, data = this.Login(ctx)
-		return
-	}
+	// isApp := ctx.FormValueDefault("app", "")
+	// if isApp != "" {
+	// 	statuCode, data = this.Login(ctx)
+	// 	return
+	// }
 	data = make(M)
 	statuCode = 400
 	//openId := ctx.FormValue("openId")
@@ -41,8 +42,9 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
 		Data string `json:"data"` //用户内容json
 	}{}
+	fmt.Println("code===", code)
 	if code != "" {
-		reponse, err := new(models.Users).GetOpenIdFromWechat(code)
+		reponse, err := new(models.Users).GetAccessToken(code)
 		if err != nil {
 			data["code"] = 0
 			data["msg"] = err.Error()
@@ -50,11 +52,10 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 			return
 		}
 		statuCode = 200
-		userInfos, err := new(models.Users).GetUsersByOpenId(reponse.OpenId, true)
+		userInfos, err := new(models.Users).GetUsers(reponse.OpenId, true)
 		if err != nil {
-			if reponse.UnionId != "" {
-				config.Redis.HSet("wechatuser", reponse.OpenId, reponse.UnionId)
-			}
+			config.Redis.HSet("wechatuser", reponse.OpenId, reponse.AccessToken)
+			//去执行新客注册操作
 			data["code"] = -1
 			data["msg"] = "OK"
 			data["data"] = reponse.OpenId
@@ -72,15 +73,22 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 		userInfos.UserLogin = uint32(time.Now().Unix())
 		userInfos.UserToken = userToken
 		if userInfos.UserUnionId == "" {
-			userInfos.UserUnionId = reponse.UnionId
+			if reponse.UnionId == "" {
+				rep, err := new(models.Users).GetWxUserInfo(reponse.AccessToken, reponse.OpenId)
+				if err == nil {
+					userInfos.UserUnionId = rep.UnionId
+				}
+			} else {
+				userInfos.UserUnionId = reponse.UnionId
+			}
 		}
 		err = userInfos.Update()
 		if err == nil {
-			config.Redis.HDel(coll, oldToken+"_1")
+			config.Redis.HDel(coll, oldToken+"_2")
 			userStr, _ := json.Marshal(userInfos)
 			userData.Type = 2
 			userData.Data = string(userStr)
-			userInfos.Redis.Save(coll, userToken+"_1", userData)
+			userInfos.Redis.Save(coll, userToken+"_2", userData)
 		}
 		data["code"] = 1
 		data["msg"] = "OK"
@@ -90,7 +98,7 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 	token := ctx.FormValue("token")
 	userModel := new(models.Users)
 	var userInfo models.Users
-	err := userModel.Redis.Map(coll, token+"_1", &userData)
+	err := userModel.Redis.Map(coll, token+"_2", &userData)
 	if err != nil {
 		statuCode = 401
 		data["code"] = 0
@@ -99,7 +107,7 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	json.Unmarshal([]byte(userData.Data), &userInfo)
-	usersInfo, err := new(models.Users).GetUsersByOpenId(userInfo.UserOpenId)
+	usersInfo, err := new(models.Users).GetUsersByOpenId(userInfo.UserAppOpenId)
 	if err != nil {
 		data["code"] = 0
 		data["msg"] = err.Error()
@@ -116,13 +124,14 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 func (this *UsersViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
-	openId := ctx.FormValue("openId")
-	if openId == "" {
+	OpenId := ctx.FormValue("openid")
+	if OpenId == "" {
 		data["code"] = 0
-		data["msg"] = "openId参数缺失"
+		data["msg"] = "参数缺失"
 		data["data"] = nil
 		return
 	}
+	AccessToken := config.Redis.HGet("wechatuser", OpenId).Val()
 	phone := ctx.FormValue("phone")
 	isTrue := models.CheckPhone(phone)
 	if !isTrue {
@@ -148,18 +157,22 @@ func (this *UsersViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 			data["data"] = nil
 			return
 		}
-		userName := ctx.FormValue("userName")
-		userAvatar := ctx.FormValue("userAvatar")
-		user.UserFname = userName
-		user.UserAvatar = userAvatar
-		user.UserOpenId = openId
+		fmt.Println("acc", AccessToken)
+		rep, err := new(models.Users).GetWxUserInfo(AccessToken, OpenId)
+		if err != nil {
+			data["code"] = 0
+			data["msg"] = fmt.Sprintf("微信获取授权失败(无法获取昵称及头像)%s", err.Error())
+			data["data"] = nil
+			return
+		}
+
+		user.UserFname = rep.Nickname
+		user.UserAvatar = rep.Headimgurl
+		user.UserAppOpenId = rep.OpenId
 		user.UserMobile = phone
 		userToken := bson.NewObjectId().Hex()
 		user.UserToken = userToken
-		userUnionId := config.Redis.HGet("wechatuser", openId).Val()
-		if userUnionId != "" {
-			user.UserUnionId = userUnionId
-		}
+		user.UserUnionId = rep.UnionId
 		userInfo, err := user.Insert()
 		if err != nil {
 			data["code"] = 0
@@ -174,7 +187,7 @@ func (this *UsersViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 		userStr, _ := json.Marshal(userInfo)
 		userData.Type = 2
 		userData.Data = string(userStr)
-		user.Redis.Save(coll, userToken+"_1", userData)
+		user.Redis.Save(coll, userToken+"_2", userData)
 		statuCode = 200
 		data["code"] = 1
 		data["data"] = userInfo
