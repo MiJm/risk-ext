@@ -289,7 +289,7 @@ func (this *Users) GetWxUserInfo(access_token, openid string) (rep WxResponse, e
 }
 
 //app微信授权登录时通过openID查询数据库是否存在
-func (this *Users) GetUsers(openId string, flag ...bool) (rs Users, err error) {
-	err = this.Collection(this).Find(bson.M{"user_open_id": openId, "user_deleted": 0}).One(&rs)
+func (this *Users) GetUsers(unionId string, flag ...bool) (rs Users, err error) {
+	err = this.Collection(this).Find(bson.M{"user_union_id": unionId, "user_deleted": 0}).One(&rs)
 	return
 }

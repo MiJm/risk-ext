@@ -51,7 +51,7 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 			return
 		}
 		statuCode = 200
-		userInfos, err := new(models.Users).GetUsers(reponse.OpenId, true)
+		userInfos, err := new(models.Users).GetUsers(reponse.UnionId, true)
 		if err != nil {
 			config.Redis.HSet("wechatuser", reponse.OpenId, reponse.AccessToken)
 			//去执行新客注册操作
@@ -71,16 +71,8 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 		userToken := bson.NewObjectId().Hex()
 		userInfos.UserLogin = uint32(time.Now().Unix())
 		userInfos.UserToken = userToken
-		if userInfos.UserUnionId == "" {
-			if reponse.UnionId == "" {
-				rep, err := new(models.Users).GetWxUserInfo(reponse.AccessToken, reponse.OpenId)
-				if err == nil {
-					userInfos.UserUnionId = rep.UnionId
-				}
-			} else {
-				userInfos.UserUnionId = reponse.UnionId
-			}
-		}
+		userInfos.UserAppOpenId = reponse.OpenId
+
 		err = userInfos.Update()
 		if err == nil {
 			config.Redis.HDel(coll, oldToken+"_2")
