@@ -37,12 +37,11 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 	data = make(M)
 	statuCode = 400
 	//openId := ctx.FormValue("openId")
-	code := ctx.Params().Get("code") //微信code
+	code := ctx.FormValue("code") //微信code
 	var userData = struct {
 		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
 		Data string `json:"data"` //用户内容json
 	}{}
-	fmt.Println("code===", code)
 	if code != "" {
 		reponse, err := new(models.Users).GetAccessToken(code)
 		if err != nil {
