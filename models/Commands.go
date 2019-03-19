@@ -164,3 +164,93 @@ func (this *Commands) Command(devIdStr string, typ uint8, deviceInfo *DeviceInfo
 	}
 	return
 }
+
+//设备指令发送
+func (this *Commands) Command1(devIdStr string, typ uint8, deviceInfo *DeviceInfo, mod Models, deviceData Devices, args ...string) (trackInterval string, err error) {
+	deviceId, err := strconv.Atoi(devIdStr)
+	if err != nil {
+		return
+	}
+	dev, _ := new(Devices).GetDeviceByDevId(uint64(deviceId))
+	if (typ == 3 || typ == 2) && deviceInfo.Device_type == 1 {
+		redisData, _ := json.Marshal(&deviceInfo)
+		if config.Redis.HSet("devices", devIdStr, redisData).Err() == nil {
+			deviceData.Update(false)
+			trackInterval = new(Devices).GetTrackInterval(*deviceInfo)
+		} else {
+			err = errors.New("指令发送失败")
+		}
+		return
+	}
+	if typ != 3 && typ != 4 && typ != 5 && typ != 6 {
+		flag := false
+		for _, v := range mod.Model_command {
+			if fmt.Sprintf("%d", typ) == v {
+				flag = true
+			}
+		}
+		if !flag {
+			err = errors.New("该设备不支持该指令")
+			return
+		}
+	}
+
+	cmd, err := this.CmdHGet(devIdStr)
+	if err == nil {
+		if cmd.CmdStatus == 0 || cmd.CmdStatus == 1 {
+			err = errors.New("存在未执行的指令，请前往指令控制台撤销后再执行")
+			return
+		}
+	}
+	oil_status := deviceInfo.Device_oil_status
+	if typ == 1 || typ == 2 {
+		if oil_status == typ {
+			if typ == 1 {
+				err = errors.New("终端已处于断油电状态，本指令不再执行")
+				return
+			} else if typ == 2 {
+				err = errors.New("终端已恢复油电成功，本指令不再执行")
+				return
+			}
+
+		}
+	}
+	newCmd := new(Commands)
+	newCmd.CmdId = bson.NewObjectId()
+	newCmd.CmdDeviceId = dev.Device_id
+	newCmd.CmdType = typ
+	newCmd.CmdStatus = 0
+	newCmd.CmdModelePort = mod.Model_port
+	if len(args) == 2 {
+		newCmd.CmdName = args[1]
+	} else {
+		newCmd.CmdName = CmdMap[typ]
+	}
+	if len(args) > 0 {
+		newCmd.CmdArgs = args[0]
+	}
+	newCmd.CmdCreatedAt = uint32(time.Now().Unix())
+	err = newCmd.Add()
+	if err == nil {
+		err = newCmd.CmdHSet()
+		if err == nil {
+			if deviceInfo.Device_id == 0 {
+				var newDeviceInfo = new(DeviceInfo)
+				data, err := config.Redis.HGet("devices", devIdStr).Bytes()
+				if err == nil {
+					json.Unmarshal(data, newDeviceInfo)
+				}
+				deviceInfo = newDeviceInfo
+			}
+			deviceInfo.DeviceCmdNum = deviceInfo.DeviceCmdNum + 1
+			redisData, _ := json.Marshal(&deviceInfo)
+			if config.Redis.HSet("devices", devIdStr, redisData).Err() == nil {
+				deviceData.Update(false)
+				trackInterval = new(Devices).GetTrackInterval(*deviceInfo)
+			} else {
+				err = errors.New("指令发送失败")
+			}
+		}
+	}
+	return
+}

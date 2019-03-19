@@ -96,7 +96,7 @@ func (this *CommandView) Post(ctx iris.Context) (statuCode int, data M) {
 			deviceInfo.Device_last_tracking = uint32(time.Now().Unix())
 		}
 
-		cmd_type = 3
+		cmd_type = 3 //开追踪
 		deviceData.Device_tracking = deviceInfo.Device_tracking
 	} else if cmd_type == 2 { //设备关闭追踪
 		if mod.Model_type == 0 { //无线设备

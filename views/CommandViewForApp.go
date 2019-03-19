@@ -150,6 +150,7 @@ func (this *CommandViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 				}
 
 			}
+			cmd_type = 4
 		} else if set_work == 2 { //星期模式
 			flag, _ := regexp.MatchString("(((^[0-1]{1}[0-9]{1})|(^2[0-3]{1})):[0-5]\\d;)[1-7](,[1-7]){0,7}\\z", cmd_param)
 			if !flag {
@@ -172,6 +173,7 @@ func (this *CommandViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 			deviceData.Device_tracking = 4
 			arg = fmt.Sprintf("%s,%s", Mar[0], Mar[1])
 		}
+		cmd_type = 6
 	}
 	trackInterval, err := new(models.Commands).Command(fmt.Sprintf("%d", deviceId), uint8(cmd_type), deviceInfo, mod, deviceData, arg)
 	if err != nil {

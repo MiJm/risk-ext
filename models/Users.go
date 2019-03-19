@@ -62,7 +62,12 @@ type WeChat struct {
 	Errcode     int    `json:"errcode"`
 	Errmsg      string `json:"errmsg"`
 }
-
+type WXUserInfo struct {
+	OpenId    string `json:"openId"`
+	NickName  string `json:"nickName"`
+	avatarUrl string `json:"acatarUrl"`
+	UnionId   string `json:"unionId"`
+}
 type Travel struct {
 	TravelName     string `bson:"travel_name" json:"travel_name"`           //交通工具名称
 	TravelType     uint8  `bson:"travel_type" json:"travel_type"`           //交通工具类型0=电动车 1=自行车 2=汽车

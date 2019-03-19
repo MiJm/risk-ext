@@ -3,6 +3,7 @@ package views
 import (
 	"encoding/json"
 	"risk-ext/models"
+	"risk-ext/utils"
 	"strconv"
 	"time"
 
@@ -39,6 +40,8 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 	statuCode = 400
 	//openId := ctx.FormValue("openId")
 	code := ctx.Params().Get("code") //微信code
+	datas := ctx.FormValue("data")
+	iv := ctx.FormValue("iv")
 	var userData = struct {
 		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
 		Data string `json:"data"` //用户内容json
@@ -49,6 +52,34 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 			data["code"] = 0
 			data["error"] = err.Error()
 			return
+		}
+		if reponse.UnionId == "" {
+			dataStr, err := utils.PswDecrypt(datas, reponse.SessionKey, iv)
+			if err != nil {
+				data["code"] = 0
+				data["error"] = "用户授权失败"
+				return
+			}
+			if dataStr == "" {
+				data["code"] = 0
+				data["error"] = "获取用户授权信息失败"
+				return
+			}
+
+			dataByte := []byte(dataStr)
+			var wxUserInfo models.WXUserInfo
+			err = json.Unmarshal(dataByte, &wxUserInfo)
+			if err != nil {
+				data["code"] = 0
+				data["error"] = "用户授权失败"
+				return
+			}
+			if wxUserInfo.UnionId == "" {
+				data["code"] = 0
+				data["error"] = "请重新授权登录"
+				return
+			}
+			reponse.UnionId = wxUserInfo.UnionId
 		}
 		statuCode = 200
 		userInfos, err := new(models.Users).GetUsersByUnionId(reponse.UnionId, true)
