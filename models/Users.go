@@ -112,6 +112,30 @@ type Polygon struct {
 	Coordinates [][][]float64 `json:"coordinates"` //lng lat[[[ 89.8496, 14.093 ], [ 90.3933, 14.004 ]]]
 }
 
+func (this *Users) GetUsersByOpenId(openId string, flag ...bool) (rs Users, err error) {
+	err = this.Collection(this).Find(bson.M{"user_open_id": openId, "user_deleted": 0}).One(&rs)
+	if err == nil {
+		if len(flag) > 0 && flag[0] {
+			return
+		}
+		deviceModel := new(Devices)
+		alarmModel := new(Alarms)
+		for key, val := range rs.UserTravel {
+			var devId uint64
+			if val.TravelDeviceId != 0 {
+				devId = val.TravelDeviceId
+			} else {
+				devId = val.TravelDevice.DeviceId
+			}
+			deviceInfo := deviceModel.GetDeviceInfo(devId)
+			rs.UserTravel[key].TravelDeviceInfo = deviceInfo
+			unReadAlarmNum, _ := alarmModel.GetUnReadAlarmNums(strconv.FormatUint(devId, 10), rs.UserId.Hex())
+			rs.UserTravel[key].TravleAlarmNum = unReadAlarmNum
+		}
+	}
+	return
+}
+
 func (this *Users) GetUsersByUnionId(unionId string, flag ...bool) (rs Users, err error) {
 	err = this.Collection(this).Find(bson.M{"user_union_id": unionId, "user_deleted": 0}).One(&rs)
 	if err == nil {

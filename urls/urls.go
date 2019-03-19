@@ -29,6 +29,7 @@ func init() {
 	stayViewForApp := new(views.StayViewForApp)
 	travelViewForApp := new(views.TravelViewForApp)
 	userViewForApp := new(views.UsersViewForApp)
+	userViewForWX := new(views.UsersViewForWX)
 
 	app.AddPath("v2/amount/", amountView)
 	app.AddPath("v2/log/", logView)
@@ -76,4 +77,6 @@ func init() {
 	app.AddPath("v2/app/travel/delete", travelViewForApp)
 	app.AddPath("v2/app/travel/edit", travelViewForApp)
 	app.AddPath("v2/app/travel/list", travelViewForApp)
+
+	app.AddPath("v2/wx/user/detail", userViewForWX)
 }
