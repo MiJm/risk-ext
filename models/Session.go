@@ -82,14 +82,15 @@ type Task struct {
 }
 
 //获取当前登录用户
-func (this *Session) Data(token string) *Session {
+func (this *Session) Data(token string, tokenType int) *Session {
 
 	var user = struct {
 		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
 		Data string `json:"data"` //用户内容json
 	}{}
 
-	key := fmt.Sprintf("%s_%d", token, 1)
+	key := fmt.Sprintf("%s_%d", token, tokenType)
+
 	err := this.Map(coll, key, &user)
 	if err != nil {
 		key = fmt.Sprintf("%s_%d", token, 0)

@@ -45,7 +45,13 @@ func (this *Views) Auth(ctx iris.Context) int64 {
 	if token == "" {
 		token = ctx.FormValue("token")
 	}
-	Session = new(models.Session).Data(token)
+	isMobile := ctx.IsMobile()
+	tokenType := 1
+	if isMobile { //手机端访问
+		tokenType = 2
+	}
+
+	Session = new(models.Session).Data(token, tokenType)
 	return 1
 }
 

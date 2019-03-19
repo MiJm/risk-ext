@@ -148,7 +148,6 @@ func (this *UsersViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 			data["data"] = nil
 			return
 		}
-		fmt.Println("acc", AccessToken)
 		rep, err := new(models.Users).GetWxUserInfo(AccessToken, OpenId)
 		if err != nil {
 			data["code"] = 0
