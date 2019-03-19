@@ -49,7 +49,6 @@ func AddPath(path string, obj interface{}) {
 }
 
 func App() *iris.Application {
-
 	for k, m := range paths {
 		v := reflect.ValueOf(m)
 		for _, md := range method {

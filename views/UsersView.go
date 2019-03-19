@@ -51,7 +51,7 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 			return
 		}
 		statuCode = 200
-		userInfos, err := new(models.Users).GetUsersByOpenId(reponse.OpenId, true)
+		userInfos, err := new(models.Users).GetUsersByUnionId(reponse.UnionId, true)
 		if err != nil {
 			if reponse.UnionId != "" {
 				config.Redis.HSet("wechatuser", reponse.OpenId, reponse.UnionId)
@@ -96,7 +96,7 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	json.Unmarshal([]byte(userData.Data), &userInfo)
-	usersInfo, err := new(models.Users).GetUsersByOpenId(userInfo.UserOpenId)
+	usersInfo, err := new(models.Users).GetUsersByUnionId(userInfo.UserUnionId)
 	if err != nil {
 		data["code"] = 0
 		data["error"] = err.Error()

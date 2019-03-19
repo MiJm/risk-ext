@@ -146,7 +146,7 @@ func (this *DevicesViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	travelType, _ := ctx.PostValueInt("travelType")
-	userInfo, err := userModel.GetUsersByOpenId(userData.UserOpenId)
+	userInfo, err := userModel.GetUsersByUnionId(userData.UserUnionId)
 	if err != nil {
 		data["code"] = 0
 		data["msg"] = "用户已被注销"

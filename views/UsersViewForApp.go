@@ -98,7 +98,7 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	json.Unmarshal([]byte(userData.Data), &userInfo)
-	usersInfo, err := new(models.Users).GetUsersByOpenId(userInfo.UserAppOpenId)
+	usersInfo, err := new(models.Users).GetUsersByUnionId(userInfo.UserUnionId)
 	if err != nil {
 		data["code"] = 0
 		data["msg"] = err.Error()
