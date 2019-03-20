@@ -2,6 +2,7 @@ package views
 
 import (
 	"encoding/json"
+	"fmt"
 	"risk-ext/config"
 	"risk-ext/models"
 	"risk-ext/utils"
@@ -53,7 +54,7 @@ func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
 			dataStr, err := utils.PswDecrypt(datas, reponse.SessionKey, iv)
 			if err != nil {
 				data["code"] = 0
-				data["error"] = "用户授权失败"
+				data["error"] = fmt.Sprintf("用户授权失败(%s)", err.Error())
 				return
 			}
 			if dataStr == "" {
@@ -67,7 +68,7 @@ func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
 			err = json.Unmarshal(dataByte, &wxUserInfo)
 			if err != nil {
 				data["code"] = 0
-				data["error"] = "用户授权失败"
+				data["error"] = fmt.Sprintf("用户授权失败(%s)", err.Error())
 				return
 			}
 			if wxUserInfo.UnionId == "" {
@@ -81,7 +82,8 @@ func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
 		userInfos, err := new(models.Users).GetUsersByUnionId(reponse.UnionId, true)
 		if err != nil {
 			if reponse.UnionId != "" {
-				config.Redis.HSet("wechatuser", reponse.OpenId, reponse.UnionId)
+				reponseByte, _ := json.Marshal(reponse)
+				config.Redis.HSet("wechatuser", reponse.OpenId, reponseByte)
 			}
 			data["code"] = -1
 			data["openId"] = reponse.OpenId

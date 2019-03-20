@@ -78,5 +78,5 @@ func init() {
 	app.AddPath("v2/app/travel/edit", travelViewForApp)
 	app.AddPath("v2/app/travel/list", travelViewForApp)
 
-	app.AddPath("v2/wx/user/detail", userViewForWX)
+	app.AddPath("v2/wx/user/wxlogin/{code}", userViewForWX)
 }

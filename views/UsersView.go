@@ -139,17 +139,20 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 			data["error"] = "手机号已绑定"
 			return
 		}
-		userName := ctx.FormValue("userName")
-		userAvatar := ctx.FormValue("userAvatar")
-		user.UserFname = userName
-		user.UserAvatar = userAvatar
 		user.UserOpenId = openId
 		user.UserMobile = phone
 		userToken := bson.NewObjectId().Hex()
 		user.UserToken = userToken
-		userUnionId := config.Redis.HGet("wechatuser", openId).Val()
-		if userUnionId != "" {
-			user.UserUnionId = userUnionId
+		if user.UserUnionId == "" {
+			dataInfo, err := config.Redis.HGet("wechatuser", openId).Bytes()
+			if err == nil {
+				var info models.WXUserInfo
+				if json.Unmarshal(dataInfo, &info) == nil {
+					user.UserUnionId = info.UnionId
+					user.UserFname = info.NickName
+					user.UserAvatar = info.AvatarUrl
+				}
+			}
 		}
 		userInfo, err := user.Insert()
 		if err != nil {

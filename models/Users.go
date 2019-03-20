@@ -65,7 +65,7 @@ type WeChat struct {
 type WXUserInfo struct {
 	OpenId    string `json:"openId"`
 	NickName  string `json:"nickName"`
-	avatarUrl string `json:"acatarUrl"`
+	AvatarUrl string `json:"acatarUrl"`
 	UnionId   string `json:"unionId"`
 }
 type Travel struct {
