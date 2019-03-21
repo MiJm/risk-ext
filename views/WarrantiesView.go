@@ -21,8 +21,8 @@ func (this *WarrantiesView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
 	var perms = PMS{
 		"PUT":    MA{"CUSTOMER": A{1}},
-		"GET":    MA{"NOLOGIN": A{1}},
-		"POST":   MA{"NOLOGIN": A{1}},
+		"GET":    MA{"CUSTOMER": A{1}},
+		"POST":   MA{"CUSTOMER": A{1}},
 		"DELETE": MA{"CUSTOMER": A{1}}}
 	return this.CheckPerms(perms[ctx.Method()])
 }
