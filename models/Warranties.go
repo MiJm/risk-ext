@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"risk-ext/utils"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -12,7 +13,7 @@ type Warranty struct {
 	Model               `bson:"-" json:"-"` //model基类
 	Redis               `bson:"-" json:"-"` //model基类
 	WarrantyId          bson.ObjectId       `bson:"_id,omitempty" json:"warranty_id"`                   //id
-	WarrantyService     string              `baon:"warranty_service" json:"warranty_service"`           //保单提供方
+	WarrantyService     string              `bson:"warranty_service" json:"warranty_service"`           //保单提供方
 	WarrantyName        string              `bson:"warranty_name" json:"warranty_name"`                 //保单名
 	WarrantyServer      string              `bson:"warranty_server" json:"warranty_server"`             //服务有效期
 	WarrantyServerStart uint32              `bson:"warranty_server_start" json:"warranty_server_start"` //服务开始时间
@@ -55,9 +56,13 @@ type OwnerInfo struct {
 
 //根据UserId和保单ID获取保单信息
 func (this *Warranty) One(userId, id string, status []uint8) (rs Warranty, err error) {
+	if !bson.IsObjectIdHex(id) {
+		err = errors.New("ID有误")
+		return
+	}
 	where := bson.M{}
 	where["warranty_user_id"] = userId
-	where["_id"] = id
+	where["_id"] = bson.ObjectIdHex(id)
 	if len(status) > 1 {
 		where["warranty_status"] = bson.M{"$in": status}
 	} else if len(status) == 1 {
@@ -94,6 +99,7 @@ func (this *Warranty) Add() (err error) {
 	if this.WarrantyId == EmptyId {
 		this.WarrantyId = bson.NewObjectId()
 	}
+	this.WarrantyCreted = uint32(time.Now().Unix())
 	err = this.Collection(this).Insert(*this)
 	return
 }

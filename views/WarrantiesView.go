@@ -74,11 +74,11 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 	defer front.Close()
 	frontTitle := fmt.Sprintf("%s_front.png", idcard)
 	frontSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/"
-	frontOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/"
+	frontOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/"
 	err = utils.IsFile(frontSaveUrl)
 	if err != nil {
 		data["code"] = 0
-		data["error"] = "创建文件失败"
+		data["error"] = fmt.Sprintf("创建文件失败(%s)", err.Error())
 		return
 	}
 	f, err := os.OpenFile(frontSaveUrl+frontTitle, os.O_WRONLY|os.O_CREATE, 0666)
@@ -95,7 +95,7 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 		return
 	}
 	frontThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/thumb"
-	frontThumbOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/thumb"
+	frontThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/thumb"
 	err = utils.IsFile(frontThumbUrl)
 	if err != nil {
 		data["code"] = 0
@@ -122,7 +122,7 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 	defer back.Close()
 	backTitle := fmt.Sprintf("%s_back.png", idcard)
 	backSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/"
-	backOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/"
+	backOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/"
 	err = utils.IsFile(backSaveUrl)
 	if err != nil {
 		data["code"] = 0
@@ -143,7 +143,7 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 		return
 	}
 	backThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/thumb"
-	backThumbOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/thumb"
+	backThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/thumb"
 	err = utils.IsFile(backThumbUrl)
 	if err != nil {
 		data["code"] = 0
@@ -170,7 +170,7 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 	defer ownerIDcard.Close()
 	ownerTitle := fmt.Sprintf("%s_owner.png", idcard)
 	ownerSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/"
-	ownerOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/"
+	ownerOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/"
 	err = utils.IsFile(ownerSaveUrl)
 	if err != nil {
 		data["code"] = 0
@@ -194,7 +194,7 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 		return
 	}
 	ownerThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/thumb"
-	ownerThumbOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/thumb"
+	ownerThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/thumb"
 	err = utils.IsFile(ownerThumbUrl)
 	if err != nil {
 		data["code"] = 0
@@ -272,7 +272,7 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 	defer front.Close()
 	frontTitle := fmt.Sprintf("%s_front.png", vin)
 	frontSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-	frontOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
+	frontOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
 	err = utils.IsFile(frontSaveUrl)
 	if err != nil {
 		data["code"] = 0
@@ -293,7 +293,7 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 		return
 	}
 	frontThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
-	frontThumbOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
+	frontThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
 	err = utils.IsFile(frontThumbUrl)
 	if err != nil {
 		data["code"] = 0
@@ -320,7 +320,7 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 	defer side.Close()
 	sideTitle := fmt.Sprintf("%s_side.png", vin)
 	sideSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-	sideOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
+	sideOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
 	err = utils.IsFile(sideSaveUrl)
 	if err != nil {
 		data["code"] = 0
@@ -341,7 +341,7 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 		return
 	}
 	sideThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
-	sideThumbOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
+	sideThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
 	err = utils.IsFile(sideThumbUrl)
 	if err != nil {
 		data["code"] = 0
@@ -368,7 +368,7 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 	defer certificate.Close()
 	certifyTitle := fmt.Sprintf("%s_certificate.png", vin)
 	certifySaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-	certifyOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
+	certifyOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
 	err = utils.IsFile(certifySaveUrl)
 	if err != nil {
 		data["code"] = 0
@@ -392,7 +392,7 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 		return
 	}
 	certifyThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
-	certifyThumbOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
+	certifyThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
 	err = utils.IsFile(certifyThumbUrl)
 	if err != nil {
 		data["code"] = 0
@@ -421,7 +421,7 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 	defer receipt.Close()
 	receiptTitle := fmt.Sprintf("%s_receipt.png", vin)
 	receiptSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-	receiptOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
+	receiptOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
 	err = utils.IsFile(receiptSaveUrl)
 	if err != nil {
 		data["code"] = 0
@@ -445,7 +445,7 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 		return
 	}
 	receiptThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
-	receiptThumbOpenUrl := "imgs/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
+	receiptThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb"
 	err = utils.IsFile(receiptThumbUrl)
 	if err != nil {
 		data["code"] = 0
