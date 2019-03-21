@@ -146,11 +146,11 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 		if user.UserUnionId == "" {
 			dataInfo, err := config.Redis.HGet("wechatuser", openId).Bytes()
 			if err == nil {
-				var info models.WXUserInfo
+				var info models.WxResponse
 				if json.Unmarshal(dataInfo, &info) == nil {
 					user.UserUnionId = info.UnionId
-					user.UserFname = info.NickName
-					user.UserAvatar = info.AvatarUrl
+					user.UserFname = info.Nickname
+					user.UserAvatar = info.Headimgurl
 				}
 			}
 		}
@@ -272,9 +272,10 @@ func (this *UsersView) Login(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "该用户已被禁用"
 		return
 	}
-
+	count := new(models.Warranty).GetCount(userInfo.UserId.Hex())
 	statuCode = 200
 	data["code"] = 1
 	data["userInfo"] = userInfo
+	data["count"] = count
 	return
 }

@@ -183,6 +183,17 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "激活失败"
 		return
 	}
+	var warrnty = new(models.Warranty)
+	rs, err := warrnty.GetWarrantyByDeviceId(deviceData.Device_id)
+	if err != nil || rs.WarrantyId == models.EmptyId { //不存在保单直接创建一个新保单
+		warrnty.WarrantyUserId = userData.UserId.Hex()
+		warrnty.WarrantyDeviceId = deviceData.Device_id
+		warrnty.WarrantyService = "一年"
+		warrnty.WarrantyServerStart = device.DeviceActivateTime
+		warrnty.WarrantyServerEnd = device.DeviceActivateTime + uint32(365*86400)
+		warrnty.WarrantyService = "电动自行车盗抢服物"
+		warrnty.WarrantyServer = "久劲"
+	}
 	var deviceInfo models.DeviceInfo
 	err = userModel.Map("devices", deviceId, &deviceInfo)
 	if err != nil {
