@@ -193,6 +193,7 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 		warrnty.WarrantyServerEnd = device.DeviceActivateTime + uint32(365*86400)
 		warrnty.WarrantyService = "电动自行车盗抢服物"
 		warrnty.WarrantyServer = "久劲"
+		warrnty.Add()
 	}
 	var deviceInfo models.DeviceInfo
 	err = userModel.Map("devices", deviceId, &deviceInfo)
