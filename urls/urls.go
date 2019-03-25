@@ -81,6 +81,7 @@ func init() {
 
 	app.AddPath("v2/wx/user/wxlogin/{code}", userViewForWX)
 
-	app.AddPath("v2/warranty/list/{id}", warrantiesView)  //id 不为空获取单个信息 id为空获取列表
+	app.AddPath("v2/warranty/list/{id}", warrantiesView) //id 不为空获取单个信息 id为空获取列表
+	app.AddPath("v2/warranty/list", warrantiesView)
 	app.AddPath("v2/warranty/add/{step}", warrantiesView) //添加保单信息 step=1添加用户信息  step=2添加车辆信息
 }

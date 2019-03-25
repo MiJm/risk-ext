@@ -1,8 +1,11 @@
 package models
 
 import (
+	"encoding/base64"
 	"errors"
+	"io/ioutil"
 	"risk-ext/utils"
+	"strings"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -22,7 +25,7 @@ type Warranty struct {
 	WarrantyOwnerInfo   OwnerInfo           `bson:"warranty_owner_info" json:"warranty_owner_info"`     //保单投保人
 	WarrantyCarModel    CarInfo             `bson:"warranty_car_model" json:"warranty_car_model"`       //保单投保的车辆信息
 	WarrantyUserId      string              `bson:"warranty_user_id" json:"warranty_user_id"`           //保单绑定的用户ID
-	WarrantyStatus      uint8               `bson:"warranty_status" json:"warranty_status"`             //保单状态 0:未激活 1:待审核 2:已激活
+	WarrantyStatus      uint8               `bson:"warranty_status" json:"warranty_status"`             //保单状态 0:未激活 1:待审核 2:审核未通过 3 审核通过
 	WarrantyCreted      uint32              `bson:"warranty_created" json:"warranty_created"`           //保单创建时间
 }
 
@@ -73,7 +76,7 @@ func (this *Warranty) One(userId, id string, status []uint8) (rs Warranty, err e
 }
 
 //根据UserId获取账户下保单列表
-func (this *Warranty) ListByUserId(userId string, status []uint8) (rs []Warranty, err error) {
+func (this *Warranty) ListByUserId(userId string, status []int) (rs []Warranty, err error) {
 	where := bson.M{}
 	where["warranty_user_id"] = userId
 	if len(status) > 1 {
@@ -81,7 +84,7 @@ func (this *Warranty) ListByUserId(userId string, status []uint8) (rs []Warranty
 	} else if len(status) == 1 {
 		where["warranty_status"] = status[0]
 	}
-	err = this.Collection(this).Find(where).All(&rs)
+	err = this.Collection(this).Find(where).Sort("-warranty_created").All(&rs)
 	return
 }
 
@@ -127,4 +130,38 @@ func (this *Warranty) Update(flag bool, unsetfiled ...string) error {
 func (this *Warranty) GetWarrantyByDeviceId(deviceId uint64) (rs Warranty, err error) {
 	err = this.Collection(this).Find(bson.M{"warranty_device_id": deviceId}).One(&rs)
 	return
+}
+
+func SaveImg(imgContent, path, thumbPath, title string) error {
+	imgContentArr := strings.Split(imgContent, ",")
+	err := utils.IsFile(path)
+	if err != nil {
+		return errors.New("创建文件夹失败")
+	}
+	err = utils.IsFile(thumbPath)
+	if err != nil {
+		return errors.New("创建缩略图文件夹失败")
+	}
+	var content string
+	if len(imgContentArr) > 1 {
+		content = imgContentArr[1]
+	} else {
+		content = imgContentArr[0]
+	}
+	bytesPass, err := base64.StdEncoding.DecodeString(content)
+	if err != nil {
+		return errors.New("上传文件非图片")
+	}
+
+	err = ioutil.WriteFile(path+title, bytesPass, 0666)
+	if err != nil {
+		return errors.New("生成文件失败")
+
+	}
+
+	err = utils.ImageResize(path+title, thumbPath+title)
+	if err != nil {
+		return errors.New("生成缩略图文件失败")
+	}
+	return err
 }

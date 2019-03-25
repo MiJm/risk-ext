@@ -315,7 +315,10 @@ func PswDecrypt(src, sKey, iv string) (string, error) {
 	}
 	result, err = base64.RawStdEncoding.DecodeString(src)
 	if err != nil {
-		return "", err
+		result, err = base64.StdEncoding.DecodeString(src)
+		if err != nil {
+			return "", err
+		}
 	}
 	origData, err := Aes128Decrypt(result, asKey, aiv)
 	if err != nil {

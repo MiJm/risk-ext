@@ -50,7 +50,6 @@ func (this *Views) Auth(ctx iris.Context) int64 {
 	if isMobile { //手机端访问
 		tokenType = 2
 	}
-
 	Session = new(models.Session).Data(token, tokenType)
 	return 1
 }

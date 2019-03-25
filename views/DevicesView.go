@@ -188,11 +188,12 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 	if err != nil || rs.WarrantyId == models.EmptyId { //不存在保单直接创建一个新保单
 		warrnty.WarrantyUserId = userData.UserId.Hex()
 		warrnty.WarrantyDeviceId = deviceData.Device_id
-		warrnty.WarrantyService = "一年"
+		warrnty.WarrantyServer = "一年"
 		warrnty.WarrantyServerStart = device.DeviceActivateTime
 		warrnty.WarrantyServerEnd = device.DeviceActivateTime + uint32(365*86400)
-		warrnty.WarrantyService = "电动自行车盗抢服物"
-		warrnty.WarrantyServer = "久劲"
+		warrnty.WarrantyName = "电动自行车盗抢服物"
+		warrnty.WarrantyService = "久劲"
+		warrnty.WarrantyCarModel.CarName = travelName
 		warrnty.Add()
 	}
 	var deviceInfo models.DeviceInfo

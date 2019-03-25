@@ -102,9 +102,11 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = err.Error()
 		return
 	}
+	count := new(models.Warranty).GetCount(userInfo.UserId.Hex())
 	statuCode = 200
 	data["code"] = 1
 	data["userInfo"] = usersInfo
+	data["count"] = count
 	return
 }
 
