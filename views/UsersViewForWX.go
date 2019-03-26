@@ -83,13 +83,16 @@ func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
 		statuCode = 200
 		userInfos, err := new(models.Users).GetUsersByUnionId(reponse.UnionId, true)
 		if err != nil {
-			if reponse.UnionId != "" {
-				reponseByte, _ := json.Marshal(reponse)
-				config.Redis.HSet("wechatuser", reponse.OpenId, reponseByte)
+			userInfos, err = new(models.Users).GetUsersByOpenId(reponse.OpenId, true)
+			if err != nil {
+				if reponse.UnionId != "" {
+					reponseByte, _ := json.Marshal(reponse)
+					config.Redis.HSet("wechatuser", reponse.OpenId, reponseByte)
+				}
+				data["code"] = -1
+				data["openId"] = reponse.OpenId
+				return
 			}
-			data["code"] = -1
-			data["openId"] = reponse.OpenId
-			return
 		}
 		if userInfos.UserStatus == 0 {
 			statuCode = 400

@@ -64,7 +64,7 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 		return
 	}
 
-	ctx.SetMaxRequestBodySize(2 << 31)
+	ctx.SetMaxRequestBodySize(2 << 30)
 
 	//身份证正面
 	front := ctx.FormValue("front")
@@ -351,12 +351,11 @@ func (this *WarrantiesView) List(ctx iris.Context) (statuCode int, data M) {
 	statuCode = 400
 	data = make(M)
 	rs, err := new(models.Warranty).ListByUserId(Session.Customer.UserId.Hex(), []int{1, 2, 3})
-	if err != nil {
-		fmt.Println(err)
+	if err != nil || len(rs) == 0 {
 		rs = make([]models.Warranty, 0)
 	}
 	rs1, err := new(models.Warranty).ListByUserId(Session.Customer.UserId.Hex(), []int{0})
-	if err != nil {
+	if err != nil || len(rs1) == 0 {
 		rs1 = make([]models.Warranty, 0)
 	}
 
