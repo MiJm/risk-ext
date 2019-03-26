@@ -56,7 +56,8 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 	}
 	name := ctx.FormValue("name")
 	idcard := ctx.FormValueDefault("idcard", "")
-	if idcard == "" || name == "" {
+	phone := ctx.FormValue("phone")
+	if idcard == "" || name == "" || phone == "" {
 		data["code"] = 0
 		data["msg"] = "请填写完整投保人信息"
 		data["data"] = nil
@@ -83,6 +84,7 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 		}
 		rs.WarrantyOwnerInfo.OwnerIDcardFront = frontOpenUrl + frontTitle
 		rs.WarrantyOwnerInfo.OwnerThumbIDcardFront = frontThumbOpenUrl + frontTitle
+		rs.WarrantyOwnerInfo.OwnerMobile = phone
 	} else {
 		if rs.WarrantyOwnerInfo.OwnerIDcardFront == "" {
 			data["code"] = 0

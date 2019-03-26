@@ -15,18 +15,19 @@ import (
 type Warranty struct {
 	Model               `bson:"-" json:"-"` //model基类
 	Redis               `bson:"-" json:"-"` //model基类
-	WarrantyId          bson.ObjectId       `bson:"_id,omitempty" json:"warranty_id"`                   //id
-	WarrantyService     string              `bson:"warranty_service" json:"warranty_service"`           //保单提供方
-	WarrantyName        string              `bson:"warranty_name" json:"warranty_name"`                 //保单名
-	WarrantyServer      string              `bson:"warranty_server" json:"warranty_server"`             //服务有效期
-	WarrantyServerStart uint32              `bson:"warranty_server_start" json:"warranty_server_start"` //服务开始时间
-	WarrantyServerEnd   uint32              `bson:"warranty_server_end" json:"warranty_server_end"`     //服务结束时间
-	WarrantyDeviceId    uint64              `bson:"warranty_device_id" json:"warranty_device_id"`       //绑定的设备号
-	WarrantyOwnerInfo   OwnerInfo           `bson:"warranty_owner_info" json:"warranty_owner_info"`     //保单投保人
-	WarrantyCarModel    CarInfo             `bson:"warranty_car_model" json:"warranty_car_model"`       //保单投保的车辆信息
-	WarrantyUserId      string              `bson:"warranty_user_id" json:"warranty_user_id"`           //保单绑定的用户ID
-	WarrantyStatus      uint8               `bson:"warranty_status" json:"warranty_status"`             //保单状态 0:未激活 1:待审核 2:审核未通过 3 审核通过
-	WarrantyCreted      uint32              `bson:"warranty_created" json:"warranty_created"`           //保单创建时间
+	WarrantyId          bson.ObjectId       `bson:"_id,omitempty" json:"warranty_id"`                     //id
+	WarrantyService     string              `bson:"warranty_service" json:"warranty_service"`             //保单提供方
+	WarrantyName        string              `bson:"warranty_name" json:"warranty_name"`                   //保单名
+	WarrantyServer      string              `bson:"warranty_server" json:"warranty_server"`               //服务有效期
+	WarrantyServerStart uint32              `bson:"warranty_server_start" json:"warranty_server_start"`   //服务开始时间
+	WarrantyServerEnd   uint32              `bson:"warranty_server_end" json:"warranty_server_end"`       //服务结束时间
+	WarrantyDeviceId    uint64              `bson:"warranty_device_id" json:"warranty_device_id"`         //绑定的设备号
+	WarrantyDeviceIdStr string              `bson:"warranty_device_id_str" json:"warranty_device_id_str"` //绑定的设备号
+	WarrantyOwnerInfo   OwnerInfo           `bson:"warranty_owner_info" json:"warranty_owner_info"`       //保单投保人
+	WarrantyCarModel    CarInfo             `bson:"warranty_car_model" json:"warranty_car_model"`         //保单投保的车辆信息
+	WarrantyUserId      string              `bson:"warranty_user_id" json:"warranty_user_id"`             //保单绑定的用户ID
+	WarrantyStatus      uint8               `bson:"warranty_status" json:"warranty_status"`               //保单状态 0:未激活 1:待审核 2:审核未通过 3 审核通过
+	WarrantyCreted      uint32              `bson:"warranty_created" json:"warranty_created"`             //保单创建时间
 }
 
 type CarInfo struct {
@@ -49,6 +50,7 @@ type CarInfo struct {
 type OwnerInfo struct {
 	OwnerName             string `bson:"owner_name" json:"owner_name"`                             //投保人姓名
 	OwnerIDcard           string `bson:"owner_IDcard" json:"owner_IDcard"`                         //投保人身份证号
+	OwnerMobile           string `bson:"owner_mobile" json:"owner_mobile"`                         //投保联系人
 	OwnerIDcardFront      string `bson:"owner_IDcard_front" json:"owner_IDcard_front"`             //身份证正面
 	OwnerThumbIDcardFront string `bson:"owner_thumb_IDcard_front" json:"owner_thumb_IDcard_front"` //身份证正面缩略图
 	OwnerIDcardBack       string `bson:"owner_IDcard_back" json:"owner_IDcard_back"`               //身份证背面

@@ -1,6 +1,7 @@
 package views
 
 import (
+	"fmt"
 	"net/url"
 	"risk-ext/models"
 	"risk-ext/utils"
@@ -214,6 +215,7 @@ func (this *DevicesViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 		warrnty.WarrantyName = "电动自行车盗抢服物"
 		warrnty.WarrantyService = "久劲"
 		warrnty.WarrantyCarModel.CarName = travelName
+		warrnty.WarrantyDeviceIdStr = fmt.Sprintf("%d", deviceData.Device_id)
 		warrnty.Add()
 	}
 	var deviceInfo models.DeviceInfo

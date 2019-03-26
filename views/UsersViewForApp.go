@@ -81,6 +81,7 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 			userData.Data = string(userStr)
 			userInfos.Redis.Save(coll, userToken+"_2", userData)
 		}
+		userInfos.UserToken = userToken + "_2"
 		data["code"] = 1
 		data["msg"] = "OK"
 		data["data"] = userInfos
@@ -89,7 +90,7 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 	token := ctx.FormValue("token")
 	userModel := new(models.Users)
 	var userInfo models.Users
-	err := userModel.Redis.Map(coll, token+"_2", &userData)
+	err := userModel.Redis.Map(coll, token, &userData)
 	if err != nil {
 		statuCode = 401
 		data["code"] = 0
@@ -105,6 +106,7 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 		data["data"] = nil
 		return
 	}
+	usersInfo.UserToken = usersInfo.UserToken + "_2"
 	statuCode = 200
 	data["code"] = 1
 	data["msg"] = "OK"
@@ -179,6 +181,7 @@ func (this *UsersViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 		userData.Data = string(userStr)
 		user.Redis.Save(coll, userToken+"_2", userData)
 		statuCode = 200
+		userInfo.UserToken = userToken + "_2"
 		data["code"] = 1
 		data["data"] = userInfo
 		data["msg"] = "OK"
@@ -266,36 +269,6 @@ func (this *UsersViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 	statuCode = 200
 	data["code"] = 1
 	data["data"] = nil
-	data["msg"] = "OK"
-	return
-}
-
-//APP登录
-func (this *UsersViewForApp) Login(ctx iris.Context) (statuCode int, data M) {
-	data = make(M)
-	statuCode = 400
-	code := ctx.FormValue("vcode")  //手机验证码
-	phone := ctx.FormValue("phone") //手机号
-	err, userInfo := new(models.Users).GetUserByPhone(phone, code)
-
-	if err != nil {
-		data["code"] = 0
-		data["msg"] = err.Error()
-		data["data"] = nil
-		return
-	}
-
-	if userInfo.UserStatus == 0 {
-		statuCode = 400
-		data["code"] = 0
-		data["msg"] = "该用户已被禁用"
-		data["data"] = nil
-		return
-	}
-
-	statuCode = 200
-	data["code"] = 1
-	data["data"] = userInfo
 	data["msg"] = "OK"
 	return
 }

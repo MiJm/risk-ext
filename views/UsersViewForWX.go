@@ -53,9 +53,6 @@ func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
 		}
 		if reponse.UnionId == "" {
 			dataStr, err := utils.PswDecrypt(datas, reponse.SessionKey, iv)
-			fmt.Println("datas=", datas)
-			fmt.Println("reponse.SessionKey=", reponse.SessionKey)
-			fmt.Println("iv=", iv)
 			if err != nil {
 				data["code"] = 0
 				data["error"] = fmt.Sprintf("用户授权数据不合法(%s)", err.Error())
@@ -66,7 +63,6 @@ func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
 				data["error"] = "获取用户授权信息失败"
 				return
 			}
-			fmt.Println("dataStr=====", dataStr)
 			dataByte := []byte(dataStr)
 			var wxUserInfo models.WXUserInfo
 			err = json.Unmarshal(dataByte, &wxUserInfo)
@@ -116,6 +112,7 @@ func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
 			userData.Data = string(userStr)
 			userInfos.Redis.Save(coll, userToken+"_1", userData)
 		}
+		userInfos.UserToken = userInfos.UserToken + "_1"
 		data["code"] = 1
 		data["userInfo"] = userInfos
 		return
@@ -123,7 +120,7 @@ func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
 	token := ctx.FormValue("token")
 	userModel := new(models.Users)
 	var userInfo models.Users
-	err := userModel.Redis.Map(coll, token+"_1", &userData)
+	err := userModel.Redis.Map(coll, token, &userData)
 	if err != nil {
 		statuCode = 401
 		data["code"] = 0
@@ -137,6 +134,7 @@ func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = err.Error()
 		return
 	}
+	usersInfo.UserToken = usersInfo.UserToken + "_1"
 	statuCode = 200
 	data["code"] = 1
 	data["userInfo"] = usersInfo

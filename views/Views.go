@@ -3,6 +3,7 @@ package views
 import (
 	"encoding/json"
 	"errors"
+	"regexp"
 	"risk-ext/app"
 	"risk-ext/config"
 	"risk-ext/models"
@@ -45,12 +46,11 @@ func (this *Views) Auth(ctx iris.Context) int64 {
 	if token == "" {
 		token = ctx.FormValue("token")
 	}
-	isMobile := ctx.IsMobile()
-	tokenType := 1
-	if isMobile { //手机端访问
-		tokenType = 2
+	reg := regexp.MustCompile(`.*_.*`)
+	if !reg.MatchString(token) {
+		token = token + "_1"
 	}
-	Session = new(models.Session).Data(token, tokenType)
+	Session = new(models.Session).Data(token)
 	return 1
 }
 

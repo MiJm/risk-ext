@@ -81,6 +81,7 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 			userData.Data = string(userStr)
 			userInfos.Redis.Save(coll, userToken+"_1", userData)
 		}
+		userInfos.UserToken = userToken + "_1"
 		data["code"] = 1
 		data["userInfo"] = userInfos
 		return
@@ -88,7 +89,7 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 	token := ctx.FormValue("token")
 	userModel := new(models.Users)
 	var userInfo models.Users
-	err := userModel.Redis.Map(coll, token+"_1", &userData)
+	err := userModel.Redis.Map(coll, token, &userData)
 	if err != nil {
 		statuCode = 401
 		data["code"] = 0
@@ -103,6 +104,7 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	count := new(models.Warranty).GetCount(userInfo.UserId.Hex())
+	usersInfo.UserToken = usersInfo.UserToken + "_1"
 	statuCode = 200
 	data["code"] = 1
 	data["userInfo"] = usersInfo
@@ -170,6 +172,7 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 		userData.Type = 2
 		userData.Data = string(userStr)
 		user.Redis.Save(coll, userToken+"_1", userData)
+		userInfo.UserToken = userToken + "_1"
 		statuCode = 200
 		data["code"] = 1
 		data["userInfo"] = userInfo
