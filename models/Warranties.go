@@ -35,6 +35,7 @@ type CarInfo struct {
 	CarBrand               string  `bson:"car_brand" json:"car_brand"`                                 //车辆品牌
 	CarSeries              string  `bson:"car_series" json:"car_series"`                               //车辆型号
 	CarVin                 string  `bson:"car_vin" json:"car_vin"`                                     //车架号
+	CarEngine              string  `bson:"car_engine" json:"car_engine"`                               //车辆电机号
 	CarPurchaseDate        uint32  `bson:"car_purchase_date" json:"car_purchase_date"`                 //车辆购买日期
 	CarValue               float64 `bson:"car_value" json:"car_value"`                                 //车辆发票金额
 	CarFrontImg            string  `bson:"car_front_img" json:"car_front_img"`                         //车辆正面照片
@@ -57,6 +58,11 @@ type OwnerInfo struct {
 	OwnerThumbIDcardBack  string `bson:"owner_thumb_IDcard_back" json:"owner_thumb_IDcard_back"`   //身份证背面缩略图
 	OwnerIDcardImg        string `bson:"owner_IDcard_img" json:"owner_IDcard_img"`                 //手持身份证照片
 	OwnerThumbIDcardImg   string `bson:"owner_thumb_IDcard_img" json:"owner_thumb_IDcard_img"`     //手持身份证照片缩略图
+}
+
+type ImgPath struct {
+	Path      string `json:"path"`      //原图打开路径
+	ThumbPath string `json:"thumbPath"` //压缩图打开路径
 }
 
 //根据UserId和保单ID获取保单信息

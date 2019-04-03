@@ -1,10 +1,9 @@
 package views
 
 import (
+	"encoding/json"
 	"fmt"
-	"risk-ext/config"
 	"risk-ext/models"
-	"time"
 
 	"github.com/kataras/iris"
 	"gopkg.in/mgo.v2/bson"
@@ -41,14 +40,14 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 	statuCode = 400
 	user := Session.Customer
 	id := ctx.FormValue("id")
-	rs, err := new(models.Warranty).One(user.UserId.Hex(), id, []uint8{0})
+	rs, err := new(models.Warranty).One(user.UserId.Hex(), id, []uint8{})
 	if err != nil {
 		data["code"] = 0
 		data["msg"] = "未查到该保单信息,请核实后再填写"
 		data["data"] = nil
 		return
 	}
-	if rs.WarrantyStatus != 0 {
+	if rs.WarrantyStatus != 0 && rs.WarrantyStatus != 2 {
 		data["code"] = 0
 		data["msg"] = "该保单已填写完整信息无法再次提交"
 		data["data"] = nil
@@ -68,88 +67,87 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 
 	//身份证正面
 	front := ctx.FormValue("front")
-
+	if front == "" && (rs.WarrantyOwnerInfo.OwnerIDcardFront == "" || rs.WarrantyOwnerInfo.OwnerThumbIDcardFront == "") {
+		data["code"] = 0
+		data["msg"] = "请上传身份证正面照片"
+		data["data"] = nil
+		return
+	}
 	if front != "" {
-		frontTitle := fmt.Sprintf("%s_front.png", idcard)
-		frontSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/"
-		frontOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/"
-		frontThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/thumb/"
-		frontThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/thumb/"
-		err = models.SaveImg(front, frontSaveUrl, frontThumbUrl, frontTitle)
+		var frontPath models.ImgPath
+		err = json.Unmarshal([]byte(front), &frontPath)
 		if err != nil {
 			data["code"] = 0
-			data["msg"] = fmt.Sprintf("上传身份证正面照片失败(%s)", err.Error())
+			data["msg"] = fmt.Sprintf("上传身份证正面失败(%s)", err.Error())
 			data["data"] = nil
 			return
 		}
-		rs.WarrantyOwnerInfo.OwnerIDcardFront = frontOpenUrl + frontTitle
-		rs.WarrantyOwnerInfo.OwnerThumbIDcardFront = frontThumbOpenUrl + frontTitle
-		rs.WarrantyOwnerInfo.OwnerMobile = phone
-	} else {
-		if rs.WarrantyOwnerInfo.OwnerIDcardFront == "" {
+		if frontPath.Path == "" || frontPath.ThumbPath == "" {
 			data["code"] = 0
-			data["msg"] = "请上传身份证正面照"
+			data["msg"] = "请上传身份证正面照片"
 			data["data"] = nil
 			return
 		}
+		rs.WarrantyOwnerInfo.OwnerIDcardFront = frontPath.Path
+		rs.WarrantyOwnerInfo.OwnerThumbIDcardFront = frontPath.ThumbPath
 	}
+
+	rs.WarrantyOwnerInfo.OwnerMobile = phone
 
 	//身份证背面
 	back := ctx.FormValue("back")
-
+	if back == "" && (rs.WarrantyOwnerInfo.OwnerIDcardBack == "" || rs.WarrantyOwnerInfo.OwnerThumbIDcardBack == "") {
+		data["code"] = 0
+		data["msg"] = "请上传身份证背面照片"
+		data["data"] = nil
+		return
+	}
 	if back != "" {
-		backTitle := fmt.Sprintf("%s_back.png", idcard)
-		backSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/"
-		backOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/"
-
-		backThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/thumb/"
-		backThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/thumb/"
-		err = models.SaveImg(back, backSaveUrl, backThumbUrl, backTitle)
+		var backPath models.ImgPath
+		err = json.Unmarshal([]byte(back), &backPath)
 		if err != nil {
 			data["code"] = 0
-			data["msg"] = fmt.Sprintf("上传身份证背面照片失败(%s)", err.Error())
+			data["msg"] = fmt.Sprintf("上传身份证背面失败(%s)", err.Error())
 			data["data"] = nil
 			return
 		}
-		rs.WarrantyOwnerInfo.OwnerIDcardBack = backOpenUrl + backTitle
-		rs.WarrantyOwnerInfo.OwnerThumbIDcardBack = backThumbOpenUrl + backTitle
-	} else {
-		if rs.WarrantyOwnerInfo.OwnerIDcardBack == "" {
+		if backPath.Path == "" || backPath.ThumbPath == "" {
 			data["code"] = 0
-			data["msg"] = "请上传身份证背面照"
+			data["msg"] = "请上传身份证背面照片"
 			data["data"] = nil
 			return
 		}
+		rs.WarrantyOwnerInfo.OwnerIDcardBack = backPath.Path
+		rs.WarrantyOwnerInfo.OwnerThumbIDcardBack = backPath.ThumbPath
 	}
 
 	//手持身份证
 	ownerIDcard := ctx.FormValue("owner_idcard")
-
+	if ownerIDcard == "" && (rs.WarrantyOwnerInfo.OwnerIDcardImg == "" || rs.WarrantyOwnerInfo.OwnerThumbIDcardImg == "") {
+		data["code"] = 0
+		data["msg"] = "请上传手持身份证照片"
+		data["data"] = nil
+		return
+	}
 	if ownerIDcard != "" {
-		ownerTitle := fmt.Sprintf("%s_owner.png", idcard)
-		ownerSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/"
-		ownerOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/"
-
-		ownerThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/thumb/"
-		ownerThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/thumb/"
-		err = models.SaveImg(ownerIDcard, ownerSaveUrl, ownerThumbUrl, ownerTitle)
+		var ownerIDcardPath models.ImgPath
+		err = json.Unmarshal([]byte(ownerIDcard), &ownerIDcardPath)
 		if err != nil {
 			data["code"] = 0
 			data["msg"] = fmt.Sprintf("上传手持身份证照片失败(%s)", err.Error())
 			data["data"] = nil
 			return
 		}
-		rs.WarrantyOwnerInfo.OwnerIDcardImg = ownerOpenUrl + ownerTitle
-		rs.WarrantyOwnerInfo.OwnerThumbIDcardImg = ownerThumbOpenUrl + ownerTitle
-
-	} else {
-		if rs.WarrantyOwnerInfo.OwnerIDcardImg == "" {
+		if ownerIDcardPath.Path == "" || ownerIDcardPath.ThumbPath == "" {
 			data["code"] = 0
-			data["msg"] = "请上传手持身份证照"
+			data["msg"] = "请上传手持身份证照片"
 			data["data"] = nil
 			return
 		}
+		rs.WarrantyOwnerInfo.OwnerIDcardImg = ownerIDcardPath.Path
+		rs.WarrantyOwnerInfo.OwnerThumbIDcardImg = ownerIDcardPath.ThumbPath
 	}
+
 	rs.WarrantyOwnerInfo.OwnerIDcard = idcard
 	rs.WarrantyOwnerInfo.OwnerName = name
 	rs.WarrantyStatus = 1
@@ -173,27 +171,27 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 	statuCode = 400
 	user := Session.Customer
 	id := ctx.FormValue("id")
-	rs, err := new(models.Warranty).One(user.UserId.Hex(), id, []uint8{0})
+	rs, err := new(models.Warranty).One(user.UserId.Hex(), id, []uint8{})
 	if err != nil {
 		data["code"] = 0
 		data["msg"] = "未查到该保单信息,请核实后再填写"
 		data["data"] = nil
 		return
 	}
-	if rs.WarrantyStatus != 0 {
+	if rs.WarrantyStatus != 0 && rs.WarrantyStatus != 2 {
 		data["code"] = 0
 		data["msg"] = "该保单已填写完整信息无法再次提交"
 		data["data"] = nil
 		return
 	}
 
-	idcard := rs.WarrantyOwnerInfo.OwnerIDcard
 	brand := ctx.FormValueDefault("brand", "")           //保单车辆品牌
 	series := ctx.FormValueDefault("series", "")         //保单车辆型号
 	vin := ctx.FormValueDefault("vin", "")               //保单车辆车架号
 	purchase := ctx.PostValueInt64Default("purchase", 0) //保单车辆购买日期
 	value := ctx.PostValueFloat64Default("value", 0.0)   //保单车辆购买时发票金额
-	if brand == "" || series == "" || vin == "" || purchase == 0 || value == 0.0 {
+	engine := ctx.FormValueDefault("engine", "")         //保单车辆电机号
+	if brand == "" || series == "" || vin == "" || purchase == 0 || value == 0.0 || engine == "" {
 		data["code"] = 0
 		data["msg"] = "请填写完整保障物信息"
 		data["data"] = nil
@@ -205,113 +203,116 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 	carModel.CarVin = vin
 	carModel.CarPurchaseDate = uint32(purchase)
 	carModel.CarValue = value
+	carModel.CarEngine = engine
 	rs.WarrantyCarModel = carModel
 	ctx.SetMaxRequestBodySize(2 << 31)
 
 	//车辆正面照片
 	front := ctx.FormValue("front")
-
+	if front == "" && rs.WarrantyCarModel.CarFrontImg == "" {
+		data["code"] = 0
+		data["msg"] = "请上传车辆正面照片"
+		data["data"] = nil
+		return
+	}
 	if front != "" {
-		frontTitle := fmt.Sprintf("%s_front.png", vin)
-		frontSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-		frontOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-		frontThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb/"
-		frontThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb/"
-		err = models.SaveImg(front, frontSaveUrl, frontThumbUrl, frontTitle)
+		var frontPath models.ImgPath
+		err = json.Unmarshal([]byte(front), &frontPath)
 		if err != nil {
 			data["code"] = 0
 			data["msg"] = fmt.Sprintf("上传车辆正面文件失败(%s)", err.Error())
 			data["data"] = nil
 			return
 		}
-		rs.WarrantyCarModel.CarFrontImg = frontOpenUrl + frontTitle
-		rs.WarrantyCarModel.CarThumbFrontImg = frontThumbOpenUrl + frontTitle
-	} else {
-		if rs.WarrantyCarModel.CarFrontImg == "" {
+		if frontPath.Path == "" || frontPath.ThumbPath == "" {
 			data["code"] = 0
-			data["msg"] = "请上传车辆正面照"
+			data["msg"] = "请上传车辆正面照片"
 			data["data"] = nil
 			return
 		}
+		rs.WarrantyCarModel.CarFrontImg = frontPath.Path
+		rs.WarrantyCarModel.CarThumbFrontImg = frontPath.ThumbPath
 	}
+
 	//车辆侧面
 	side := ctx.FormValue("side")
-
+	if side == "" && (rs.WarrantyCarModel.CarSideImg == "" || rs.WarrantyCarModel.CarThumbSideImg == "") {
+		data["code"] = 0
+		data["msg"] = "请上传车辆侧面照片"
+		data["data"] = nil
+		return
+	}
 	if side != "" {
-		sideTitle := fmt.Sprintf("%s_side.png", vin)
-		sideSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-		sideOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-		sideThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb/"
-		sideThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb/"
-		err = models.SaveImg(side, sideSaveUrl, sideThumbUrl, sideTitle)
+		var sidePath models.ImgPath
+		err = json.Unmarshal([]byte(side), &sidePath)
 		if err != nil {
 			data["code"] = 0
 			data["msg"] = fmt.Sprintf("上传车辆侧面文件失败(%s)", err.Error())
 			data["data"] = nil
 			return
 		}
-		rs.WarrantyCarModel.CarSideImg = sideOpenUrl + sideTitle
-		rs.WarrantyCarModel.CarThumbSideImg = sideThumbOpenUrl + sideTitle
-	} else {
-		if rs.WarrantyCarModel.CarSideImg == "" {
+		if sidePath.Path == "" || sidePath.ThumbPath == "" {
 			data["code"] = 0
-			data["msg"] = "请上传车辆侧面照"
+			data["msg"] = "请上传车辆侧面照片"
 			data["data"] = nil
 			return
 		}
+		rs.WarrantyCarModel.CarSideImg = sidePath.Path
+		rs.WarrantyCarModel.CarThumbSideImg = sidePath.ThumbPath
 	}
 
 	//车辆合格证
 	certificate := ctx.FormValue("certificate")
+	if certificate == "" && (rs.WarrantyCarModel.CarCertificateImg == "" || rs.WarrantyCarModel.CarThumbCertificateImg == "") {
+		data["code"] = 0
+		data["msg"] = "请上传车辆合格证照片"
+		data["data"] = nil
+		return
+	}
 	if certificate != "" {
-		certifyTitle := fmt.Sprintf("%s_certificate.png", vin)
-		certifySaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-		certifyOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-		certifyThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb/"
-		certifyThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb/"
-		err = models.SaveImg(certificate, certifySaveUrl, certifyThumbUrl, certifyTitle)
+		var certificatePath models.ImgPath
+		err = json.Unmarshal([]byte(certificate), &certificatePath)
 		if err != nil {
 			data["code"] = 0
 			data["msg"] = fmt.Sprintf("上传车辆合格证文件失败(%s)", err.Error())
 			data["data"] = nil
 			return
 		}
-		rs.WarrantyCarModel.CarCertificateImg = certifyOpenUrl + certifyTitle
-		rs.WarrantyCarModel.CarThumbCertificateImg = certifyThumbOpenUrl + certifyTitle
-	} else {
-		if rs.WarrantyCarModel.CarCertificateImg == "" {
+		if certificatePath.Path == "" || certificatePath.ThumbPath == "" {
 			data["code"] = 0
-			data["msg"] = "请上传车辆合格证照"
+			data["msg"] = "请上传车辆合格证照片"
 			data["data"] = nil
 			return
 		}
+		rs.WarrantyCarModel.CarCertificateImg = certificatePath.Path
+		rs.WarrantyCarModel.CarThumbCertificateImg = certificatePath.ThumbPath
 	}
 
 	//车辆购车发票
 	receipt := ctx.FormValue("receipt")
-
+	if receipt == "" && (rs.WarrantyCarModel.CarReceiptImg == "" || rs.WarrantyCarModel.CarThumbReceiptImg == "") {
+		data["code"] = 0
+		data["msg"] = "请上传车辆购车发票照片"
+		data["data"] = nil
+		return
+	}
 	if receipt != "" {
-		receiptTitle := fmt.Sprintf("%s_receipt.png", vin)
-		receiptSaveUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-		receiptOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/"
-		receiptThumbUrl := config.GetString("WarrantyFiles") + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb/"
-		receiptThumbOpenUrl := "photos/" + time.Now().Format("200601") + "/" + idcard + "/" + vin + "/thumb/"
-		err = models.SaveImg(receipt, receiptSaveUrl, receiptThumbUrl, receiptTitle)
+		var receiptPath models.ImgPath
+		err = json.Unmarshal([]byte(receipt), &receiptPath)
 		if err != nil {
 			data["code"] = 0
-			data["msg"] = fmt.Sprintf("上传车辆购车发票文件失败(%s)", err.Error())
+			data["msg"] = fmt.Sprintf("上传车辆购车发票失败(%s)", err.Error())
 			data["data"] = nil
 			return
 		}
-		rs.WarrantyCarModel.CarReceiptImg = receiptOpenUrl + receiptTitle
-		rs.WarrantyCarModel.CarThumbReceiptImg = receiptThumbOpenUrl + receiptTitle
-	} else {
-		if rs.WarrantyCarModel.CarCertificateImg == "" {
+		if receiptPath.Path == "" || receiptPath.ThumbPath == "" {
 			data["code"] = 0
 			data["msg"] = "请上传车辆购车发票照片"
 			data["data"] = nil
 			return
 		}
+		rs.WarrantyCarModel.CarReceiptImg = receiptPath.Path
+		rs.WarrantyCarModel.CarThumbReceiptImg = receiptPath.ThumbPath
 	}
 
 	err = rs.Update(false)

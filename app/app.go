@@ -108,7 +108,6 @@ func Run() {
 
 		}
 	}
-
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
 }
 func HttpClient(url string, args interface{}, method string, result interface{}, contentType string, token ...string) (err error, jsonStr string) {

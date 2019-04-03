@@ -192,7 +192,7 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 		warrnty.WarrantyServer = "一年"
 		warrnty.WarrantyServerStart = device.DeviceActivateTime
 		warrnty.WarrantyServerEnd = device.DeviceActivateTime + uint32(365*86400)
-		warrnty.WarrantyName = "电动自行车盗抢险"
+		warrnty.WarrantyName = "电动自行车盗抢保障"
 		warrnty.WarrantyService = "久劲"
 		warrnty.WarrantyCarModel.CarName = travelName
 		warrnty.WarrantyDeviceIdStr = fmt.Sprintf("%d", deviceData.Device_id)

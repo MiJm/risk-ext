@@ -48,9 +48,14 @@ func (this *Views) Auth(ctx iris.Context) int64 {
 	}
 	reg := regexp.MustCompile(`.*_.*`)
 	if !reg.MatchString(token) {
-		token = token + "_1"
+		Session = new(models.Session).Data(token + "_1")
+		if Session == nil {
+			Session = new(models.Session).Data(token + "_0")
+		}
+	} else {
+		Session = new(models.Session).Data(token)
 	}
-	Session = new(models.Session).Data(token)
+
 	return 1
 }
 
