@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"risk-ext/app"
 	"risk-ext/config"
 	"risk-ext/models"
 	"risk-ext/utils"
@@ -30,11 +31,11 @@ func (this *ReportView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{}) {
+func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data app.M) {
 	statuCode = 400
 	reportId := ctx.Params().Get("report_id")
 	if !bson.IsObjectIdHex(reportId) {
-		data = "报表ID不正确"
+		data["msg"] = "报表ID不正确"
 		return
 	}
 	report := new(models.Reports)
@@ -42,20 +43,20 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{
 	report.Model.One(report)
 	if report.ReportCreateAt == 0 {
 		statuCode = 404
-		data = "报表不存在"
+		data["msg"] = "报表不存在"
 		return
 	}
 
 	if report.ReportDeleteAt > 0 {
 		statuCode = 410
-		data = "报表已被删除"
+		data["msg"] = "报表已被删除"
 		return
 	}
 	stype := Session.Type
 	if stype == 1 {
 		if report.ReportStatus != 1 {
 			statuCode = 400
-			data = "报表当前状态不可用"
+			data["msg"] = "报表当前状态不可用"
 			return
 		}
 	}
@@ -67,7 +68,7 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{
 		Device_loctime uint64  `json:"device_loctime"`
 	}
 	statuCode = 200
-	data = report
+	data["msg"] = report
 	return
 }
 
@@ -338,5 +339,10 @@ func (this *ReportView) Delete(ctx iris.Context) (statusCode int, data M) {
 	}
 	statusCode = 200
 	data["code"] = 1
+	return
+}
+
+//更新操作待用
+func (this *ReportView) Put(ctx iris.Context) (statuCode int, data M) {
 	return
 }

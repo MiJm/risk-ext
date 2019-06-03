@@ -1,6 +1,7 @@
 package views
 
 import (
+	"risk-ext/app"
 	"risk-ext/models"
 
 	"github.com/kataras/iris"
@@ -17,7 +18,7 @@ func (this *CommonsView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *CommonsView) Get(ctx iris.Context) (statusCode int, data M) {
+func (this *CommonsView) Get(ctx iris.Context) (statusCode int, data app.M) {
 	data = make(M)
 	statusCode = 400
 	mobile := ctx.FormValue("mobile")
@@ -45,4 +46,19 @@ func (this *CommonsView) Get(ctx iris.Context) (statusCode int, data M) {
 		data["error"] = "验证码发送失败"
 		return
 	}
+}
+
+//添加操作待用
+func (this *CommonsView) Post(ctx iris.Context) (statuCode int, data app.M) {
+	return
+}
+
+//更新操作待用
+func (this *CommonsView) Put(ctx iris.Context) (statuCode int, data app.M) {
+	return
+}
+
+//删除操作待用
+func (this *CommonsView) Delete(ctx iris.Context) (statuCode int, data app.M) {
+	return
 }

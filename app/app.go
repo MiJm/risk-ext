@@ -88,7 +88,7 @@ func callback(ctx iris.Context, v V) {
 }
 
 func App() *iris.Application {
-	v1 := app.Party("v1")
+	v1 := app.Party("v2")
 	for k, m := range paths {
 		v1.Get(k, func(ctx iris.Context) {
 			callback(ctx, m)
@@ -117,7 +117,6 @@ func Run() {
 
 		}
 	}
-
 	app.Run(iris.Addr(host+":"+port), iris.WithConfiguration(conf))
 }
 func HttpClient(url string, args interface{}, method string, result interface{}, contentType string, token ...string) (err error, jsonStr string) {

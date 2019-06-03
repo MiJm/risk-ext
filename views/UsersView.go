@@ -81,6 +81,7 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 			userData.Data = string(userStr)
 			userInfos.Redis.Save(coll, userToken+"_1", userData)
 		}
+		userInfos.UserToken = userToken + "_1"
 		data["code"] = 1
 		data["userInfo"] = userInfos
 		return
@@ -88,7 +89,7 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 	token := ctx.FormValue("token")
 	userModel := new(models.Users)
 	var userInfo models.Users
-	err := userModel.Redis.Map(coll, token+"_1", &userData)
+	err := userModel.Redis.Map(coll, token, &userData)
 	if err != nil {
 		statuCode = 401
 		data["code"] = 0
@@ -102,9 +103,12 @@ func (this *UsersView) Get(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = err.Error()
 		return
 	}
+	count := new(models.Warranty).GetCount(userInfo.UserId.Hex())
+	usersInfo.UserToken = usersInfo.UserToken + "_1"
 	statuCode = 200
 	data["code"] = 1
 	data["userInfo"] = usersInfo
+	data["count"] = count
 	return
 }
 
@@ -139,17 +143,20 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 			data["error"] = "手机号已绑定"
 			return
 		}
-		userName := ctx.FormValue("userName")
-		userAvatar := ctx.FormValue("userAvatar")
-		user.UserFname = userName
-		user.UserAvatar = userAvatar
 		user.UserOpenId = openId
 		user.UserMobile = phone
 		userToken := bson.NewObjectId().Hex()
 		user.UserToken = userToken
-		userUnionId := config.Redis.HGet("wechatuser", openId).Val()
-		if userUnionId != "" {
-			user.UserUnionId = userUnionId
+		if user.UserUnionId == "" {
+			dataInfo, err := config.Redis.HGet("wechatuser", openId).Bytes()
+			if err == nil {
+				var info models.WxResponse
+				if json.Unmarshal(dataInfo, &info) == nil {
+					user.UserUnionId = info.UnionId
+					user.UserFname = info.Nickname
+					user.UserAvatar = info.Headimgurl
+				}
+			}
 		}
 		userInfo, err := user.Insert()
 		if err != nil {
@@ -165,6 +172,7 @@ func (this *UsersView) Post(ctx iris.Context) (statuCode int, data M) {
 		userData.Type = 2
 		userData.Data = string(userStr)
 		user.Redis.Save(coll, userToken+"_1", userData)
+		userInfo.UserToken = userToken + "_1"
 		statuCode = 200
 		data["code"] = 1
 		data["userInfo"] = userInfo
@@ -269,9 +277,15 @@ func (this *UsersView) Login(ctx iris.Context) (statuCode int, data M) {
 		data["error"] = "该用户已被禁用"
 		return
 	}
-
+	count := new(models.Warranty).GetCount(userInfo.UserId.Hex())
 	statuCode = 200
 	data["code"] = 1
 	data["userInfo"] = userInfo
+	data["count"] = count
+	return
+}
+
+//删除操作待用
+func (this *UsersView) Delete(ctx iris.Context) (statuCode int, data M) {
 	return
 }

@@ -34,14 +34,15 @@ type Alarms struct {
 	Alarm_desc         string              `json:"alarm_desc"`                         //报警描述()
 }
 
-var Alarm_type_string = []string{"断电/关机预警", "通电/开机预警", "光感预警", "出围预警", "入围预警", "低电量预警", "风险点预警", "离线预警", "异动报警", "停车超时", "超速预警", "常驻点预警"}
-var Alarm_type_color = []string{"#F0644E", "#3ED080", "#F8AD2E", "#886EFF", "#886EFF", "#F78C75", " #F66A00", "#F53E35", "#3A9CFF", "#32C5FF", "#F53E35", "#F66A00"}
+var Alarm_type_string = []string{"断电/关机预警", "通电/开机预警", "光感预警", "出围预警", "入围预警", "低电量预警", "风险点预警", "离线预警", "异动报警", "停车超时", "超速预警", "常驻点预警", "设防预警"}
+var Alarm_type_color = []string{"#F0644E", "#3ED080", "#F8AD2E", "#886EFF", "#886EFF", "#F78C75", " #F66A00", "#F53E35", "#3A9CFF", "#32C5FF", "#F53E35", "#F66A00", "#F8AD2E"}
 
 var Alarm_descrip = []bson.M{{"type": "断电", "color": "#F0644E", "discription": "电源被切断", "args": 0, "isShow": true}, {"type": "见光", "color": "#F8AD2E", "discription": "检测到光感报警", "args": 0, "isShow": true}, {"type": "出围", "color": "#886EFF", "discription": "驶出围栏[%s]", "args": 1, "isShow": true}, {"type": "入围", "color": "#886EFF", "discription": "驶入围栏[%s]", "args": 1, "isShow": true},
 	{"type": "关机", "color": "#F0644E", "discription": "已关机", "args": 0, "isShow": true}, {"type": "开机", "color": "#3ED080", "discription": "关机报警解除，已重新开机", "args": 0, "isShow": true}, {"type": "低电量", "color": "#F78C75", "discription": "电量少于20%", "args": 0, "isShow": true}, {"type": "通电", "color": "#3ED080", "discription": "断电报警解除，已恢复通电", "args": 0, "isShow": true},
 	{"type": "见光恢复", "color": "#F8AD2E", "discription": "光感报警解除，已复位", "args": 0, "isShow": true}, {"type": "低电恢复", "color": "#F78C75", "discription": "低电报警解除，已复位", "args": 0, "isShow": true}, {"type": "出围解除", "color": "#886EFF", "discription": "围栏报警解除", "args": 0, "isShow": true}, {"type": "入围解除", "color": "#886EFF", "discription": "围栏报警解除", "args": 0, "isShow": true},
 	{"type": "风险点", "color": "#F66A00", "discription": "进入风险点[%s]", "args": -1, "isShow": true}, {"type": "离线", "color": "#F53E35", "discription": "离线报警", "args": 0, "isShow": true}, {"type": "异动", "color": "#3A9CFF", "discription": "异动报警", "args": 0, "isShow": true}, {"type": "震动", "color": "#3A9CFF", "discription": "震动报警", "args": 0, "isShow": false}, {"type": "拆卸", "color": "#3A9CFF", "discription": "拆卸报警", "args": 0, "isShow": false},
-	{"type": "ACC关", "color": "#3A9CFF", "discription": "ACC关报警", "args": 0, "isShow": false}, {"type": "ACC开", "color": "#3A9CFF", "discription": "ACC开报警", "args": 0, "isShow": false}, {"type": "停车超时", "color": "#32C5FF", "discription": "车辆停车已超过24小时", "args": 0, "isShow": true}, {"type": "超速预警", "color": "#F53E35", "discription": "车辆时速超过120公里", "args": 0, "isShow": true}, {"type": "常驻点预警", "color": "#F66A00", "discription": "车辆未进入常驻点[%s]", "args": 1, "isShow": true}}
+	{"type": "ACC关", "color": "#3A9CFF", "discription": "ACC关报警", "args": 0, "isShow": false}, {"type": "ACC开", "color": "#3A9CFF", "discription": "ACC开报警", "args": 0, "isShow": false}, {"type": "停车超时", "color": "#32C5FF", "discription": "车辆停车已超过24小时", "args": 0, "isShow": true}, {"type": "超速预警", "color": "#F53E35", "discription": "车辆时速超过120公里", "args": 0, "isShow": true}, {"type": "常驻点预警", "color": "#F66A00", "discription": "车辆未进入常驻点[%s]", "args": 1, "isShow": true},
+	{"type": "设防报警", "color": "#F8AD2E", "discription": "车辆设防中上传定位", "args": 0, "isShow": true}}
 
 func (this *Alarms) GetAlarmListByUserId(userId, deviceId string, page, pageSize int) (rs []Alarms, count int, err error) {
 	if page < 1 {

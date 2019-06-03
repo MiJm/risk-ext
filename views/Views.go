@@ -3,6 +3,7 @@ package views
 import (
 	"encoding/json"
 	"errors"
+	"regexp"
 	"risk-ext/app"
 	"risk-ext/config"
 	"risk-ext/models"
@@ -30,7 +31,6 @@ const (
 
 type (
 	A   []uint8
-	M   app.M
 	MA  map[string]A
 	PMS map[string]MA
 )
@@ -45,7 +45,16 @@ func (this *Views) Auth(ctx iris.Context) int64 {
 	if token == "" {
 		token = ctx.FormValue("token")
 	}
-	Session = new(models.Session).Data(token)
+	reg := regexp.MustCompile(`.*_.*`)
+	if !reg.MatchString(token) {
+		Session = new(models.Session).Data(token + "_1")
+		if Session == nil {
+			Session = new(models.Session).Data(token + "_0")
+		}
+	} else {
+		Session = new(models.Session).Data(token)
+	}
+
 	return 1
 }
 

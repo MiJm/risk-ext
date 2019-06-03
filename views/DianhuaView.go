@@ -1,6 +1,7 @@
 package views
 
 import (
+	"risk-ext/app"
 	"risk-ext/models"
 	"risk-ext/utils"
 
@@ -24,7 +25,7 @@ func (this *DianhuaView) Auth(ctx iris.Context) int {
 }
 
 //获取登录所需输入信息
-func (this *DianhuaView) Get(ctx iris.Context) (statuCode int, data M) {
+func (this *DianhuaView) Get(ctx iris.Context) (statuCode int, data app.M) {
 	data = make(M)
 	statuCode = 400
 	tel := ctx.FormValue("tel")
@@ -52,7 +53,7 @@ func (this *DianhuaView) Get(ctx iris.Context) (statuCode int, data M) {
 }
 
 //登录电话邦
-func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data M) {
+func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data app.M) {
 	data = make(M)
 	statuCode = 400
 	amount := Session.User.Amount.QueryDianHua
@@ -148,5 +149,15 @@ func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data M) {
 	data["code"] = 1
 	statuCode = 200
 	return
+	return
+}
+
+//更新操作待用
+func (this *DianhuaView) Put(ctx iris.Context) (statuCode int, data app.M) {
+	return
+}
+
+//删除操作待用
+func (this *DianhuaView) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

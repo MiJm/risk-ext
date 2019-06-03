@@ -1,7 +1,9 @@
 package views
 
 import (
+	"fmt"
 	"net/url"
+	"risk-ext/app"
 	"risk-ext/models"
 	"risk-ext/utils"
 	"strconv"
@@ -24,7 +26,7 @@ func (this *DevicesViewForApp) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *DevicesViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
+func (this *DevicesViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) {
 	data = make(M)
 	statuCode = 400
 	qrcodeStr := ctx.Params().Get("qrcodeStr")
@@ -117,7 +119,7 @@ func (this *DevicesViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 	return
 }
 
-func (this *DevicesViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
+func (this *DevicesViewForApp) Put(ctx iris.Context) (statuCode int, data app.M) {
 	data = make(M)
 	statuCode = 400
 	userModel := new(models.Users)
@@ -146,7 +148,8 @@ func (this *DevicesViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	travelType, _ := ctx.PostValueInt("travelType")
-	userInfo, err := userModel.GetUsersByOpenId(userData.UserOpenId)
+	// userInfo, err := userModel.GetUsersByUnionId(userData.UserUnionId)
+	userInfo, err := userModel.GetUsersByUserId(userData.UserId)
 	if err != nil {
 		data["code"] = 0
 		data["msg"] = "用户已被注销"
@@ -203,6 +206,20 @@ func (this *DevicesViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 		data["data"] = nil
 		return
 	}
+	var warrnty = new(models.Warranty)
+	rs, err := warrnty.GetWarrantyByDeviceId(deviceData.Device_id)
+	if err != nil || rs.WarrantyId == models.EmptyId { //不存在保单直接创建一个新保单
+		warrnty.WarrantyUserId = userData.UserId.Hex()
+		warrnty.WarrantyDeviceId = deviceData.Device_id
+		warrnty.WarrantyServer = "一年"
+		warrnty.WarrantyServerStart = device.DeviceActivateTime
+		warrnty.WarrantyServerEnd = device.DeviceActivateTime + uint32(365*86400)
+		warrnty.WarrantyName = "电动自行车盗抢保障"
+		warrnty.WarrantyService = "久劲"
+		warrnty.WarrantyCarModel.CarName = travelName
+		warrnty.WarrantyDeviceIdStr = fmt.Sprintf("%d", deviceData.Device_id)
+		warrnty.Add()
+	}
 	var deviceInfo models.DeviceInfo
 	err = userModel.Map("devices", deviceId, &deviceInfo)
 	if err != nil {
@@ -218,5 +235,15 @@ func (this *DevicesViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 	data["code"] = 1
 	data["data"] = nil
 	data["msg"] = "OK"
+	return
+}
+
+//添加操作待用
+func (this *DevicesViewForApp) Post(ctx iris.Context) (statuCode int, data app.M) {
+	return
+}
+
+//删除操作待用
+func (this *DevicesViewForApp) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

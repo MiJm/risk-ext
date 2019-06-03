@@ -315,7 +315,10 @@ func PswDecrypt(src, sKey, iv string) (string, error) {
 	}
 	result, err = base64.RawStdEncoding.DecodeString(src)
 	if err != nil {
-		return "", err
+		result, err = base64.StdEncoding.DecodeString(src)
+		if err != nil {
+			return "", err
+		}
 	}
 	origData, err := Aes128Decrypt(result, asKey, aiv)
 	if err != nil {
@@ -394,4 +397,12 @@ func ExeCmd(devId uint64, Type uint8, args string) bool {
 	} else {
 		return <-rs
 	}
+}
+
+//反转数组
+func Reverse(s []string) []string {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+	return s
 }

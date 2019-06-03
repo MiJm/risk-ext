@@ -3,7 +3,6 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -83,22 +82,14 @@ type Task struct {
 
 //获取当前登录用户
 func (this *Session) Data(token string) *Session {
-
 	var user = struct {
 		Type int8   `json:"type"` //用户类型 0=manager 1=member 2=C端用户
 		Data string `json:"data"` //用户内容json
 	}{}
-
-	key := fmt.Sprintf("%s_%d", token, 1)
-	err := this.Map(coll, key, &user)
+	err := this.Map(coll, token, &user)
 	if err != nil {
-		key = fmt.Sprintf("%s_%d", token, 0)
-		err := this.Map(coll, key, &user)
-		if err != nil {
-			return nil
-		}
+		return nil
 	}
-
 	this.Type = user.Type
 	if user.Type == 0 {
 		json.Unmarshal([]byte(user.Data), &this.Manager)

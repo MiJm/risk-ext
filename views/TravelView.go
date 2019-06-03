@@ -131,3 +131,13 @@ func (this *TravelView) Put(ctx iris.Context) (statuCode int, data M) {
 	data["code"] = 1
 	return
 }
+
+//获取详情或列表待用
+func (this *TravelView) Get(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//添加操作待用
+func (this *TravelView) Post(ctx iris.Context) (statuCode int, data M) {
+	return
+}

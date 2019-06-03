@@ -3,6 +3,7 @@ package views
 import (
 	"fmt"
 	"regexp"
+	"risk-ext/app"
 	"risk-ext/models"
 	"strconv"
 	"strings"
@@ -30,7 +31,7 @@ func (this *CommandViewForApp) Auth(ctx iris.Context) int {
 //set_work int cmd_type 为3 传值 0:闹钟模式 2:星期
 //cmd_param string 设置的参数 cmd_type=1(5分钟) cmd_type=2(可空) cmd_type=3(set_work=0>>[10:00;13:00;18:00;20:00] set_work=2>>[10:00;1,2,3,4,5,6,7])
 //deviceId int 设备号
-func (this *CommandViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
+func (this *CommandViewForApp) Post(ctx iris.Context) (statuCode int, data app.M) {
 	statuCode = 400
 	data = make(M)
 	mem := Session.Customer
@@ -150,6 +151,7 @@ func (this *CommandViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 				}
 
 			}
+			cmd_type = 4
 		} else if set_work == 2 { //星期模式
 			flag, _ := regexp.MatchString("(((^[0-1]{1}[0-9]{1})|(^2[0-3]{1})):[0-5]\\d;)[1-7](,[1-7]){0,7}\\z", cmd_param)
 			if !flag {
@@ -172,6 +174,7 @@ func (this *CommandViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 			deviceData.Device_tracking = 4
 			arg = fmt.Sprintf("%s,%s", Mar[0], Mar[1])
 		}
+		cmd_type = 6
 	}
 	trackInterval, err := new(models.Commands).Command(fmt.Sprintf("%d", deviceId), uint8(cmd_type), deviceInfo, mod, deviceData, arg)
 	if err != nil {
@@ -184,5 +187,20 @@ func (this *CommandViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 	data["data"] = map[string]interface{}{"result": trackInterval}
 	data["code"] = 1
 	data["msg"] = "OK"
+	return
+}
+
+//获取详情或列表待用
+func (this *CommandViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) {
+	return
+}
+
+//更新操作待用
+func (this *CommandViewForApp) Put(ctx iris.Context) (statuCode int, data app.M) {
+	return
+}
+
+//删除操作待用
+func (this *CommandViewForApp) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

@@ -3,6 +3,7 @@ package views
 import (
 	"io"
 	"os"
+	"risk-ext/app"
 	"risk-ext/config"
 	"risk-ext/models"
 	"risk-ext/utils"
@@ -28,7 +29,7 @@ func (this *CreditView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *CreditView) Post(ctx iris.Context) (statuCode int, data M) {
+func (this *CreditView) Post(ctx iris.Context) (statuCode int, data app.M) {
 	data = make(M)
 	statuCode = 400
 	amount := Session.User.Amount.QueryCredit
@@ -274,7 +275,7 @@ func (this *CreditView) Get(ctx iris.Context) (statuCode int, result interface{}
 }
 
 //征信查询审核
-func (this *CreditView) Put(ctx iris.Context) (statusCode int, data M) {
+func (this *CreditView) Put(ctx iris.Context) (statusCode int, data app.M) {
 	data = make(M)
 	statusCode = 400
 	reportId := ctx.FormValue("report_id")
@@ -330,5 +331,10 @@ func (this *CreditView) Put(ctx iris.Context) (statusCode int, data M) {
 		data["error"] = err.Error()
 		data["code"] = 0
 	}
+	return
+}
+
+//删除操作待用
+func (this *CreditView) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

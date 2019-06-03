@@ -47,3 +47,18 @@ func (this *RoutesView) Post(ctx iris.Context) (statuCode int, data M) {
 	data["count"] = count
 	return
 }
+
+//获取详情或列表待用
+func (this *RoutesView) Get(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//更新操作待用
+func (this *RoutesView) Put(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//删除操作待用
+func (this *RoutesView) Delete(ctx iris.Context) (statuCode int, data M) {
+	return
+}

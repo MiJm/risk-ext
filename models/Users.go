@@ -62,7 +62,12 @@ type WeChat struct {
 	Errcode     int    `json:"errcode"`
 	Errmsg      string `json:"errmsg"`
 }
-
+type WXUserInfo struct {
+	OpenId    string `json:"openId"`
+	NickName  string `json:"nickName"`
+	AvatarUrl string `json:"avatarUrl"`
+	UnionId   string `json:"unionId"`
+}
 type Travel struct {
 	TravelName     string `bson:"travel_name" json:"travel_name"`           //交通工具名称
 	TravelType     uint8  `bson:"travel_type" json:"travel_type"`           //交通工具类型0=电动车 1=自行车 2=汽车
@@ -109,6 +114,30 @@ type Polygon struct {
 
 func (this *Users) GetUsersByOpenId(openId string, flag ...bool) (rs Users, err error) {
 	err = this.Collection(this).Find(bson.M{"user_open_id": openId, "user_deleted": 0}).One(&rs)
+	if err == nil {
+		if len(flag) > 0 && flag[0] {
+			return
+		}
+		deviceModel := new(Devices)
+		alarmModel := new(Alarms)
+		for key, val := range rs.UserTravel {
+			var devId uint64
+			if val.TravelDeviceId != 0 {
+				devId = val.TravelDeviceId
+			} else {
+				devId = val.TravelDevice.DeviceId
+			}
+			deviceInfo := deviceModel.GetDeviceInfo(devId)
+			rs.UserTravel[key].TravelDeviceInfo = deviceInfo
+			unReadAlarmNum, _ := alarmModel.GetUnReadAlarmNums(strconv.FormatUint(devId, 10), rs.UserId.Hex())
+			rs.UserTravel[key].TravleAlarmNum = unReadAlarmNum
+		}
+	}
+	return
+}
+
+func (this *Users) GetUsersByUnionId(unionId string, flag ...bool) (rs Users, err error) {
+	err = this.Collection(this).Find(bson.M{"user_union_id": unionId, "user_deleted": 0}).One(&rs)
 	if err == nil {
 		if len(flag) > 0 && flag[0] {
 			return

@@ -1,6 +1,7 @@
 package views
 
 import (
+	"risk-ext/app"
 	"risk-ext/models"
 
 	"github.com/kataras/iris"
@@ -20,7 +21,7 @@ func (this *AlarmsViewForApp) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *AlarmsViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
+func (this *AlarmsViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) {
 	data = make(M)
 	statuCode = 400
 	alarmId := ctx.FormValue("alarmId")
@@ -48,7 +49,7 @@ func (this *AlarmsViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 	return
 }
 
-func (this *AlarmsViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
+func (this *AlarmsViewForApp) Post(ctx iris.Context) (statuCode int, data app.M) {
 	data = make(M)
 	statuCode = 400
 	deviceId := ctx.FormValue("deviceId")
@@ -72,5 +73,15 @@ func (this *AlarmsViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 	data["code"] = 1
 	data["msg"] = "OK"
 	data["data"] = map[string]interface{}{"count": count, "unreadCount": unReadAlarmNum, "alarmList": alarmList}
+	return
+}
+
+//更新操作
+func (this *AlarmsViewForApp) Put(ctx iris.Context) (statuCode int, data app.M) {
+	return
+}
+
+//删除操作待用
+func (this *AlarmsViewForApp) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

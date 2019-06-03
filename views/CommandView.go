@@ -3,6 +3,7 @@ package views
 import (
 	"fmt"
 	"regexp"
+	"risk-ext/app"
 	"risk-ext/models"
 	"strconv"
 	"strings"
@@ -30,7 +31,7 @@ func (this *CommandView) Auth(ctx iris.Context) int {
 //set_work int cmd_type 为3 传值 0:闹钟模式 2:星期
 //cmd_param string 设置的参数 cmd_type=1(5分钟) cmd_type=2(可空) cmd_type=3(set_work=0>>[10:00;13:00;18:00;20:00] set_work=2>>[10:00;1,2,3,4,5,6,7])
 //deviceId int 设备号
-func (this *CommandView) Post(ctx iris.Context) (statuCode int, data M) {
+func (this *CommandView) Post(ctx iris.Context) (statuCode int, data app.M) {
 	statuCode = 400
 	data = make(M)
 	mem := Session.Customer
@@ -96,7 +97,7 @@ func (this *CommandView) Post(ctx iris.Context) (statuCode int, data M) {
 			deviceInfo.Device_last_tracking = uint32(time.Now().Unix())
 		}
 
-		cmd_type = 3
+		cmd_type = 3 //开追踪
 		deviceData.Device_tracking = deviceInfo.Device_tracking
 	} else if cmd_type == 2 { //设备关闭追踪
 		if mod.Model_type == 0 { //无线设备
@@ -174,5 +175,20 @@ func (this *CommandView) Post(ctx iris.Context) (statuCode int, data M) {
 	data["result"] = trackInterval
 	data["code"] = 1
 	data["error"] = "OK"
+	return
+}
+
+//获取详情或列表待用
+func (this *CommandView) Get(ctx iris.Context) (statuCode int, data app.M) {
+	return
+}
+
+//更新操作待用
+func (this *CommandView) Put(ctx iris.Context) (statuCode int, data app.M) {
+	return
+}
+
+//删除操作待用
+func (this *CommandView) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

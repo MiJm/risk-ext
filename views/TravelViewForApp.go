@@ -7,6 +7,7 @@ import (
 	"risk-ext/config"
 
 	"github.com/kataras/iris"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type TravelViewForApp struct {
@@ -156,9 +157,15 @@ func (this *TravelViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 		data["msg"] = err.Error()
 		return
 	}
+	count := new(models.Warranty).GetCount(userId.Hex())
 	statuCode = 200
 	data["code"] = 1
 	data["msg"] = "OK"
-	data["data"] = Travels
+	data["data"] = bson.M{"Travels": Travels, "Warranty": count}
+	return
+}
+
+//添加操作待用
+func (this *TravelViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 	return
 }
