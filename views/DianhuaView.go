@@ -25,8 +25,11 @@ func (this *DianhuaView) Auth(ctx iris.Context) int {
 }
 
 //获取登录所需输入信息
-func (this *DianhuaView) Get(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *DianhuaView) Get(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	tel := ctx.FormValue("tel")
 	if tel == "" {
@@ -53,8 +56,11 @@ func (this *DianhuaView) Get(ctx iris.Context) (statuCode int, data app.M) {
 }
 
 //登录电话邦
-func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	amount := Session.User.Amount.QueryDianHua
 	comId := Session.User.UserCompany_id
@@ -74,23 +80,23 @@ func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data app.M) {
 
 	//二次校验
 	if t != "1" {
-		result, err := models.LoginVerify(sid, sms, captcha)
+		result1, err := models.LoginVerify(sid, sms, captcha)
 		if err != nil {
 			data["code"] = 0
 			data["error"] = err.Error()
 			return
 		}
 		data["data"] = nil
-		if result.Status == 0 {
-			if result.CommonData.Action == "processing" {
+		if result1.Status == 0 {
+			if result1.CommonData.Action == "processing" {
 				statuCode = 200
 				data["code"] = 1
-				data["data"] = result.Data
+				data["data"] = result1.Data
 				return
 			}
 		} else {
 			data["code"] = 0
-			data["error"] = result.Msg
+			data["error"] = result1.Msg
 			return
 		}
 	} else {
@@ -153,11 +159,11 @@ func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data app.M) {
 }
 
 //更新操作待用
-func (this *DianhuaView) Put(ctx iris.Context) (statuCode int, data app.M) {
+func (this *DianhuaView) Put(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //删除操作待用
-func (this *DianhuaView) Delete(ctx iris.Context) (statuCode int, data app.M) {
+func (this *DianhuaView) Delete(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

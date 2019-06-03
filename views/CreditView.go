@@ -29,8 +29,11 @@ func (this *CreditView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *CreditView) Post(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *CreditView) Post(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	amount := Session.User.Amount.QueryCredit
 	comId := Session.User.UserCompany_id
@@ -226,9 +229,12 @@ func (this *CreditView) Post(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
-func (this *CreditView) Get(ctx iris.Context) (statuCode int, data app.M) {
+func (this *CreditView) Get(ctx iris.Context) (statuCode int, result interface{}) {
 	statuCode = 400
-	data = make(app.M)
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	page := ctx.FormValue("page")
 	size := ctx.FormValue("size")
 	status := ctx.FormValueDefault("status", "-4")
@@ -273,8 +279,11 @@ func (this *CreditView) Get(ctx iris.Context) (statuCode int, data app.M) {
 }
 
 //征信查询审核
-func (this *CreditView) Put(ctx iris.Context) (statusCode int, data app.M) {
-	data = make(app.M)
+func (this *CreditView) Put(ctx iris.Context) (statusCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statusCode = 400
 	reportId := ctx.FormValue("report_id")
 	report, err := new(models.Reports).One(reportId)
@@ -333,6 +342,6 @@ func (this *CreditView) Put(ctx iris.Context) (statusCode int, data app.M) {
 }
 
 //删除操作待用
-func (this *CreditView) Delete(ctx iris.Context) (statuCode int, data app.M) {
+func (this *CreditView) Delete(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

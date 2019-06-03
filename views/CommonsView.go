@@ -18,8 +18,11 @@ func (this *CommonsView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *CommonsView) Get(ctx iris.Context) (statusCode int, data app.M) {
-	data = make(app.M)
+func (this *CommonsView) Get(ctx iris.Context) (statusCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statusCode = 400
 	mobile := ctx.FormValue("mobile")
 	flg := models.CheckPhone(mobile)
@@ -49,16 +52,16 @@ func (this *CommonsView) Get(ctx iris.Context) (statusCode int, data app.M) {
 }
 
 //添加操作待用
-func (this *CommonsView) Post(ctx iris.Context) (statuCode int, data app.M) {
+func (this *CommonsView) Post(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //更新操作待用
-func (this *CommonsView) Put(ctx iris.Context) (statuCode int, data app.M) {
+func (this *CommonsView) Put(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //删除操作待用
-func (this *CommonsView) Delete(ctx iris.Context) (statuCode int, data app.M) {
+func (this *CommonsView) Delete(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

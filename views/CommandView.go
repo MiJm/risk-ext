@@ -31,9 +31,12 @@ func (this *CommandView) Auth(ctx iris.Context) int {
 //set_work int cmd_type 为3 传值 0:闹钟模式 2:星期
 //cmd_param string 设置的参数 cmd_type=1(5分钟) cmd_type=2(可空) cmd_type=3(set_work=0>>[10:00;13:00;18:00;20:00] set_work=2>>[10:00;1,2,3,4,5,6,7])
 //deviceId int 设备号
-func (this *CommandView) Post(ctx iris.Context) (statuCode int, data app.M) {
+func (this *CommandView) Post(ctx iris.Context) (statuCode int, result interface{}) {
 	statuCode = 400
-	data = make(app.M)
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	mem := Session.Customer
 	deviceModel := new(models.Devices)
 	deviceId := ctx.PostValueInt64Default("deviceId", 0)
@@ -179,16 +182,16 @@ func (this *CommandView) Post(ctx iris.Context) (statuCode int, data app.M) {
 }
 
 //获取详情或列表待用
-func (this *CommandView) Get(ctx iris.Context) (statuCode int, data app.M) {
+func (this *CommandView) Get(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //更新操作待用
-func (this *CommandView) Put(ctx iris.Context) (statuCode int, data app.M) {
+func (this *CommandView) Put(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //删除操作待用
-func (this *CommandView) Delete(ctx iris.Context) (statuCode int, data app.M) {
+func (this *CommandView) Delete(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

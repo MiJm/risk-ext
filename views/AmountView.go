@@ -2,7 +2,6 @@ package views
 
 import (
 	"fmt"
-	"risk-ext/app"
 	"risk-ext/models"
 	"time"
 
@@ -23,29 +22,29 @@ func (this *AmountView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *AmountView) Put(ctx iris.Context) (statuCode int, data app.M) {
+func (this *AmountView) Put(ctx iris.Context) (statuCode int, data interface{}) {
 	statuCode = 400
 	companyId := ctx.FormValue("company_id")
 	companyName := ctx.FormValue("company_name")
 	changeType, err := ctx.PostValueInt("type") //0=追车，1=电话 2=违章 3=征信
 	if err != nil || changeType > 3 || changeType < 0 {
-		data["msg"] = "修改项目类型参数不正确"
+		data = "修改项目类型参数不正确"
 		return
 	}
 
 	changNum, err := ctx.PostValueInt("change_num")
 	if err != nil {
-		data["msg"] = "修改数量参数不正确"
+		data = "修改数量参数不正确"
 		return
 	}
 
 	if !bson.IsObjectIdHex(companyId) {
-		data["msg"] = "企业ID不正确"
+		data = "企业ID不正确"
 		return
 	}
 
 	if companyName == "" {
-		data["msg"] = "企业名不正确"
+		data = "企业名不正确"
 		return
 	}
 	err = Session.ChangeAmount(companyId, changNum, changeType)
@@ -64,22 +63,22 @@ func (this *AmountView) Put(ctx iris.Context) (statuCode int, data app.M) {
 		logs.Insert()
 		statuCode = 204
 	} else {
-		data["msg"] = err.Error()
+		data = err.Error()
 	}
 	return
 }
 
 //获取详情或列表待用
-func (this *AmountView) Get(ctx iris.Context) (statuCode int, data app.M) {
+func (this *AmountView) Get(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //添加操作待用
-func (this *AmountView) Post(ctx iris.Context) (statuCode int, data app.M) {
+func (this *AmountView) Post(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //删除操作待用
-func (this *AmountView) Delete(ctx iris.Context) (statuCode int, data app.M) {
+func (this *AmountView) Delete(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

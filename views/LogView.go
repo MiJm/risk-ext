@@ -24,8 +24,11 @@ func (this *LogView) Auth(ctx iris.Context) int {
 }
 
 //日志列表
-func (this *LogView) Get(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *LogView) Get(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	page := ctx.FormValue("page")
 	size := ctx.FormValue("size")
@@ -86,16 +89,16 @@ func (this *LogView) Get(ctx iris.Context) (statuCode int, data app.M) {
 }
 
 //添加操作待用
-func (this *LogView) Post(ctx iris.Context) (statuCode int, data app.M) {
+func (this *LogView) Post(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //更新操作待用
-func (this *LogView) Put(ctx iris.Context) (statuCode int, data app.M) {
+func (this *LogView) Put(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //删除操作待用
-func (this *LogView) Delete(ctx iris.Context) (statuCode int, data app.M) {
+func (this *LogView) Delete(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

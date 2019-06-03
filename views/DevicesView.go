@@ -26,8 +26,11 @@ func (this *DevicesView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *DevicesView) Get(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *DevicesView) Get(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	qrcodeStr := ctx.Params().Get("qrcodeStr")
 	qrcodeStr, _ = url.QueryUnescape(qrcodeStr)
@@ -108,8 +111,11 @@ func (this *DevicesView) Get(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
-func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *DevicesView) Put(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	userModel := new(models.Users)
 	var userData = Session.Customer
@@ -223,11 +229,11 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data app.M) {
 }
 
 //添加操作待用
-func (this *DevicesView) Post(ctx iris.Context) (statuCode int, data app.M) {
+func (this *DevicesView) Post(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //删除操作待用
-func (this *DevicesView) Delete(ctx iris.Context) (statuCode int, data app.M) {
+func (this *DevicesView) Delete(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

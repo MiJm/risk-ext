@@ -31,11 +31,11 @@ func (this *ReportView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data app.M) {
+func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data interface{}) {
 	statuCode = 400
 	reportId := ctx.Params().Get("report_id")
 	if !bson.IsObjectIdHex(reportId) {
-		data["msg"] = "报表ID不正确"
+		data = "报表ID不正确"
 		return
 	}
 	report := new(models.Reports)
@@ -43,20 +43,20 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data app.M) {
 	report.Model.One(report)
 	if report.ReportCreateAt == 0 {
 		statuCode = 404
-		data["msg"] = "报表不存在"
+		data = "报表不存在"
 		return
 	}
 
 	if report.ReportDeleteAt > 0 {
 		statuCode = 410
-		data["msg"] = "报表已被删除"
+		data = "报表已被删除"
 		return
 	}
 	stype := Session.Type
 	if stype == 1 {
 		if report.ReportStatus != 1 {
 			statuCode = 400
-			data["msg"] = "报表当前状态不可用"
+			data = "报表当前状态不可用"
 			return
 		}
 	}
@@ -68,13 +68,16 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data app.M) {
 		Device_loctime uint64  `json:"device_loctime"`
 	}
 	statuCode = 200
-	data["msg"] = report
+	data = report
 	return
 }
 
-func (this *ReportView) Get(ctx iris.Context) (statuCode int, result app.M) {
-	statuCode = 400
+func (this *ReportView) Get(ctx iris.Context) (statuCode int, result interface{}) {
 	data := make(app.M)
+	defer func() {
+		result = data
+	}()
+	statuCode = 400
 	page := ctx.FormValue("page")
 	size := ctx.FormValue("size")
 	reportId := ctx.Params().Get("report_id")
@@ -88,7 +91,6 @@ func (this *ReportView) Get(ctx iris.Context) (statuCode int, result app.M) {
 			data["list"] = result
 			data["code"] = 1
 		}
-		result = data
 		return
 	}
 
@@ -126,7 +128,6 @@ func (this *ReportView) Get(ctx iris.Context) (statuCode int, result app.M) {
 		data["code"] = 1
 		statuCode = 200
 	}
-	result = data
 	return
 }
 
@@ -137,8 +138,11 @@ type Result struct {
 }
 
 //新增Report记录，发送获取Report请求
-func (this *ReportView) Post(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *ReportView) Post(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	open := ""
 	statuCode = 400
 	amount := Session.User.Amount.QueryAiCar
@@ -181,9 +185,9 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data app.M) {
 		}
 
 		da := string(b)
-		result := strings.Split(da, "\n")
+		result1 := strings.Split(da, "\n")
 		rout_arr := make([]models.Routes, 0)
-		for k, v := range result {
+		for k, v := range result1 {
 			if k == 0 {
 				//第一行标题去掉
 				continue
@@ -318,8 +322,11 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
-func (this *ReportView) Delete(ctx iris.Context) (statusCode int, data app.M) {
-	data = make(app.M)
+func (this *ReportView) Delete(ctx iris.Context) (statusCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statusCode = 400
 	reportId := ctx.Params().Get("report_id")
 	flag := bson.IsObjectIdHex(reportId)
@@ -343,6 +350,6 @@ func (this *ReportView) Delete(ctx iris.Context) (statusCode int, data app.M) {
 }
 
 //更新操作待用
-func (this *ReportView) Put(ctx iris.Context) (statuCode int, data app.M) {
+func (this *ReportView) Put(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

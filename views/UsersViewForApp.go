@@ -29,13 +29,16 @@ func (this *UsersViewForApp) Auth(ctx iris.Context) int {
 }
 
 //小程序登录
-func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) {
+func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	// isApp := ctx.FormValueDefault("app", "")
 	// if isApp != "" {
 	// 	statuCode, data = this.Login(ctx)
 	// 	return
 	// }
-	data = make(app.M)
 	statuCode = 400
 	//openId := ctx.FormValue("openId")
 	code := ctx.FormValue("code") //微信code
@@ -115,8 +118,11 @@ func (this *UsersViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
-func (this *UsersViewForApp) Post(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *UsersViewForApp) Post(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	OpenId := ctx.FormValue("openid")
 	if OpenId == "" {
@@ -195,8 +201,11 @@ func (this *UsersViewForApp) Post(ctx iris.Context) (statuCode int, data app.M) 
 	}
 }
 
-func (this *UsersViewForApp) Put(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *UsersViewForApp) Put(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	deviceId := ctx.PostValue("deviceId")
 	if deviceId == "" {
@@ -275,6 +284,6 @@ func (this *UsersViewForApp) Put(ctx iris.Context) (statuCode int, data app.M) {
 }
 
 //删除操作待用
-func (this *UsersViewForApp) Delete(ctx iris.Context) (statuCode int, data app.M) {
+func (this *UsersViewForApp) Delete(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
