@@ -26,7 +26,8 @@ func (this *UsersView) Auth(ctx iris.Context) int {
 		"GET":    MA{"NOLOGIN": A{1}},
 		"POST":   MA{"NOLOGIN": A{1}},
 		"DELETE": MA{"CUSTOMER": A{1}}}
-	return this.CheckPerms(perms[ctx.Method()])
+	var method = ctx.Method()
+	return this.CheckPerms(perms[method])
 }
 
 //小程序登录

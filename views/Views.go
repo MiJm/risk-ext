@@ -66,6 +66,7 @@ func (this *Views) CheckPerms(perm MA) int {
 	if perm["NOLOGIN"] != nil {
 		return 1 //无需登录
 	}
+
 	if Session == nil {
 		return 401 //session不存在无权限访问
 	}

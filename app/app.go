@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/kataras/iris"
+	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
 )
@@ -59,6 +61,7 @@ func AddPath(path string, view V) {
 
 func callback(ctx iris.Context, v V) {
 	authResult := v.Auth(ctx)
+	//app.Logger().Println(authResult)
 	if authResult == 403 {
 		ctx.StatusCode(403)
 		ctx.JSON("没有权限")
@@ -68,7 +71,8 @@ func callback(ctx iris.Context, v V) {
 		ctx.JSON("登录失效")
 		return
 	}
-	var code, data = 404, M{}
+	var code = 404
+	var data interface{}
 	var m = ctx.Method()
 	switch m {
 	case "GET":
@@ -81,19 +85,37 @@ func callback(ctx iris.Context, v V) {
 		code, data = v.Delete(ctx)
 		break
 	default:
-		code, data = 404, M{}
+		code = 404
 	}
 	ctx.StatusCode(code)
 	ctx.JSON(data)
 }
 
 func App() *iris.Application {
-	v1 := app.Party("v2")
+	v1 := app.Party("v2/")
+
 	for k, m := range paths {
-		v1.Get(k, func(ctx iris.Context) {
-			callback(ctx, m)
-		})
+		func(k string, m V) {
+			if fmt.Sprintf("%T", m) == "*views.WebSocketView" {
+				_, ws := m.Get(nil)
+				v1.Get(k, ws.(context.Handler))
+				return
+			}
+			v1.Get(k, func(ctx iris.Context) {
+				callback(ctx, m)
+			})
+			v1.Post(k, func(ctx iris.Context) {
+				callback(ctx, m)
+			})
+			v1.Put(k, func(ctx iris.Context) {
+				callback(ctx, m)
+			})
+			v1.Delete(k, func(ctx iris.Context) {
+				callback(ctx, m)
+			})
+		}(k, m)
 	}
+
 	return app
 }
 

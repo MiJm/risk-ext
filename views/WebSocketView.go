@@ -3,8 +3,6 @@ package views
 import (
 	"log"
 
-	"github.com/kataras/iris/context"
-
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/websocket"
 )
@@ -19,8 +17,8 @@ func NewWs() *WebSocketView {
 	ws.InitSocket()
 	return ws
 }
-func (this *WebSocketView) Get(ctx iris.Context) context.Handler {
-	return this.ws.Handler()
+func (this *WebSocketView) Get(ctx iris.Context) (int, interface{}) {
+	return 200, this.ws.Handler()
 }
 func (this *WebSocketView) Auth(ctx iris.Context) int {
 	this.Views.Auth(ctx)
@@ -56,4 +54,15 @@ func (this *WebSocketView) OnMessage(data []byte, c websocket.Connection) {
 
 func (this *WebSocketView) OnDisconnect(c websocket.Connection) {
 	log.Printf("\nConnection with ID: %s has been disconnected!", c.ID())
+}
+
+func (this *WebSocketView) Delete(ctx iris.Context) (code int, rs interface{}) {
+	return
+}
+
+func (this *WebSocketView) Post(ctx iris.Context) (code int, rs interface{}) {
+	return
+}
+func (this *WebSocketView) Put(ctx iris.Context) (code int, rs interface{}) {
+	return
 }
