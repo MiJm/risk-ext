@@ -398,3 +398,11 @@ func ExeCmd(devId uint64, Type uint8, args string) bool {
 		return <-rs
 	}
 }
+
+//反转数组
+func Reverse(s []string) []string {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+	return s
+}

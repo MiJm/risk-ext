@@ -150,3 +150,13 @@ func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data M) {
 	return
 	return
 }
+
+//更新操作待用
+func (this *DianhuaView) Put(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//删除操作待用
+func (this *DianhuaView) Delete(ctx iris.Context) (statuCode int, data M) {
+	return
+}

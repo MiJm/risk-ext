@@ -397,3 +397,13 @@ func (this *WarrantiesView) Get(ctx iris.Context) (statuCode int, data M) {
 	}
 	return
 }
+
+//添加操作待用
+func (this *WarrantiesView) Post(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//删除操作待用
+func (this *WarrantiesView) Delete(ctx iris.Context) (statuCode int, data M) {
+	return
+}

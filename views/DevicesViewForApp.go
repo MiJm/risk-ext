@@ -147,7 +147,8 @@ func (this *DevicesViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	travelType, _ := ctx.PostValueInt("travelType")
-	userInfo, err := userModel.GetUsersByUnionId(userData.UserUnionId)
+	// userInfo, err := userModel.GetUsersByUnionId(userData.UserUnionId)
+	userInfo, err := userModel.GetUsersByUserId(userData.UserId)
 	if err != nil {
 		data["code"] = 0
 		data["msg"] = "用户已被注销"
@@ -233,5 +234,15 @@ func (this *DevicesViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 	data["code"] = 1
 	data["data"] = nil
 	data["msg"] = "OK"
+	return
+}
+
+//添加操作待用
+func (this *DevicesViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//删除操作待用
+func (this *DevicesViewForApp) Delete(ctx iris.Context) (statuCode int, data M) {
 	return
 }

@@ -284,3 +284,8 @@ func (this *UsersView) Login(ctx iris.Context) (statuCode int, data M) {
 	data["count"] = count
 	return
 }
+
+//删除操作待用
+func (this *UsersView) Delete(ctx iris.Context) (statuCode int, data M) {
+	return
+}

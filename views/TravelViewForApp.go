@@ -164,3 +164,8 @@ func (this *TravelViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
 	data["data"] = bson.M{"Travels": Travels, "Warranty": count}
 	return
 }
+
+//添加操作待用
+func (this *TravelViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
+	return
+}

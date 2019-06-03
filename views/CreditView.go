@@ -332,3 +332,8 @@ func (this *CreditView) Put(ctx iris.Context) (statusCode int, data M) {
 	}
 	return
 }
+
+//删除操作待用
+func (this *CreditView) Delete(ctx iris.Context) (statuCode int, data M) {
+	return
+}

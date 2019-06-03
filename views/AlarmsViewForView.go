@@ -74,3 +74,13 @@ func (this *AlarmsViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 	data["data"] = map[string]interface{}{"count": count, "unreadCount": unReadAlarmNum, "alarmList": alarmList}
 	return
 }
+
+//更新操作
+func (this *AlarmsViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//删除操作待用
+func (this *AlarmsViewForApp) Delete(ctx iris.Context) (statuCode int, data M) {
+	return
+}

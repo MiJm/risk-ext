@@ -133,7 +133,8 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 		return
 	}
 	travelType, _ := ctx.PostValueInt("travelType")
-	userInfo, err := userModel.GetUsersByUnionId(userData.UserUnionId)
+	// userInfo, err := userModel.GetUsersByUnionId(userData.UserUnionId)
+	userInfo, err := userModel.GetUsersByUserId(userData.UserId)
 	if err != nil {
 		data["code"] = 0
 		data["error"] = "用户已被注销"
@@ -167,6 +168,13 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 	travelInfo.TravelDeviceId = devId
 	var travels = []models.Travel{travelInfo}
 	//userTravel = append(userInfo.UserTravel, travelInfo)
+	for _, t := range userInfo.UserTravel {
+		if t.TravelDeviceId == travelInfo.TravelDeviceId {
+			data["code"] = 0
+			data["error"] = "激活失败,该设备已激活到您的账号"
+			return
+		}
+	}
 	userTravel = append(travels, userInfo.UserTravel...)
 	userInfo.UserTravel = userTravel
 	err = userInfo.Update()
@@ -210,5 +218,15 @@ func (this *DevicesView) Put(ctx iris.Context) (statuCode int, data M) {
 	userModel.Save("devices", deviceId, deviceInfo)
 	statuCode = 200
 	data["code"] = 1
+	return
+}
+
+//添加操作待用
+func (this *DevicesView) Post(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//删除操作待用
+func (this *DevicesView) Delete(ctx iris.Context) (statuCode int, data M) {
 	return
 }

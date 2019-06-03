@@ -123,3 +123,8 @@ func (this *SharesView) Get(ctx iris.Context) (statusCode int, data M) {
 		return
 	}
 }
+
+//更新操作待用
+func (this *SharesView) Put(ctx iris.Context) (statuCode int, data M) {
+	return
+}

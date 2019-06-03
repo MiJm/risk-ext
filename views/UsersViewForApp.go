@@ -272,3 +272,8 @@ func (this *UsersViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
 	data["msg"] = "OK"
 	return
 }
+
+//删除操作待用
+func (this *UsersViewForApp) Delete(ctx iris.Context) (statuCode int, data M) {
+	return
+}

@@ -46,3 +46,18 @@ func (this *CommonsView) Get(ctx iris.Context) (statusCode int, data M) {
 		return
 	}
 }
+
+//添加操作待用
+func (this *CommonsView) Post(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//更新操作待用
+func (this *CommonsView) Put(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//删除操作待用
+func (this *CommonsView) Delete(ctx iris.Context) (statuCode int, data M) {
+	return
+}

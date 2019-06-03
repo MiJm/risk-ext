@@ -340,3 +340,8 @@ func (this *ReportView) Delete(ctx iris.Context) (statusCode int, data M) {
 	data["code"] = 1
 	return
 }
+
+//更新操作待用
+func (this *ReportView) Put(ctx iris.Context) (statuCode int, data M) {
+	return
+}

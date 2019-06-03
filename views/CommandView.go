@@ -176,3 +176,18 @@ func (this *CommandView) Post(ctx iris.Context) (statuCode int, data M) {
 	data["error"] = "OK"
 	return
 }
+
+//获取详情或列表待用
+func (this *CommandView) Get(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//更新操作待用
+func (this *CommandView) Put(ctx iris.Context) (statuCode int, data M) {
+	return
+}
+
+//删除操作待用
+func (this *CommandView) Delete(ctx iris.Context) (statuCode int, data M) {
+	return
+}
