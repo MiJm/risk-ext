@@ -24,8 +24,11 @@ func (this *TravelView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *TravelView) Delete(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *TravelView) Delete(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	deviceId := ctx.FormValue("deviceId")
 	if deviceId == "" {
@@ -78,8 +81,11 @@ func (this *TravelView) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
-func (this *TravelView) Put(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *TravelView) Put(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	deviceId := ctx.PostValue("deviceId")
 	if deviceId == "" {
@@ -134,11 +140,11 @@ func (this *TravelView) Put(ctx iris.Context) (statuCode int, data app.M) {
 }
 
 //获取详情或列表待用
-func (this *TravelView) Get(ctx iris.Context) (statuCode int, data app.M) {
+func (this *TravelView) Get(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //添加操作待用
-func (this *TravelView) Post(ctx iris.Context) (statuCode int, data app.M) {
+func (this *TravelView) Post(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

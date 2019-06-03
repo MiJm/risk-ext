@@ -28,9 +28,12 @@ func (this *FileUploadView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *FileUploadView) Post(ctx iris.Context) (statuCode int, data app.M) {
+func (this *FileUploadView) Post(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
-	data = make(app.M)
 	img, _, err := ctx.FormFile("img")
 	if err != nil {
 		data["code"] = 0
@@ -92,16 +95,16 @@ func (this *FileUploadView) Post(ctx iris.Context) (statuCode int, data app.M) {
 }
 
 //获取详情或列表待用
-func (this *FileUploadView) Get(ctx iris.Context) (statuCode int, data app.M) {
+func (this *FileUploadView) Get(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //更新操作待用
-func (this *FileUploadView) Put(ctx iris.Context) (statuCode int, data app.M) {
+func (this *FileUploadView) Put(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //删除操作待用
-func (this *FileUploadView) Delete(ctx iris.Context) (statuCode int, data app.M) {
+func (this *FileUploadView) Delete(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

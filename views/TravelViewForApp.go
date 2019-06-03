@@ -25,8 +25,11 @@ func (this *TravelViewForApp) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *TravelViewForApp) Delete(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *TravelViewForApp) Delete(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	deviceId := ctx.FormValue("deviceId")
 	if deviceId == "" {
@@ -84,8 +87,11 @@ func (this *TravelViewForApp) Delete(ctx iris.Context) (statuCode int, data app.
 	return
 }
 
-func (this *TravelViewForApp) Put(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(app.M)
+func (this *TravelViewForApp) Put(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	statuCode = 400
 	deviceId := ctx.PostValue("deviceId")
 	if deviceId == "" {
@@ -147,9 +153,12 @@ func (this *TravelViewForApp) Put(ctx iris.Context) (statuCode int, data app.M) 
 }
 
 //获取车辆列表
-func (this *TravelViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) {
+func (this *TravelViewForApp) Get(ctx iris.Context) (statuCode int, result interface{}) {
+	data := make(app.M)
+	defer func() {
+		result = data
+	}()
 	userId := Session.Customer.UserId
-	data = make(app.M)
 	statuCode = 400
 	data["code"] = 0
 	data["data"] = nil
@@ -167,6 +176,6 @@ func (this *TravelViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) 
 }
 
 //添加操作待用
-func (this *TravelViewForApp) Post(ctx iris.Context) (statuCode int, data app.M) {
+func (this *TravelViewForApp) Post(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }

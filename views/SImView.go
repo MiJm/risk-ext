@@ -1,7 +1,6 @@
 package views
 
 import (
-	"risk-ext/app"
 	"risk-ext/models"
 	"strconv"
 	"time"
@@ -21,7 +20,7 @@ func (this *SimView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *SimView) Get(ctx iris.Context) (statusCode int, data app.M) {
+func (this *SimView) Get(ctx iris.Context) (statusCode int, data interface{}) {
 	err, bill := this.GetBillGroup()
 	if err == nil {
 		for _, v := range bill.Data {
@@ -64,16 +63,16 @@ func (this *SimView) Get(ctx iris.Context) (statusCode int, data app.M) {
 }
 
 //添加操作待用
-func (this *SimView) Post(ctx iris.Context) (statuCode int, data app.M) {
+func (this *SimView) Post(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //更新操作待用
-func (this *SimView) Put(ctx iris.Context) (statuCode int, data app.M) {
+func (this *SimView) Put(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
 
 //删除操作待用
-func (this *SimView) Delete(ctx iris.Context) (statuCode int, data app.M) {
+func (this *SimView) Delete(ctx iris.Context) (statuCode int, data interface{}) {
 	return
 }
