@@ -21,6 +21,7 @@ func init() {
 	stayView := new(views.StayView)
 	commandView := new(views.CommandView)
 	travelView := new(views.TravelView)
+	wsView := new(views.WebSocketView)
 
 	alarmViewForApp := new(views.AlarmsViewForApp)
 	commandViewForApp := new(views.CommandViewForApp)
@@ -59,6 +60,7 @@ func init() {
 	app.AddPath("v2/command/send", commandView)
 	app.AddPath("v2/travel/delete", travelView)
 	app.AddPath("v2/travel/edit", travelView)
+	app.AddPath("v2/driver/data", wsView)
 
 	app.AddPath("v2/app/user/detail", userViewForApp)
 	app.AddPath("v2/app/user/bind", userViewForApp)
@@ -76,4 +78,5 @@ func init() {
 	app.AddPath("v2/app/travel/delete", travelViewForApp)
 	app.AddPath("v2/app/travel/edit", travelViewForApp)
 	app.AddPath("v2/app/travel/list", travelViewForApp)
+
 }

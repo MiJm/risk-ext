@@ -8,18 +8,26 @@ import (
 	"risk-ext/config"
 	"strings"
 
-	"github.com/kataras/iris/context"
-
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
 )
 
+//view 接口
+type V interface {
+	Auth(iris.Context) int
+	Get(iris.Context) (int, M)
+	Post(iris.Context) (int, M)
+	Put(iris.Context) (int, M)
+	Delete(iris.Context) (int, M)
+}
+
+type M map[string]interface{}
+
 var (
 	app    = iris.New()
 	method = []string{"Get", "Post", "Put", "Delete"}
-
-	paths = context.Map{}
+	paths  = make(map[string]V)
 )
 
 var conf = iris.Configuration{ // default configuration:
@@ -29,6 +37,7 @@ var conf = iris.Configuration{ // default configuration:
 	EnablePathEscape:                  false,
 	FireMethodNotAllowed:              false,
 	DisableBodyConsumptionOnUnmarshal: false,
+	EnableOptimizations:               true,
 	DisableAutoFireStatusCode:         false,
 	TimeFormat:                        "2006-1-2 15:04:05",
 	Charset:                           "UTF-8",
@@ -44,47 +53,46 @@ func init() {
 		app.Use(logger.New())
 	}
 }
-func AddPath(path string, obj interface{}) {
-	paths[path] = obj
+func AddPath(path string, view V) {
+	paths[path] = view
+}
+
+func callback(ctx iris.Context, v V) {
+	authResult := v.Auth(ctx)
+	if authResult == 403 {
+		ctx.StatusCode(403)
+		ctx.JSON("没有权限")
+		return
+	} else if authResult == 401 {
+		ctx.StatusCode(401)
+		ctx.JSON("登录失效")
+		return
+	}
+	var code, data = 404, M{}
+	var m = ctx.Method()
+	switch m {
+	case "GET":
+		code, data = v.Get(ctx)
+	case "POST":
+		code, data = v.Post(ctx)
+	case "PUT":
+		code, data = v.Put(ctx)
+	case "DELETE":
+		code, data = v.Delete(ctx)
+		break
+	default:
+		code, data = 404, M{}
+	}
+	ctx.StatusCode(code)
+	ctx.JSON(data)
 }
 
 func App() *iris.Application {
-
+	v1 := app.Party("v1")
 	for k, m := range paths {
-		v := reflect.ValueOf(m)
-		for _, md := range method {
-			fn := v.MethodByName(md)
-			if fn.IsValid() {
-				args_ := []reflect.Value{reflect.ValueOf(k), reflect.ValueOf(func(ctx iris.Context) {
-					authFunc := v.MethodByName("Auth")
-					authResult := 1
-					if authFunc.IsValid() {
-						result := authFunc.Call([]reflect.Value{reflect.ValueOf(ctx)})
-						authResult = int(result[0].Int())
-					}
-
-					if authResult == 403 {
-						ctx.StatusCode(403)
-						ctx.JSON("没有权限")
-						return
-					} else if authResult == 401 {
-						ctx.StatusCode(401)
-						ctx.JSON("登录失效")
-						return
-					}
-
-					args := []reflect.Value{reflect.ValueOf(ctx)}
-					rs := fn.Call(args)
-					ctx.StatusCode(int(rs[0].Int()))
-					ctx.JSON(rs[1].Interface())
-				})}
-				a := reflect.ValueOf(app)
-				afn := a.MethodByName(md)
-				if afn.IsValid() {
-					afn.Call(args_)
-				}
-			}
-		}
+		v1.Get(k, func(ctx iris.Context) {
+			callback(ctx, m)
+		})
 	}
 	return app
 }

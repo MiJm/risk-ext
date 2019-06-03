@@ -30,7 +30,7 @@ const (
 
 type (
 	A   []uint8
-	M   map[string]interface{}
+	M   app.M
 	MA  map[string]A
 	PMS map[string]MA
 )
