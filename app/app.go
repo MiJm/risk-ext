@@ -16,10 +16,10 @@ import (
 //view 接口
 type V interface {
 	Auth(iris.Context) int
-	Get(iris.Context) (int, M)
-	Post(iris.Context) (int, M)
-	Put(iris.Context) (int, M)
-	Delete(iris.Context) (int, M)
+	Get(iris.Context) (int, interface{})
+	Post(iris.Context) (int, interface{})
+	Put(iris.Context) (int, interface{})
+	Delete(iris.Context) (int, interface{})
 }
 
 type M map[string]interface{}
