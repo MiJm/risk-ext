@@ -1,6 +1,7 @@
 package views
 
 import (
+	"risk-ext/app"
 	"risk-ext/models"
 	"time"
 
@@ -22,8 +23,8 @@ func (this *SharesView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *SharesView) Post(ctx iris.Context) (statusCode int, data M) {
-	data = make(M)
+func (this *SharesView) Post(ctx iris.Context) (statusCode int, data app.M) {
+	data = make(app.M)
 	statusCode = 400
 	reportId := ctx.FormValue("reportId")
 	amount := Session.User.Amount.QueryAiCar
@@ -75,8 +76,8 @@ func (this *SharesView) Post(ctx iris.Context) (statusCode int, data M) {
 	return
 }
 
-func (this *SharesView) Delete(ctx iris.Context) (statusCode int, data M) {
-	data = make(M)
+func (this *SharesView) Delete(ctx iris.Context) (statusCode int, data app.M) {
+	data = make(app.M)
 	statusCode = 400
 	reportId := ctx.FormValue("reportId")
 	phone := ctx.Params().Get("params")
@@ -94,8 +95,8 @@ func (this *SharesView) Delete(ctx iris.Context) (statusCode int, data M) {
 }
 
 //校验验证码，获取报告信息
-func (this *SharesView) Get(ctx iris.Context) (statusCode int, data M) {
-	data = make(M)
+func (this *SharesView) Get(ctx iris.Context) (statusCode int, data app.M) {
+	data = make(app.M)
 	statusCode = 400
 	mobile := ctx.FormValue("mobile")
 	code := ctx.FormValue("code")
@@ -125,6 +126,6 @@ func (this *SharesView) Get(ctx iris.Context) (statusCode int, data M) {
 }
 
 //更新操作待用
-func (this *SharesView) Put(ctx iris.Context) (statuCode int, data M) {
+func (this *SharesView) Put(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

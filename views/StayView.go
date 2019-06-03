@@ -1,6 +1,7 @@
 package views
 
 import (
+	"risk-ext/app"
 	"risk-ext/models"
 	"strconv"
 
@@ -21,8 +22,8 @@ func (this *StayView) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *StayView) Get(ctx iris.Context) (statuCode int, data M) {
-	data = make(M)
+func (this *StayView) Get(ctx iris.Context) (statuCode int, data app.M) {
+	data = make(app.M)
 	statuCode = 400
 	deviceId := ctx.FormValue("deviceId")
 	if deviceId == "" {
@@ -76,16 +77,16 @@ func (this *StayView) Get(ctx iris.Context) (statuCode int, data M) {
 }
 
 //添加操作待用
-func (this *StayView) Post(ctx iris.Context) (statuCode int, data M) {
+func (this *StayView) Post(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
 //更新操作待用
-func (this *StayView) Put(ctx iris.Context) (statuCode int, data M) {
+func (this *StayView) Put(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
 //删除操作待用
-func (this *StayView) Delete(ctx iris.Context) (statuCode int, data M) {
+func (this *StayView) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

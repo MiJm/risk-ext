@@ -25,7 +25,7 @@ func (this *LogView) Auth(ctx iris.Context) int {
 
 //日志列表
 func (this *LogView) Get(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(M)
+	data = make(app.M)
 	statuCode = 400
 	page := ctx.FormValue("page")
 	size := ctx.FormValue("size")
@@ -72,7 +72,7 @@ func (this *LogView) Get(ctx iris.Context) (statuCode int, data app.M) {
 	}
 	amount := models.Amounts{}
 	Session.Amount(companyId, &amount)
-	data = make(M)
+	data = make(app.M)
 	data["list"] = rs
 	data["num"] = num
 	data["ai_amount"] = amount.QueryAiCar

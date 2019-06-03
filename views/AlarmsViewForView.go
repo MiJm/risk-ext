@@ -22,7 +22,7 @@ func (this *AlarmsViewForApp) Auth(ctx iris.Context) int {
 }
 
 func (this *AlarmsViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(M)
+	data = make(app.M)
 	statuCode = 400
 	alarmId := ctx.FormValue("alarmId")
 	if alarmId == "" {
@@ -50,7 +50,7 @@ func (this *AlarmsViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) 
 }
 
 func (this *AlarmsViewForApp) Post(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(M)
+	data = make(app.M)
 	statuCode = 400
 	deviceId := ctx.FormValue("deviceId")
 	page := ctx.PostValueIntDefault("page", 1)

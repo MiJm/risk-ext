@@ -26,7 +26,7 @@ func (this *DianhuaView) Auth(ctx iris.Context) int {
 
 //获取登录所需输入信息
 func (this *DianhuaView) Get(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(M)
+	data = make(app.M)
 	statuCode = 400
 	tel := ctx.FormValue("tel")
 	if tel == "" {
@@ -54,7 +54,7 @@ func (this *DianhuaView) Get(ctx iris.Context) (statuCode int, data app.M) {
 
 //登录电话邦
 func (this *DianhuaView) Post(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(M)
+	data = make(app.M)
 	statuCode = 400
 	amount := Session.User.Amount.QueryDianHua
 	comId := Session.User.UserCompany_id

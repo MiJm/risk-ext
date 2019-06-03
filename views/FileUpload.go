@@ -30,7 +30,7 @@ func (this *FileUploadView) Auth(ctx iris.Context) int {
 
 func (this *FileUploadView) Post(ctx iris.Context) (statuCode int, data app.M) {
 	statuCode = 400
-	data = make(M)
+	data = make(app.M)
 	img, _, err := ctx.FormFile("img")
 	if err != nil {
 		data["code"] = 0

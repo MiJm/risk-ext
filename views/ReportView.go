@@ -72,9 +72,9 @@ func (this *ReportView) Detail(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
-func (this *ReportView) Get(ctx iris.Context) (statuCode int, result interface{}) {
+func (this *ReportView) Get(ctx iris.Context) (statuCode int, result app.M) {
 	statuCode = 400
-	data := make(M)
+	data := make(app.M)
 	page := ctx.FormValue("page")
 	size := ctx.FormValue("size")
 	reportId := ctx.Params().Get("report_id")
@@ -112,7 +112,7 @@ func (this *ReportView) Get(ctx iris.Context) (statuCode int, result interface{}
 	query["report_company_id"] = companyId
 	query["report_deleteat"] = 0
 	query["report_type"] = uint8(rType)
-	data = make(M)
+	data = make(app.M)
 	data["ai_amount"] = Session.User.Amount.QueryAiCar
 	data["dianhua_amount"] = Session.User.Amount.QueryDianHua
 	data["credit_amount"] = Session.User.Amount.QueryCredit
@@ -137,8 +137,8 @@ type Result struct {
 }
 
 //新增Report记录，发送获取Report请求
-func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
-	data = make(M)
+func (this *ReportView) Post(ctx iris.Context) (statuCode int, data app.M) {
+	data = make(app.M)
 	open := ""
 	statuCode = 400
 	amount := Session.User.Amount.QueryAiCar
@@ -318,8 +318,8 @@ func (this *ReportView) Post(ctx iris.Context) (statuCode int, data M) {
 	return
 }
 
-func (this *ReportView) Delete(ctx iris.Context) (statusCode int, data M) {
-	data = make(M)
+func (this *ReportView) Delete(ctx iris.Context) (statusCode int, data app.M) {
+	data = make(app.M)
 	statusCode = 400
 	reportId := ctx.Params().Get("report_id")
 	flag := bson.IsObjectIdHex(reportId)
@@ -343,6 +343,6 @@ func (this *ReportView) Delete(ctx iris.Context) (statusCode int, data M) {
 }
 
 //更新操作待用
-func (this *ReportView) Put(ctx iris.Context) (statuCode int, data M) {
+func (this *ReportView) Put(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

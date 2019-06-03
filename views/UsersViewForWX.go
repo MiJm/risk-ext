@@ -3,6 +3,7 @@ package views
 import (
 	"encoding/json"
 	"fmt"
+	"risk-ext/app"
 	"risk-ext/config"
 	"risk-ext/models"
 	"risk-ext/utils"
@@ -27,13 +28,13 @@ func (this *UsersViewForWX) Auth(ctx iris.Context) int {
 }
 
 //小程序登录
-func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
+func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data app.M) {
 	// isApp := ctx.FormValueDefault("app", "")
 	// if isApp != "" {
 	// 	statuCode, data = this.Login(ctx)
 	// 	return
 	// }
-	data = make(M)
+	data = make(app.M)
 	statuCode = 400
 	//openId := ctx.FormValue("openId")
 	code := ctx.Params().Get("code") //微信code
@@ -145,16 +146,16 @@ func (this *UsersViewForWX) Get(ctx iris.Context) (statuCode int, data M) {
 }
 
 //添加操作待用
-func (this *UsersViewForWX) Post(ctx iris.Context) (statuCode int, data M) {
+func (this *UsersViewForWX) Post(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
 //更新操作待用
-func (this *UsersViewForWX) Put(ctx iris.Context) (statuCode int, data M) {
+func (this *UsersViewForWX) Put(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
 //删除操作待用
-func (this *UsersViewForWX) Delete(ctx iris.Context) (statuCode int, data M) {
+func (this *UsersViewForWX) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

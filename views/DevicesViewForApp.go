@@ -27,7 +27,7 @@ func (this *DevicesViewForApp) Auth(ctx iris.Context) int {
 }
 
 func (this *DevicesViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(M)
+	data = make(app.M)
 	statuCode = 400
 	qrcodeStr := ctx.Params().Get("qrcodeStr")
 	qrcodeStr, _ = url.QueryUnescape(qrcodeStr)
@@ -66,7 +66,7 @@ func (this *DevicesViewForApp) Get(ctx iris.Context) (statuCode int, data app.M)
 		}
 		statuCode = 200
 		data["code"] = 1
-		result := make(M)
+		result := make(app.M)
 		result["deviceId"] = deviceId
 		data["data"] = result
 		data["msg"] = "OK"
@@ -120,7 +120,7 @@ func (this *DevicesViewForApp) Get(ctx iris.Context) (statuCode int, data app.M)
 }
 
 func (this *DevicesViewForApp) Put(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(M)
+	data = make(app.M)
 	statuCode = 400
 	userModel := new(models.Users)
 	var userData = Session.Customer

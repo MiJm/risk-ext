@@ -3,6 +3,7 @@ package views
 import (
 	"encoding/json"
 	"fmt"
+	"risk-ext/app"
 	"risk-ext/models"
 
 	"github.com/kataras/iris"
@@ -24,7 +25,7 @@ func (this *WarrantiesView) Auth(ctx iris.Context) int {
 }
 
 //分步提交保单信息
-func (this *WarrantiesView) Put(ctx iris.Context) (statuCode int, data M) {
+func (this *WarrantiesView) Put(ctx iris.Context) (statuCode int, data app.M) {
 	step := ctx.Params().Get("step") //分步提交第几步
 	if step == "2" {
 		statuCode, data = this.AddOwnerInfo(ctx)
@@ -35,8 +36,8 @@ func (this *WarrantiesView) Put(ctx iris.Context) (statuCode int, data M) {
 }
 
 //添加保单投保人信息(第二步)
-func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data M) {
-	data = make(M)
+func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data app.M) {
+	data = make(app.M)
 	statuCode = 400
 	user := Session.Customer
 	id := ctx.FormValue("id")
@@ -166,8 +167,8 @@ func (this *WarrantiesView) AddOwnerInfo(ctx iris.Context) (statuCode int, data 
 }
 
 //添加保单车辆信息
-func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M) {
-	data = make(M)
+func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data app.M) {
+	data = make(app.M)
 	statuCode = 400
 	user := Session.Customer
 	id := ctx.FormValue("id")
@@ -330,9 +331,9 @@ func (this *WarrantiesView) AddCarInfo(ctx iris.Context) (statuCode int, data M)
 }
 
 //查询单个保单信息
-func (this *WarrantiesView) Detail(ctx iris.Context, id string) (statuCode int, data M) {
+func (this *WarrantiesView) Detail(ctx iris.Context, id string) (statuCode int, data app.M) {
 	statuCode = 400
-	data = make(M)
+	data = make(app.M)
 	rs, err := new(models.Warranty).One(Session.Customer.UserId.Hex(), id, []uint8{})
 	if err != nil {
 		data["code"] = 0
@@ -348,9 +349,9 @@ func (this *WarrantiesView) Detail(ctx iris.Context, id string) (statuCode int, 
 }
 
 //查询用户下已激活或待审核保单列表
-func (this *WarrantiesView) List(ctx iris.Context) (statuCode int, data M) {
+func (this *WarrantiesView) List(ctx iris.Context) (statuCode int, data app.M) {
 	statuCode = 400
-	data = make(M)
+	data = make(app.M)
 	rs, err := new(models.Warranty).ListByUserId(Session.Customer.UserId.Hex(), []int{1, 2, 3})
 	if err != nil || len(rs) == 0 {
 		rs = make([]models.Warranty, 0)
@@ -368,9 +369,9 @@ func (this *WarrantiesView) List(ctx iris.Context) (statuCode int, data M) {
 }
 
 //获取账户下待激活的保单列表
-func (this *WarrantiesView) GetDisActiveList(ctx iris.Context) (statuCode int, data M) {
+func (this *WarrantiesView) GetDisActiveList(ctx iris.Context) (statuCode int, data app.M) {
 	statuCode = 400
-	data = make(M)
+	data = make(app.M)
 	rs, err := new(models.Warranty).ListByUserId(Session.Customer.UserId.Hex(), []int{0})
 	if err != nil {
 		data["code"] = 0
@@ -386,9 +387,9 @@ func (this *WarrantiesView) GetDisActiveList(ctx iris.Context) (statuCode int, d
 }
 
 //获取保单单个信息或保单列表()
-func (this *WarrantiesView) Get(ctx iris.Context) (statuCode int, data M) {
+func (this *WarrantiesView) Get(ctx iris.Context) (statuCode int, data app.M) {
 	statuCode = 400
-	data = make(M)
+	data = make(app.M)
 	id := ctx.Params().Get("id")
 	if id != "" {
 		statuCode, data = this.Detail(ctx, id)
@@ -399,11 +400,11 @@ func (this *WarrantiesView) Get(ctx iris.Context) (statuCode int, data M) {
 }
 
 //添加操作待用
-func (this *WarrantiesView) Post(ctx iris.Context) (statuCode int, data M) {
+func (this *WarrantiesView) Post(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
 //删除操作待用
-func (this *WarrantiesView) Delete(ctx iris.Context) (statuCode int, data M) {
+func (this *WarrantiesView) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

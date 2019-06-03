@@ -1,6 +1,7 @@
 package views
 
 import (
+	"risk-ext/app"
 	"risk-ext/models"
 	"time"
 
@@ -21,8 +22,8 @@ func (this *RoutesViewForApp) Auth(ctx iris.Context) int {
 	return this.CheckPerms(perms[ctx.Method()])
 }
 
-func (this *RoutesViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
-	data = make(M)
+func (this *RoutesViewForApp) Post(ctx iris.Context) (statuCode int, data app.M) {
+	data = make(app.M)
 	statuCode = 400
 	deviceId := ctx.FormValue("deviceId")
 	if deviceId == "" {
@@ -51,16 +52,16 @@ func (this *RoutesViewForApp) Post(ctx iris.Context) (statuCode int, data M) {
 }
 
 //获取详情或列表待用
-func (this *RoutesViewForApp) Get(ctx iris.Context) (statuCode int, data M) {
+func (this *RoutesViewForApp) Get(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
 //更新操作待用
-func (this *RoutesViewForApp) Put(ctx iris.Context) (statuCode int, data M) {
+func (this *RoutesViewForApp) Put(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
 //删除操作待用
-func (this *RoutesViewForApp) Delete(ctx iris.Context) (statuCode int, data M) {
+func (this *RoutesViewForApp) Delete(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }

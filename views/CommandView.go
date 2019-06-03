@@ -33,7 +33,7 @@ func (this *CommandView) Auth(ctx iris.Context) int {
 //deviceId int 设备号
 func (this *CommandView) Post(ctx iris.Context) (statuCode int, data app.M) {
 	statuCode = 400
-	data = make(M)
+	data = make(app.M)
 	mem := Session.Customer
 	deviceModel := new(models.Devices)
 	deviceId := ctx.PostValueInt64Default("deviceId", 0)

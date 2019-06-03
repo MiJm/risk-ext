@@ -30,7 +30,7 @@ func (this *CreditView) Auth(ctx iris.Context) int {
 }
 
 func (this *CreditView) Post(ctx iris.Context) (statuCode int, data app.M) {
-	data = make(M)
+	data = make(app.M)
 	statuCode = 400
 	amount := Session.User.Amount.QueryCredit
 	comId := Session.User.UserCompany_id
@@ -226,9 +226,9 @@ func (this *CreditView) Post(ctx iris.Context) (statuCode int, data app.M) {
 	return
 }
 
-func (this *CreditView) Get(ctx iris.Context) (statuCode int, result interface{}) {
+func (this *CreditView) Get(ctx iris.Context) (statuCode int, data app.M) {
 	statuCode = 400
-	data := make(M)
+	data = make(app.M)
 	page := ctx.FormValue("page")
 	size := ctx.FormValue("size")
 	status := ctx.FormValueDefault("status", "-4")
@@ -245,7 +245,6 @@ func (this *CreditView) Get(ctx iris.Context) (statuCode int, result interface{}
 	if err != nil {
 		data["code"] = 0
 		data["error"] = "参数有误"
-		result = data
 		return
 	}
 	report := new(models.Reports)
@@ -270,13 +269,12 @@ func (this *CreditView) Get(ctx iris.Context) (statuCode int, result interface{}
 		data["code"] = 1
 		statuCode = 200
 	}
-	result = data
 	return
 }
 
 //征信查询审核
 func (this *CreditView) Put(ctx iris.Context) (statusCode int, data app.M) {
-	data = make(M)
+	data = make(app.M)
 	statusCode = 400
 	reportId := ctx.FormValue("report_id")
 	report, err := new(models.Reports).One(reportId)

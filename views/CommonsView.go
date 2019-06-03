@@ -19,7 +19,7 @@ func (this *CommonsView) Auth(ctx iris.Context) int {
 }
 
 func (this *CommonsView) Get(ctx iris.Context) (statusCode int, data app.M) {
-	data = make(M)
+	data = make(app.M)
 	statusCode = 400
 	mobile := ctx.FormValue("mobile")
 	flg := models.CheckPhone(mobile)
