@@ -243,3 +243,8 @@ func (this *Devices) GetTrackInterval(deviceInfo DeviceInfo) string {
 	timeStr := utils.Timelen(intTimer)
 	return timeStr
 }
+
+func (this *Devices) GetDevNumsByCondition(condition bson.M) (count int, err error) {
+	count, err = this.Collection(this).Find(condition).Count()
+	return
+}
