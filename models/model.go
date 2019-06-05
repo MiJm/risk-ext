@@ -8,6 +8,7 @@ import (
 	"risk-ext/config"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	mgo "gopkg.in/mgo.v2"
@@ -15,7 +16,7 @@ import (
 )
 
 var (
-	colls   = make(map[string]*mgo.Collection)
+	colls   = sync.Map{}  //make(map[string]*mgo.Collection)
 	EmptyId bson.ObjectId //空objectId
 )
 
@@ -44,8 +45,8 @@ type Redis struct {
 
 func initColl(coll interface{}) string {
 	key := _disName(coll)
-	if colls[key] == nil {
-		colls[key] = config.Mongo.C(key)
+	if _, ok := colls.Load(key); !ok {
+		colls.Store(key, config.Mongo.C(key))
 	}
 	return key
 }
@@ -93,7 +94,8 @@ func (this *Redis) ListPush(key string, result interface{}) (err error) {
 
 func (this *Model) Collection(coll interface{}) (c *mgo.Collection) {
 	key := initColl(coll)
-	c = colls[key]
+	nc, _ := colls.Load(key)
+	c = nc.(*mgo.Collection)
 	return
 }
 
@@ -104,7 +106,8 @@ func (this *Model) RouteCollection(key string) (c *mgo.Collection) {
 
 func (this *Model) One(coll interface{}) {
 	key := initColl(coll)
-	c := colls[key]
+	nc, _ := colls.Load(key)
+	c := nc.(*mgo.Collection)
 	v := reflect.ValueOf(coll).Elem()
 
 	if &v != nil {
