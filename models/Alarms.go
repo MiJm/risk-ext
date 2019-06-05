@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -110,5 +111,46 @@ func (this *Alarms) GetUnReadAlarmNums(deviceId, userId string) (num int, err er
 		}
 	}
 	num, err = this.Collection(this).Find(where).Count()
+	return
+}
+
+func (this *Alarms) GetAlarmNumsByCondition(condition bson.M) (count int, err error) {
+	count, err = this.Collection(this).Find(condition).Count()
+	return
+}
+
+//通过条件获取最新预警
+func (this *Alarms) GetAlarmList(loginMem users, start, page, size int) (rs []Alarms, err error) {
+	level := loginMem.UserLevel
+	comId := loginMem.UserCompany_id
+	groId := loginMem.UserGroupId
+	alaWhere := bson.M{}
+
+	if level == MEMBER_SUPER || level == MEMBER_STORE {
+		alaWhere["alarm_company_id"] = comId
+	} else {
+		var oralawhere = make([]bson.M, 0)
+		gro, err := new(Groups).One(groId)
+		if err != nil {
+			err = errors.New("不存在该组织")
+		}
+		grosub := gro.Group_sub
+		if len(grosub) > 0 {
+			for _, v := range grosub {
+				oralawhere = append(oralawhere, bson.M{"alarm_group_id": v.Group_id.Hex()})
+			}
+
+			oralawhere = append(oralawhere, bson.M{"alarm_group_id": groId})
+			alaWhere["$or"] = oralawhere
+		} else {
+			alaWhere["alarm_group_id"] = groId
+		}
+	}
+
+	aladate := bson.M{}
+	aladate["$gte"] = start
+	alaWhere["alarm_date"] = aladate
+
+	err = this.Collection(this).Find(alaWhere).Sort("-alarm_date").Skip(page).Limit(size).All(&rs)
 	return
 }

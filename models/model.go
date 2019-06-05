@@ -19,6 +19,23 @@ var (
 	EmptyId bson.ObjectId //空objectId
 )
 
+const (
+	MANAGER_ADMIN     = 0
+	MANAGER_SERVICE   = 1
+	MANAGER_STORE     = 2
+	MANAGER_ASSISTANT = 3
+
+	MEMBER_SUPER   = 2
+	MEMBER_ADMIN   = 1
+	MEMBER_GENERAL = 0
+	MEMBER_STORE   = 3
+
+	HTTP_OK_200                  = 200
+	HTTP_100_Continue            = 100
+	HTTP_101_Switching_Protocols = 101
+	HTTP_102_Processing          = 102
+)
+
 type Model struct {
 }
 

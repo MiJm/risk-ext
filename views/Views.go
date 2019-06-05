@@ -22,6 +22,7 @@ const (
 	MEMBER_SUPER   = 2
 	MEMBER_ADMIN   = 1
 	MEMBER_GENERAL = 0
+	MEMBER_STORE   = 3
 
 	HTTP_OK_200                  = 200
 	HTTP_100_Continue            = 100
@@ -38,6 +39,7 @@ type (
 var Session *models.Session
 
 type Views struct {
+	Session *models.Session
 }
 
 func (this *Views) Auth(ctx iris.Context) int64 {
@@ -48,13 +50,14 @@ func (this *Views) Auth(ctx iris.Context) int64 {
 	reg := regexp.MustCompile(`.*_.*`)
 	if !reg.MatchString(token) {
 		Session = new(models.Session).Data(token + "_1")
+
 		if Session == nil {
 			Session = new(models.Session).Data(token + "_0")
 		}
 	} else {
 		Session = new(models.Session).Data(token)
 	}
-
+	this.Session = Session
 	return 1
 }
 

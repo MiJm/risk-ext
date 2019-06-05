@@ -172,6 +172,11 @@ func (this *Cars) OneCar(carNum string) (count int, err error, ca Cars) {
 	return
 }
 
+func (this *Cars) GetCarNumsByCondition(condition bson.M) (count int, err error) {
+	count, err = this.Collection(this).Find(condition).Count()
+	return
+}
+
 type Groups struct {
 	Model         `bson:"-" json:"-"` //model基类
 	Group_id      bson.ObjectId       `bson:"_id,omitempty" json:"group_id"` //id
