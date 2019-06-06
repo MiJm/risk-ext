@@ -2,8 +2,11 @@ package views
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"risk-ext/app"
 	"risk-ext/models"
+	"risk-ext/utils"
 	"time"
 
 	"github.com/kataras/iris"
@@ -98,6 +101,7 @@ func (this *WsClient) OnMessage(data []byte) {
 	go this.PushCarNum()    //推送车辆和设备数据
 	go this.PushAlarmNum()  //推送当日预警数
 	go this.PushAlarmList() //推送最新的预警列表
+	go this.GetLastCarLoc() //推送车辆最新数据
 }
 
 //推送车辆和设备数据
@@ -149,6 +153,8 @@ func (this *WsClient) PushAlarmNum() {
 //推送最新预警列表
 func (this *WsClient) PushAlarmList() {
 	start := 0
+	now := utils.Time2Str1(uint32(time.Now().Unix()))
+	startTime := utils.Str2Time(fmt.Sprintf("%s 00:00:00", now))
 	for !this.disconnected {
 		if this.Session == nil {
 			log.Println("session不存在", this.client.ID(), this.disconnected, this.client.Context().FormValue("token"))
@@ -159,7 +165,15 @@ func (this *WsClient) PushAlarmList() {
 		if err != nil {
 			return
 		}
-		mesByte, err := json.Marshal(result)
+
+		rs, err := new(models.Alarms).GetNums(this.Session.User, startTime)
+		if err != nil {
+			return
+		}
+		allRes := make(map[string]interface{})
+		allRes["alarm_list"] = result
+		allRes["alarm_gather"] = rs
+		mesByte, err := json.Marshal(allRes)
 		if err != nil {
 			return
 		}
@@ -190,4 +204,26 @@ func (this *WsClient) Result(msgType string, msgData interface{}) {
 func (this *WsClient) OnDisconnect() {
 	this.disconnected = true
 	log.Printf("\n连接 ID: %s 已经断开 %s !", this.client.Context().Request().Host, this.client.ID())
+}
+
+func (this *WsClient) GetLastCarLoc() {
+	for !this.disconnected {
+		data, OK := <-app.CarDataChan
+		if !OK {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		if this.Session == nil {
+			break
+		}
+		flag := models.IsCanCheck(data.CarGroupId, data.CarCompanyId, this.Session.User)
+		if flag {
+			mesByte, err := json.Marshal(data)
+			if err != nil {
+				return
+			}
+			message := string(mesByte)
+			this.Result("last_car_loc", message)
+		}
+	}
 }

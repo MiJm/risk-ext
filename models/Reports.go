@@ -237,3 +237,30 @@ func (this *Reports) CheckPhone(phone, reportId string) (res *Reports, err error
 	err = this.Collection(this).Find(where).One(&res)
 	return
 }
+
+//判断用户是否有权限查看该车辆
+func IsCanCheck(groupId, companyId string, mem users) bool {
+	var flag = false
+	if mem.UserLevel == MEMBER_SUPER {
+		if mem.UserCompany_id == companyId {
+			flag = true
+		}
+	} else {
+		gro, err := new(Groups).One(groupId)
+		if err == nil {
+			grosub := gro.Group_sub
+			if len(grosub) > 0 {
+				for _, v := range grosub {
+					if v.Group_id.Hex() == mem.UserGroupId {
+						flag = true
+					}
+				}
+			} else {
+				if mem.UserGroupId == groupId {
+					flag = true
+				}
+			}
+		}
+	}
+	return flag
+}
