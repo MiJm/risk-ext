@@ -28,13 +28,21 @@ type CarLocal struct {
 	CarLoctime   uint32 `json:"car_loctime"`    //最后定位时间
 }
 
+type AlarmNoty struct {
+	AnPlate  string `json:"an_plate"`  //车牌号
+	AnLatlng Latlng `json:"an_latlng"` //经纬度
+	AnType   uint8  `json:"an_type"`   //警报类型
+	AnDate   int64  `json:"an_date"`   //警报时间
+}
+
 type Latlng struct {
 	Type        string    `json:"type"`        //Point
 	Coordinates []float64 `json:"coordinates"` //lng lat
 }
 
 var (
-	CarDataChan = make(chan CarLocal, 100)
+	CarDataChan   = make(chan CarLocal, 100)
+	AlarmDataChan = make(chan AlarmNoty, 100)
 )
 
 //TCP
@@ -70,20 +78,36 @@ func StartUdp(port string) {
 			}
 			var length = len(buf) - 1
 			buf = buf[:length]
-			//log.Println(string(buf))
+
 			maxLen := base64.RawStdEncoding.DecodedLen(len(buf))
 			dst := make([]byte, maxLen)
-			_, err = base64.RawStdEncoding.Decode(dst, buf)
+			n, err := base64.RawStdEncoding.Decode(dst, buf)
 			if err != nil {
 				log.Println("非法数据格式", err)
 				continue
 			}
-			var carData = CarLocal{}
-			if err = json.Unmarshal([]byte(string(dst)), &carData); err != nil {
-				log.Println("非法数据格式,不是地址json", string(dst))
-				continue
+
+			ptype := string(dst[:1])
+
+			switch ptype {
+			case "0": //车辆定位
+				var carData = CarLocal{}
+				dst = dst[1:]
+				if err = json.Unmarshal(dst, &carData); err != nil {
+					log.Println("非法数据格式,不是地址json")
+					continue
+				}
+				CarDataChan <- carData
+			case "1": //警报
+				var almData = AlarmNoty{}
+				dst = dst[1:]
+				if err = json.Unmarshal(dst, &almData); err != nil {
+					log.Println("非法数据格式,不是地址json")
+					continue
+				}
+				AlarmDataChan <- almData
 			}
-			CarDataChan <- carData
+
 		}
 	}(listener)
 
