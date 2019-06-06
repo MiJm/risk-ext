@@ -141,18 +141,6 @@ func (this *Reports) One(id ...string) (rs Reports, err error) {
 	return
 }
 
-type Cars struct {
-	Model            `bson:"-" json:"-"` //model基类
-	Car_id           bson.ObjectId       `bson:"_id,omitempty" json:"car_id"`
-	Car_plate        string              `json:"car_plate"`        //车牌号
-	Car_company_id   string              `json:"car_company_id"`   //企业ID
-	Car_company_name string              `json:"car_company_name"` //企业简称
-	Car_group_id     string              `json:"car_group_id"`     //组织ID
-	Car_group_name   string              `json:"car_group_name"`   //组织简称
-	Car_devices      []Devices           `json:"car_devices"`      //绑定的设备
-	Car_deleted      uint32              `json:"car_deleted"`      //删除时间
-}
-
 //type Devices struct {
 //	Device_id           uint64        `json:"device_id"`                                            //设备号
 //	Device_car_id       bson.ObjectId `bson:"device_car_id,omitempty" json:"device_car_id"`         //车辆ID

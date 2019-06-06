@@ -102,6 +102,8 @@ func (this *WsClient) OnMessage(data []byte) {
 	go this.PushAlarmNum()  //推送当日预警数
 	go this.PushAlarmList() //推送最新的预警列表
 	go this.GetLastCarLoc() //推送车辆最新数据
+	go this.PushCarList()   //推送车辆全部数据
+	go this.GetLastAlarm()  //推送最新的警报
 }
 
 //推送车辆和设备数据
@@ -115,13 +117,9 @@ func (this *WsClient) PushCarNum() {
 		if err != nil {
 			return
 		}
-		mesByte, err := json.Marshal(result)
-		if err != nil {
-			return
-		}
-		message := string(mesByte)
+
 		// c.To(websocket.Broadcast).EmitMessage([]byte("Message from: " + c.ID() + "-> " + message)) // broadcast to all clients except this
-		this.Result("car_dev_num", message)
+		this.Result("car_dev_num", result)
 		time.Sleep(15 * time.Second)
 	}
 
@@ -138,13 +136,8 @@ func (this *WsClient) PushAlarmNum() {
 		if err != nil {
 			return
 		}
-		mesByte, err := json.Marshal(result)
-		if err != nil {
-			return
-		}
-		message := string(mesByte)
 		// c.To(websocket.Broadcast).EmitMessage([]byte("Message from: " + c.ID() + "-> " + message)) // broadcast to all clients except this
-		this.Result("alarm_num", message)
+		this.Result("alarm_num", result)
 		time.Sleep(10 * time.Second)
 	}
 
@@ -173,14 +166,28 @@ func (this *WsClient) PushAlarmList() {
 		allRes := make(map[string]interface{})
 		allRes["alarm_list"] = result
 		allRes["alarm_gather"] = rs
-		mesByte, err := json.Marshal(allRes)
+
+		// c.To(websocket.Broadcast).EmitMessage([]byte("Message from: " + c.ID() + "-> " + message)) // broadcast to all clients except this
+		this.Result("alarm_list", allRes)
+		start = int(time.Now().Unix())
+		time.Sleep(10 * time.Second)
+	}
+
+}
+
+//推送全部车辆数据
+func (this *WsClient) PushCarList() {
+	for !this.disconnected {
+		if this.Session == nil {
+			log.Println("session不存在", this.client.ID(), this.disconnected, this.client.Context().FormValue("token"))
+			break
+		}
+		result, err := new(models.Cars).GetAllCars(this.Session.User)
 		if err != nil {
 			return
 		}
-		message := string(mesByte)
 		// c.To(websocket.Broadcast).EmitMessage([]byte("Message from: " + c.ID() + "-> " + message)) // broadcast to all clients except this
-		this.Result("alarm_list", message)
-		start = int(time.Now().Unix())
+		this.Result("car_list", result)
 		time.Sleep(10 * time.Second)
 	}
 
@@ -218,12 +225,24 @@ func (this *WsClient) GetLastCarLoc() {
 		}
 		flag := models.IsCanCheck(data.CarGroupId, data.CarCompanyId, this.Session.User)
 		if flag {
-			mesByte, err := json.Marshal(data)
-			if err != nil {
-				return
-			}
-			message := string(mesByte)
-			this.Result("last_car_loc", message)
+			this.Result("last_car_loc", data)
+		}
+	}
+}
+
+func (this *WsClient) GetLastAlarm() {
+	for !this.disconnected {
+		data, OK := <-app.AlarmDataChan
+		if !OK {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		if this.Session == nil {
+			break
+		}
+		flag := models.IsCanCheck(data.AnGroupId, data.AnCompanyId, this.Session.User)
+		if flag {
+			this.Result("last_alarm", data)
 		}
 	}
 }

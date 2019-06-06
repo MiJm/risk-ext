@@ -94,7 +94,7 @@ func StartUdp(port string) {
 			switch ptype {
 			case "0": //车辆定位
 				var carData = CarLocal{}
-				dst = dst[1:]
+				dst = dst[1:n]
 				if err = json.Unmarshal(dst, &carData); err != nil {
 					log.Println("非法数据格式,不是地址json")
 					continue
@@ -102,7 +102,7 @@ func StartUdp(port string) {
 				CarDataChan <- carData
 			case "1": //警报
 				var almData = AlarmNoty{}
-				dst = dst[1:]
+				dst = dst[1:n]
 				if err = json.Unmarshal(dst, &almData); err != nil {
 					log.Println("非法数据格式,不是地址json")
 					continue
