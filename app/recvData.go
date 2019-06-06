@@ -1,10 +1,14 @@
 package app
 
 import (
+	"bufio"
+	"encoding/base64"
+	"encoding/json"
+	"io"
 	"log"
-	"plugin"
+	"net"
 
-	//socketgo "github.com/nulijiabei/socketgo"
+	socketgo "github.com/nulijiabei/socketgo"
 )
 
 type CarLocal struct {
@@ -35,10 +39,52 @@ var (
 
 //TCP
 func StartUdp(port string) {
-	p, err := plugin.Open("libs/libs.so")
+
+	listener, err := socketgo.NewListen("", port, 3).ListenUDP()
+	//listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		log.Println("插件加载失败", err)
+		log.Println("UDP错误：", err.Error())
+		return
 	}
-	su, _ := p.Lookup("StartUdp")
-	su.(func(addr, port string, cchan chan CarLocal))("", port, CarDataChan)
+	log.Println("启动UDP端口" + port + "成功")
+	//defer listener.Close()
+
+	go func(conn *net.UDPConn) {
+		defer conn.Close()
+		reader := bufio.NewReader(conn)
+		//writer := bufio.NewWriter(conn)
+		for {
+			buf, err := reader.ReadBytes(byte('$'))
+			//this.SetTimeout(conn, buf)
+
+			if err != nil && err != io.EOF {
+				return
+			} else if err == io.EOF {
+				log.Println("设备已断开连接")
+				return
+			}
+
+			if len(buf) <= 4 {
+				log.Println("数据太少")
+				continue
+			}
+			var length = len(buf) - 1
+			buf = buf[:length]
+			//log.Println(string(buf))
+			maxLen := base64.RawStdEncoding.DecodedLen(len(buf))
+			dst := make([]byte, maxLen)
+			_, err = base64.RawStdEncoding.Decode(dst, buf)
+			if err != nil {
+				log.Println("非法数据格式", err)
+				continue
+			}
+			var carData = CarLocal{}
+			if err = json.Unmarshal([]byte(string(dst)), &carData); err != nil {
+				log.Println("非法数据格式,不是地址json", string(dst))
+				continue
+			}
+			CarDataChan <- carData
+		}
+	}(listener)
+
 }
