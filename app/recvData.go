@@ -29,10 +29,12 @@ type CarLocal struct {
 }
 
 type AlarmNoty struct {
-	AnPlate  string `json:"an_plate"`  //车牌号
-	AnLatlng Latlng `json:"an_latlng"` //经纬度
-	AnType   uint8  `json:"an_type"`   //警报类型
-	AnDate   int64  `json:"an_date"`   //警报时间
+	AnPlate     string `json:"an_plate"`      //车牌号
+	AnLatlng    Latlng `json:"an_latlng"`     //经纬度
+	AnType      uint8  `json:"an_type"`       //警报类型
+	AnGroupId   string `json:"an_group_id"`   //组织ID
+	AnCompanyId string `json:"an_company_id"` //企业ID
+	AnDate      int64  `json:"an_date"`       //警报时间
 }
 
 type Latlng struct {
