@@ -80,6 +80,7 @@ func StartUdp(port string) {
 			}
 			var length = len(buf) - 1
 			buf = buf[:length]
+			ptype := string(buf[:1])
 
 			maxLen := base64.RawStdEncoding.DecodedLen(len(buf))
 			dst := make([]byte, maxLen)
@@ -88,8 +89,6 @@ func StartUdp(port string) {
 				log.Println("非法数据格式", err)
 				continue
 			}
-
-			ptype := string(dst[:1])
 
 			switch ptype {
 			case "0": //车辆定位
