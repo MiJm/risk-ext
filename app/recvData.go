@@ -46,6 +46,7 @@ type Latlng struct {
 var (
 	CarDataChan   = make(chan CarLocal, 100)
 	AlarmDataChan = make(chan AlarmNoty, 100)
+	DataChan      = make(chan interface{}, 300)
 	alarmType     = [...]string{"断电", "见光", "出围", "入围", "关机", "开机", "低电量", "通电", "见光恢复", "低电恢复", "出围解除", "入围解除", "风险点", "离线", "异动", "震动", "拆卸", "ACC关", "ACC开", "停车超时", "超速预警", "常驻点预警", "设防报警", "设备分离预警", "二押点预警"}
 )
 
@@ -100,6 +101,7 @@ func StartUdp(port string) {
 					log.Println("非法数据格式,不是地址json")
 					continue
 				}
+				DataChan <- carData
 				CarDataChan <- carData
 			case "1": //警报
 				var almData = AlarmNoty{}
@@ -112,6 +114,7 @@ func StartUdp(port string) {
 				} else {
 					almData.AnName = alarmType[almData.AnType]
 				}
+				DataChan <- almData
 				AlarmDataChan <- almData
 			}
 
