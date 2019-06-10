@@ -142,9 +142,9 @@ func (this *Alarms) GetAlarmNumsByCondition(condition bson.M) (count int, err er
 }
 
 type AlarmRes struct {
-	Alarm_car_plate string `json:"alarm_car_plate"` //报警车牌号
-	Alarm_type      uint8  `json:"alarm_type"`      //报警类型 0 断电报警（有线） 1见光报警（无线）  2围栏（出围） 3围栏（入围）  4关机报警 5开机报警 6低电报警 7通电报警 8见光恢复 9低电恢复 10解除出围 11解除入围,12风险点预警,13离线报警，14异动报警(离线后上线位置与上次上报差距大)，15震动报警，16拆卸报警，17acc关报警，18acc开报警 19停车超时
-	Alarm_type_name string `json:"alarm_type_name"` //报警类型中文描述
+	Alarm_car_plate string `bson:"alarm_car_plate" json:"an_plate"` //报警车牌号
+	Alarm_type      uint8  `bson:"alarm_type" json:"an_type"`       //报警类型 0 断电报警（有线） 1见光报警（无线）  2围栏（出围） 3围栏（入围）  4关机报警 5开机报警 6低电报警 7通电报警 8见光恢复 9低电恢复 10解除出围 11解除入围,12风险点预警,13离线报警，14异动报警(离线后上线位置与上次上报差距大)，15震动报警，16拆卸报警，17acc关报警，18acc开报警 19停车超时
+	Alarm_type_name string `bson:"alarm_type_name" json:"an_name"`  //报警类型中文描述
 }
 
 //通过条件获取最新预警

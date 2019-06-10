@@ -97,13 +97,21 @@ func (this *WsClient) Auth(ctx iris.Context) int {
 
 //消息处理
 func (this *WsClient) OnMessage(data []byte) {
-
+	this.GetAlarmList()     //推送预警列表
 	go this.PushCarNum()    //推送车辆和设备数据
 	go this.PushAlarmNum()  //推送当日预警数
 	go this.PushAlarmList() //推送最新的预警列表
 	go this.GetLastCarLoc() //推送车辆最新数据
 	go this.PushCarList()   //推送车辆全部数据
 	go this.GetLastAlarm()  //推送最新的警报
+}
+
+func (this *WsClient) GetAlarmList() {
+	result, err := new(models.Alarms).GetAlarmList(this.Session.User, 0, 0, 5)
+	if err != nil {
+		return
+	}
+	this.Result("alarm_list", result)
 }
 
 //推送车辆和设备数据
@@ -143,9 +151,9 @@ func (this *WsClient) PushAlarmNum() {
 
 }
 
-//推送最新预警列表
+//推送最新预警聚合
 func (this *WsClient) PushAlarmList() {
-	start := 0
+	// start := 0
 	now := utils.Time2Str1(uint32(time.Now().Unix()))
 	startTime := utils.Str2Time(fmt.Sprintf("%s 00:00:00", now))
 	for !this.disconnected {
@@ -154,22 +162,22 @@ func (this *WsClient) PushAlarmList() {
 			break
 		}
 
-		result, err := new(models.Alarms).GetAlarmList(this.Session.User, start, 0, 5)
-		if err != nil {
-			return
-		}
+		// result, err := new(models.Alarms).GetAlarmList(this.Session.User, start, 0, 5)
+		// if err != nil {
+		// 	return
+		// }
 
 		rs, err := new(models.Alarms).GetNums(this.Session.User, startTime)
 		if err != nil {
 			return
 		}
-		allRes := make(map[string]interface{})
-		allRes["alarm_list"] = result
-		allRes["alarm_gather"] = rs
+		// allRes := make(map[string]interface{})
+		// allRes["alarm_list"] = result
+		// allRes["alarm_gather"] = rs
 
 		// c.To(websocket.Broadcast).EmitMessage([]byte("Message from: " + c.ID() + "-> " + message)) // broadcast to all clients except this
-		this.Result("alarm_list", allRes)
-		start = int(time.Now().Unix())
+		this.Result("alarm_gather", rs)
+		// start = int(time.Now().Unix())
 		time.Sleep(10 * time.Second)
 	}
 
@@ -230,6 +238,7 @@ func (this *WsClient) GetLastCarLoc() {
 	}
 }
 
+//推送最新的预警信息
 func (this *WsClient) GetLastAlarm() {
 	for !this.disconnected {
 		data, OK := <-app.AlarmDataChan

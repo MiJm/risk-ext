@@ -29,12 +29,13 @@ type CarLocal struct {
 }
 
 type AlarmNoty struct {
-	AnPlate     string `json:"an_plate"`      //车牌号
-	AnLatlng    Latlng `json:"an_latlng"`     //经纬度
-	AnType      uint8  `json:"an_type"`       //警报类型
-	AnGroupId   string `json:"an_group_id"`   //组织ID
-	AnCompanyId string `json:"an_company_id"` //企业ID
-	AnDate      int64  `json:"an_date"`       //警报时间
+	AnPlate     string    `json:"an_plate"`      //车牌号
+	AnLatlng    []float64 `json:"an_latlng"`     //经纬度
+	AnType      uint8     `json:"an_type"`       //警报类型
+	AnName      string    `json:"an_name"`       //警报类型名
+	AnGroupId   string    `json:"an_group_id"`   //组织ID
+	AnCompanyId string    `json:"an_company_id"` //企业ID
+	AnDate      int64     `json:"an_date"`       //警报时间
 }
 
 type Latlng struct {
@@ -45,6 +46,7 @@ type Latlng struct {
 var (
 	CarDataChan   = make(chan CarLocal, 100)
 	AlarmDataChan = make(chan AlarmNoty, 100)
+	alarmType     = [...]string{"断电", "见光", "出围", "入围", "关机", "开机", "低电量", "通电", "见光恢复", "低电恢复", "出围解除", "入围解除", "风险点", "离线", "异动", "震动", "拆卸", "ACC关", "ACC开", "停车超时", "超速预警", "常驻点预警", "设防报警", "设备分离预警", "二押点预警"}
 )
 
 //TCP
@@ -81,19 +83,19 @@ func StartUdp(port string) {
 			var length = len(buf) - 1
 			buf = buf[:length]
 			ptype := string(buf[:1])
-
+			buf = buf[1:]
 			maxLen := base64.RawStdEncoding.DecodedLen(len(buf))
 			dst := make([]byte, maxLen)
-			n, err := base64.RawStdEncoding.Decode(dst, buf)
+			_, err = base64.RawStdEncoding.Decode(dst, buf)
 			if err != nil {
 				log.Println("非法数据格式", err)
 				continue
 			}
-
+			//log.Println(string(dst))
 			switch ptype {
 			case "0": //车辆定位
 				var carData = CarLocal{}
-				dst = dst[1:n]
+				//log.Println(string(dst))
 				if err = json.Unmarshal(dst, &carData); err != nil {
 					log.Println("非法数据格式,不是地址json")
 					continue
@@ -101,10 +103,14 @@ func StartUdp(port string) {
 				CarDataChan <- carData
 			case "1": //警报
 				var almData = AlarmNoty{}
-				dst = dst[1:n]
 				if err = json.Unmarshal(dst, &almData); err != nil {
 					log.Println("非法数据格式,不是地址json")
 					continue
+				}
+				if int(almData.AnType) > len(alarmType)-1 {
+					almData.AnName = "未知预警"
+				} else {
+					almData.AnName = alarmType[almData.AnType]
 				}
 				AlarmDataChan <- almData
 			}
