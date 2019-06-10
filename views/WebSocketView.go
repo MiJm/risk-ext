@@ -45,12 +45,15 @@ func init() {
 	ws.OnConnection(func(c websocket.Connection) {
 		NewClient(c) //创建新客户连接通道
 	})
+	go foreachClient()
 }
 
 func NewWs() *WebSocketView {
 	wv := new(WebSocketView)
 	return wv
 }
+
+var clients = make(map[string]*WsClient)
 
 ////////////////////////////////////////////////////////////////////WsClient/////////////////////////////////////////
 /**
@@ -67,7 +70,17 @@ func NewClient(c websocket.Connection) *WsClient {
 	wc := new(WsClient)
 	wc.client = c
 	wc.Init() //初始化开始
+	clients[c.ID()] = wc
 	return wc
+}
+
+func foreachClient() {
+	for {
+		data := <-app.DataChan
+		for _, c := range clients {
+			c.OnRecvie(data) //推送数据
+		}
+	}
 }
 
 /**
@@ -96,14 +109,25 @@ func (this *WsClient) Auth(ctx iris.Context) int {
 }
 
 //消息处理
+func (this *WsClient) OnRecvie(data interface{}) {
+	var dataType = fmt.Sprintf("%T", data)
+	switch dataType {
+	case "app.CarLocal":
+		this.GetLastCarLoc(data.(app.CarLocal))
+	case "app.AlarmNoty":
+		this.GetLastAlarm(data.(app.AlarmNoty))
+	}
+}
+
+//消息处理
 func (this *WsClient) OnMessage(data []byte) {
 	this.GetAlarmList()     //推送预警列表
 	go this.PushCarNum()    //推送车辆和设备数据
 	go this.PushAlarmNum()  //推送当日预警数
 	go this.PushAlarmList() //推送最新的预警列表
-	go this.GetLastCarLoc() //推送车辆最新数据
-	go this.PushCarList()   //推送车辆全部数据
-	go this.GetLastAlarm()  //推送最新的警报
+	//go this.GetLastCarLoc() //推送车辆最新数据
+	go this.PushCarList() //推送车辆全部数据
+	//go this.GetLastAlarm()  //推送最新的警报
 }
 
 func (this *WsClient) GetAlarmList() {
@@ -219,39 +243,29 @@ func (this *WsClient) Result(msgType string, msgData interface{}) {
 func (this *WsClient) OnDisconnect() {
 	this.disconnected = true
 	log.Printf("\n连接 ID: %s 已经断开 %s !", this.client.Context().Request().Host, this.client.ID())
+	delete(clients, this.client.ID())
 }
 
-func (this *WsClient) GetLastCarLoc() {
-	for !this.disconnected {
-		data, OK := <-app.CarDataChan
-		if !OK {
-			time.Sleep(1 * time.Second)
-			continue
-		}
-		if this.Session == nil {
-			break
-		}
-		flag := models.IsCanCheck(data.CarGroupId, data.CarCompanyId, this.Session.User)
-		if flag {
-			this.Result("last_car_loc", data)
-		}
+func (this *WsClient) GetLastCarLoc(data app.CarLocal) {
+
+	if !this.disconnected && this.Session == nil {
+		return
 	}
+	flag := models.IsCanCheck(data.CarGroupId, data.CarCompanyId, this.Session.User)
+	if flag {
+		this.Result("last_car_loc", data)
+	}
+
 }
 
 //推送最新的预警信息
-func (this *WsClient) GetLastAlarm() {
-	for !this.disconnected {
-		data, OK := <-app.AlarmDataChan
-		if !OK {
-			time.Sleep(1 * time.Second)
-			continue
-		}
-		if this.Session == nil {
-			break
-		}
-		flag := models.IsCanCheck(data.AnGroupId, data.AnCompanyId, this.Session.User)
-		if flag {
-			this.Result("last_alarm", data)
-		}
+func (this *WsClient) GetLastAlarm(data app.AlarmNoty) {
+	if !this.disconnected && this.Session == nil {
+		return
 	}
+	flag := models.IsCanCheck(data.AnGroupId, data.AnCompanyId, this.Session.User)
+	if flag {
+		this.Result("last_alarm", data)
+	}
+
 }
