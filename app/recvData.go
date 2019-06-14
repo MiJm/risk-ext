@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"risk-ext/config"
 
 	socketgo "github.com/nulijiabei/socketgo"
 )
@@ -49,9 +50,11 @@ var (
 )
 
 //TCP
-func StartUdp(port string) {
-
-	listener, err := socketgo.NewListen("", port, 3).ListenUDP()
+func StartUdp() {
+	udp := config.Get("udp").(config.M)
+	serv := udp["server"].(string)
+	port := udp["port"].(string)
+	listener, err := socketgo.NewListen(serv, port, 3).ListenUDP()
 	//listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Println("UDP错误：", err.Error())
