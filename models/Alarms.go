@@ -216,7 +216,7 @@ func (this *Alarms) GetNums(loginMember users, startTime uint32) (rs []AlarmResu
 
 	var date = bson.M{}
 	if startTime > 0 {
-		date["$gte"] = startTime - 30*86400
+		date["$gte"] = startTime
 	}
 	// if endTime > startTime && endTime > 0 {
 	// 	date["$lte"] = endTime

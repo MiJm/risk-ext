@@ -125,9 +125,9 @@ func (this *WsClient) OnMessage(data []byte) {
 	go this.PushCarNum()    //推送车辆和设备数据
 	go this.PushAlarmNum()  //推送当日预警数
 	go this.PushAlarmList() //推送最新的预警列表
-	//go this.GetLastCarLoc() //推送车辆最新数据
+	//go this.GetLastCarLoc() //推送车辆最新数据，暂不用
 	go this.PushCarList() //推送车辆全部数据
-	//go this.GetLastAlarm()  //推送最新的警报
+	//go this.GetLastAlarm()  //推送最新的警报，暂不用
 }
 
 func (this *WsClient) GetAlarmList() {
@@ -220,7 +220,7 @@ func (this *WsClient) PushCarList() {
 		}
 		// c.To(websocket.Broadcast).EmitMessage([]byte("Message from: " + c.ID() + "-> " + message)) // broadcast to all clients except this
 		this.Result("car_list", result)
-		time.Sleep(10 * time.Second)
+		time.Sleep(10 * time.Minute)
 	}
 
 }
